@@ -79,24 +79,68 @@ public final class AsciiDocParser
         String currentLanguage = "";
         List<Row> currentTableRows = new ArrayList<>();
         StringBuilder currentBlockContent = new StringBuilder();
+        List<String> nextBlockHeader = new ArrayList<>();
+        boolean inOpenBlock = false;
+        List<Block> openBlockBlocks = new ArrayList<>();
+        List<String> openBlockHeader = new ArrayList<>();
 
         var blocks = new ArrayList<Block>();
+        List<Block> currentContainer = blocks;
+
         for (int i = lineIndex; i < lines.length; i++) {
             String line = lines[i];
             String trimmed = line.trim();
 
+            if (trimmed.startsWith("[") && trimmed.endsWith("]") && !inCodeBlock && !inBlockquote && !inTable) {
+                nextBlockHeader.add(trimmed.substring(1, trimmed.length() - 1));
+                continue;
+            }
+
+            if (trimmed.equals("--") && !inCodeBlock && !inBlockquote && !inTable) {
+                if (inOpenBlock) {
+                    if (!currentParagraph.isEmpty()) {
+                        currentContainer.add(new Paragraph(new ArrayList<>(nextBlockHeader),
+                                parseInlines(currentParagraph.toString()
+                                                             .trim())));
+                        currentParagraph.setLength(0);
+                        nextBlockHeader.clear();
+                    }
+                    blocks.add(new OpenBlock(new ArrayList<>(openBlockHeader), new ArrayList<>(openBlockBlocks)));
+                    openBlockBlocks.clear();
+                    openBlockHeader.clear();
+                    inOpenBlock = false;
+                    currentContainer = blocks;
+                }
+                else {
+                    if (!currentParagraph.isEmpty()) {
+                        currentContainer.add(new Paragraph(new ArrayList<>(nextBlockHeader),
+                                parseInlines(currentParagraph.toString()
+                                                             .trim())));
+                        currentParagraph.setLength(0);
+                        nextBlockHeader.clear();
+                    }
+                    inOpenBlock = true;
+                    openBlockHeader = new ArrayList<>(nextBlockHeader);
+                    nextBlockHeader.clear();
+                    currentContainer = openBlockBlocks;
+                }
+                continue;
+            }
+
             if (trimmed.equals("____")) {
                 if (inBlockquote) {
-                    blocks.add(new Blockquote(parseInlines(currentBlockContent.toString()
+                    currentContainer.add(new Blockquote(parseInlines(currentBlockContent.toString()
                                                                               .trim())));
                     currentBlockContent.setLength(0);
                     inBlockquote = false;
                 }
                 else {
                     if (!currentParagraph.isEmpty()) {
-                        blocks.add(new Paragraph(parseInlines(currentParagraph.toString()
-                                                                              .trim())));
+                        currentContainer.add(new Paragraph(new ArrayList<>(nextBlockHeader),
+                                parseInlines(currentParagraph.toString()
+                                                             .trim())));
                         currentParagraph.setLength(0);
+                        nextBlockHeader.clear();
                     }
                     inBlockquote = true;
                 }
@@ -123,7 +167,7 @@ public final class AsciiDocParser
 
             if (trimmed.equals("----")) {
                 if (inCodeBlock) {
-                    blocks.add(new CodeBlock(currentLanguage,
+                    currentContainer.add(new CodeBlock(currentLanguage,
                             currentBlockContent.toString()
                                                .trim()));
                     currentBlockContent.setLength(0);
@@ -132,9 +176,11 @@ public final class AsciiDocParser
                 }
                 else {
                     if (!currentParagraph.isEmpty()) {
-                        blocks.add(new Paragraph(parseInlines(currentParagraph.toString()
-                                                                              .trim())));
+                        currentContainer.add(new Paragraph(new ArrayList<>(nextBlockHeader),
+                                parseInlines(currentParagraph.toString()
+                                                             .trim())));
                         currentParagraph.setLength(0);
+                        nextBlockHeader.clear();
                     }
                     inCodeBlock = true;
                 }
@@ -151,9 +197,11 @@ public final class AsciiDocParser
 
             if (trimmed.startsWith("image::")) {
                 if (!currentParagraph.isEmpty()) {
-                    blocks.add(new Paragraph(parseInlines(currentParagraph.toString()
-                                                                          .trim())));
+                    currentContainer.add(new Paragraph(new ArrayList<>(nextBlockHeader),
+                            parseInlines(currentParagraph.toString()
+                                                         .trim())));
                     currentParagraph.setLength(0);
+                    nextBlockHeader.clear();
                 }
                 int endUrl = trimmed.indexOf('[', 7);
                 if (endUrl != -1) {
@@ -161,7 +209,7 @@ public final class AsciiDocParser
                     if (endText != -1) {
                         String url = trimmed.substring(7, endUrl);
                         String altText = trimmed.substring(endUrl + 1, endText);
-                        blocks.add(new ImageBlock(url, altText));
+                        currentContainer.add(new ImageBlock(url, altText));
                         continue;
                     }
                 }
@@ -173,9 +221,11 @@ public final class AsciiDocParser
                 int endBracket = trimmed.indexOf(']', macroNameEnd + 3);
                 if (endBracket != -1) {
                     if (!currentParagraph.isEmpty()) {
-                        blocks.add(new Paragraph(parseInlines(currentParagraph.toString()
-                                                                              .trim())));
+                        currentContainer.add(new Paragraph(new ArrayList<>(nextBlockHeader),
+                                parseInlines(currentParagraph.toString()
+                                                             .trim())));
                         currentParagraph.setLength(0);
+                        nextBlockHeader.clear();
                     }
                     String content = trimmed.substring(macroNameEnd + 3, endBracket);
                     // Simple attribute parser for id="value", key="value"
@@ -191,22 +241,24 @@ public final class AsciiDocParser
                             attributesList.add(part.trim());
                         }
                     }
-                    blocks.add(new MacroBlock(macroName, id, attributesList));
+                    currentContainer.add(new MacroBlock(macroName, id, attributesList));
                     continue;
                 }
             }
 
             if (trimmed.equals("|===")) {
                 if (inTable) {
-                    blocks.add(new Table(currentTableRows));
+                    currentContainer.add(new Table(currentTableRows));
                     currentTableRows = new ArrayList<>();
                     inTable = false;
                 }
                 else {
                     if (!currentParagraph.isEmpty()) {
-                        blocks.add(new Paragraph(parseInlines(currentParagraph.toString()
-                                                                              .trim())));
+                        currentContainer.add(new Paragraph(new ArrayList<>(nextBlockHeader),
+                                parseInlines(currentParagraph.toString()
+                                                             .trim())));
                         currentParagraph.setLength(0);
+                        nextBlockHeader.clear();
                     }
                     inTable = true;
                 }
@@ -228,9 +280,11 @@ public final class AsciiDocParser
 
             if (trimmed.isBlank()) {
                 if (!currentParagraph.isEmpty()) {
-                    blocks.add(new Paragraph(parseInlines(currentParagraph.toString()
-                                                                          .trim())));
+                    currentContainer.add(new Paragraph(new ArrayList<>(nextBlockHeader),
+                            parseInlines(currentParagraph.toString()
+                                                         .trim())));
                     currentParagraph.setLength(0);
+                    nextBlockHeader.clear();
                 }
                 continue;
             }
@@ -244,13 +298,16 @@ public final class AsciiDocParser
                 if (level > 0 && level <= 6 && level < trimmed.length()
                     && Character.isWhitespace(trimmed.charAt(level))) {
                     if (!currentParagraph.isEmpty()) {
-                        blocks.add(new Paragraph(parseInlines(currentParagraph.toString()
-                                                                              .trim())));
+                        currentContainer.add(new Paragraph(new ArrayList<>(nextBlockHeader),
+                                parseInlines(currentParagraph.toString()
+                                                             .trim())));
                         currentParagraph.setLength(0);
+                        nextBlockHeader.clear();
                     }
                     String title = trimmed.substring(level)
                                           .trim();
-                    blocks.add(new Heading(level, parseInlines(title)));
+                    currentContainer.add(new Heading(new ArrayList<>(nextBlockHeader), level, parseInlines(title)));
+                    nextBlockHeader.clear();
                     continue;
                 }
             }
@@ -258,20 +315,22 @@ public final class AsciiDocParser
             // Check for Unordered List Item
             if (trimmed.startsWith("* ")) {
                 if (!currentParagraph.isEmpty()) {
-                    blocks.add(new Paragraph(parseInlines(currentParagraph.toString()
-                                                                          .trim())));
+                    currentContainer.add(new Paragraph(new ArrayList<>(nextBlockHeader),
+                            parseInlines(currentParagraph.toString()
+                                                         .trim())));
                     currentParagraph.setLength(0);
+                    nextBlockHeader.clear();
                 }
                 String itemText = trimmed.substring(2)
                                          .trim();
                 var item = new ListItem(parseInlines(itemText));
-                if (!blocks.isEmpty() && blocks.getLast() instanceof UnorderedList(List<ListItem> items1)) {
+                if (!currentContainer.isEmpty() && currentContainer.getLast() instanceof UnorderedList(List<ListItem> items1)) {
                     List<ListItem> items = new ArrayList<>(items1);
                     items.add(item);
-                    blocks.set(blocks.size() - 1, new UnorderedList(items));
+                    currentContainer.set(currentContainer.size() - 1, new UnorderedList(items));
                 }
                 else {
-                    blocks.add(new UnorderedList(List.of(item)));
+                    currentContainer.add(new UnorderedList(List.of(item)));
                 }
                 continue;
             }
@@ -279,20 +338,22 @@ public final class AsciiDocParser
             // Check for Ordered List Item
             if (trimmed.startsWith(". ")) {
                 if (!currentParagraph.isEmpty()) {
-                    blocks.add(new Paragraph(parseInlines(currentParagraph.toString()
-                                                                          .trim())));
+                    currentContainer.add(new Paragraph(new ArrayList<>(nextBlockHeader),
+                            parseInlines(currentParagraph.toString()
+                                                         .trim())));
                     currentParagraph.setLength(0);
+                    nextBlockHeader.clear();
                 }
                 String itemText = trimmed.substring(2)
                                          .trim();
                 var item = new ListItem(parseInlines(itemText));
-                if (!blocks.isEmpty() && blocks.getLast() instanceof OrderedList(List<ListItem> items1)) {
+                if (!currentContainer.isEmpty() && currentContainer.getLast() instanceof OrderedList(List<ListItem> items1)) {
                     List<ListItem> items = new ArrayList<>(items1);
                     items.add(item);
-                    blocks.set(blocks.size() - 1, new OrderedList(items));
+                    currentContainer.set(currentContainer.size() - 1, new OrderedList(items));
                 }
                 else {
-                    blocks.add(new OrderedList(List.of(item)));
+                    currentContainer.add(new OrderedList(List.of(item)));
                 }
                 continue;
             }
@@ -305,8 +366,9 @@ public final class AsciiDocParser
         }
 
         if (!currentParagraph.isEmpty()) {
-            blocks.add(new Paragraph(parseInlines(currentParagraph.toString()
-                                                                  .trim())));
+            currentContainer.add(new Paragraph(new ArrayList<>(nextBlockHeader),
+                    parseInlines(currentParagraph.toString()
+                                                 .trim())));
         }
 
         return AsciiDocModel.of(blocks, attributes);
