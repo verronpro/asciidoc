@@ -1,17 +1,23 @@
 package pro.verron.officestamper.asciidoc.compiler;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-/// This class contains snapshot tests for AsciiDoc rendering with different themes.
-/// The tests generate visual representations of AsciiDoc documents in PNG format
-/// and compare them against predefined golden files to detect any rendering inconsistencies.
+/// This class contains snapshot tests for AsciiDoc rendering with different
+/// themes.
+/// The tests generate visual representations of AsciiDoc documents in PNG
+/// format
+/// and compare them against predefined golden files to detect any rendering
+/// inconsistencies.
 ///
-/// The test outputs are saved in a directory and compared with the expected outputs
+/// The test outputs are saved in a directory and compared with the expected
+/// outputs
 /// using a tolerance for any minor differences.
 public class AsciiDocSnapshotTest {
 
@@ -24,13 +30,14 @@ public class AsciiDocSnapshotTest {
         Files.createDirectories(ACTUAL_DIR);
     }
 
-    @Test
-    void snapshotWordTheme()
-            throws IOException {
-        runSnapshotTest("word-basic.adoc", "word-basic.png");
-    }
-
-    private void runSnapshotTest(String adocName, String pngName)
+    @CsvSource({
+            "word-basic.adoc,word-basic.png",
+            "gdocs-basic.adoc,gdocs-basic.png",
+            "libre-basic.adoc,libre-basic.png"
+    })
+    @ParameterizedTest(name = "{0} theme snapshot")
+    @DisplayName("Snapshot tests for different themes")
+    void snapshotThemes(String adocTemplate, String imgPath)
             throws IOException {
         var asciidoc = """
                 = Document Title
@@ -57,25 +64,15 @@ public class AsciiDocSnapshotTest {
                 """;
 
         // Handle theme based on name
-        if (adocName.startsWith("gdocs")) asciidoc = ":theme: gdocs\n" + asciidoc;
-        else if (adocName.startsWith("libre")) asciidoc = ":theme: libre\n" + asciidoc;
+        if (adocTemplate.startsWith("gdocs"))
+            asciidoc = ":theme: gdocs\n" + asciidoc;
+        else if (adocTemplate.startsWith("libre"))
+            asciidoc = ":theme: libre\n" + asciidoc;
 
-        var actualPath = ACTUAL_DIR.resolve(pngName);
+        var actualPath = ACTUAL_DIR.resolve(imgPath);
         AsciiDocCompiler.toImage(asciidoc, actualPath);
 
-        var goldenPath = GOLDEN_DIR.resolve(pngName);
+        var goldenPath = GOLDEN_DIR.resolve(imgPath);
         SnapshotUtils.assertSnapshotMatch(actualPath, goldenPath, 0.02);
-    }
-
-    @Test
-    void snapshotGoogleDocsTheme()
-            throws IOException {
-        runSnapshotTest("gdocs-basic.adoc", "gdocs-basic.png");
-    }
-
-    @Test
-    void snapshotLibreOfficeTheme()
-            throws IOException {
-        runSnapshotTest("libre-basic.adoc", "libre-basic.png");
     }
 }
