@@ -2,7 +2,6 @@ package pro.verron.officestamper.asciidoc.compiler;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import pro.verron.officestamper.utils.test.SnapshotUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
