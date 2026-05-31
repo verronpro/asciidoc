@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>asciidoc-preview</artifactId>
-    <name>Office-stamper AsciiDoc Preview Extension</name>
+    <name>Verron.pro AsciiDoc Preview Extension</name>
 
     <dependencies>
         <dependency>

@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>asciidoc-docx</artifactId>
-    <name>Office-stamper AsciiDoc DOCX Integration</name>
+    <name>Verron.pro AsciiDoc DOCX Integration</name>
 
     <dependencies>
         <dependency>

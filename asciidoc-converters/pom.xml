@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>asciidoc-converters</artifactId>
-    <name>Office-stamper AsciiDoc Converters</name>
+    <name>Verron.pro AsciiDoc Converters</name>
 
     <dependencies>
         <dependency>

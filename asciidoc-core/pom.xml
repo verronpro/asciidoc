@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>asciidoc-core</artifactId>
-    <name>Office-stamper AsciiDoc Core</name>
+    <name>Verron.pro AsciiDoc Core</name>
 
     <dependencies>
         <dependency>
