@@ -13,6 +13,7 @@
         office-stamper project.
     </description>
     <url>https://asciidoc.verron.pro</url>
+    <inceptionYear>2025</inceptionYear>
 
     <modules>
         <module>asciidoc-core</module>
