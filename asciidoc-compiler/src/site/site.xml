@@ -10,11 +10,11 @@
     <body>
         <links>
             <item name="Blog" href="https://verron.pro/"/>
-            <item name="GitHub" href="https://github.com/verronpro/office-stamper"/>
+            <item name="GitHub" href="https://github.com/verronpro/asciidoc"/>
         </links>
 
         <menu name="Parent">
-            <item name="Parent" href="https://office-stamper.verron.pro"/>
+            <item name="Parent" href="https://asciidoc.verron.pro"/>
         </menu>
 
         <menu name="Module">
@@ -25,7 +25,7 @@
         <menu name="Reports" ref="reports"/>
     </body>
 
-    <edit>https://github.com/verronpro/office-stamper.git</edit>
+    <edit>https://github.com/verronpro/asciidoc.git</edit>
     <publishDate/>
     <version/>
 </site>
