@@ -26,7 +26,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.report.outputEncoding>UTF-8</project.report.outputEncoding>
-        <pro.verron.imageio.version>3.4</pro.verron.imageio.version>
     </properties>
 
     <distributionManagement>
@@ -301,17 +300,17 @@
             <dependency>
                 <groupId>pro.verron.imageio</groupId>
                 <artifactId>imageio-svg</artifactId>
-                <version>${pro.verron.imageio.version}</version>
+                <version>3.5</version>
             </dependency>
             <dependency>
                 <groupId>pro.verron.imageio</groupId>
                 <artifactId>imageio-wmf</artifactId>
-                <version>${pro.verron.imageio.version}</version>
+                <version>3.5</version>
             </dependency>
             <dependency>
                 <groupId>pro.verron.imageio</groupId>
                 <artifactId>imageio-emf</artifactId>
-                <version>${pro.verron.imageio.version}</version>
+                <version>3.5</version>
             </dependency>
 
             <dependency>
