@@ -1,15 +1,20 @@
+// suppress inspection "AsciiDocLinkResolve" for whole file
+:ghos: https://github.com/verronpro/asciidoc
+:docs: https://asciidoc.verron.pro
+:blog: https://verron.pro
+
 = Office-stamper AsciiDoc Modules
 
-This directory contains the AsciiDoc related modules for the Office-stamper project.
-It has been modularized to follow the Single Responsibility Principle and to isolate heavy dependencies.
+This project provides a suite of modules for handling AsciiDoc content within the Office-stamper ecosystem.
+It enables bidirectional conversion between AsciiDoc and DOCX, as well as high-quality rendering to HTML, SVG, and PNG.
 
 == Modules
 
-* link:asciidoc-core/README.adoc[asciidoc-core]: Core data model and basic text parsing.
-* link:asciidoc-converters/README.adoc[asciidoc-converters]: Lightweight converters to HTML, SVG, and Text.
-* link:asciidoc-docx/README.adoc[asciidoc-docx]: Bidirectional conversion between AsciiDoc and DOCX.
-* link:asciidoc-compiler/README.adoc[asciidoc-compiler]: High-level facade and image export utilities.
-* link:asciidoc-preview/README.adoc[asciidoc-preview]: AsciidoctorJ extension for embedding previews.
+* link:asciidoc-core/README.adoc[asciidoc-core]: Foundation data model and parsing logic.
+* link:asciidoc-converters/README.adoc[asciidoc-converters]: Lightweight rendering to HTML, SVG, and Text.
+* link:asciidoc-docx/README.adoc[asciidoc-docx]: Conversion between AsciiDoc and Microsoft Word (DOCX).
+* link:asciidoc-compiler/README.adoc[asciidoc-compiler]: High-level API and PNG export utilities.
+* link:asciidoc-preview/README.adoc[asciidoc-preview]: AsciidoctorJ extension for embedding previews in documentation.
 
 == Architecture
 
@@ -31,3 +36,11 @@ graph TD
     comp --> docx
     ext --> comp
 ----
+
+== Author
+
+Joseph Verron - {blog}/about.html[About Me]
+
+== License
+
+MIT License

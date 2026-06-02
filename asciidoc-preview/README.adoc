@@ -1,13 +1,18 @@
+// suppress inspection "AsciiDocLinkResolve" for whole file
+:ghos: https://github.com/verronpro/asciidoc
+:docs: https://asciidoc.verron.pro
+:blog: https://verron.pro
+
 = Office-stamper AsciiDoc Preview Extension
 
 The `asciidoc-preview` module provides an AsciidoctorJ block macro extension to embed editor-simulated previews of AsciiDoc templates into documentation.
 
-== Features
+== Key Features
 
-* `preview::[]` macro: Automatically renders and embeds PNG previews of AsciiDoc files.
-* Supports `theme`, `format`, and `dpi` attributes.
-* Intelligent caching: Only regenerates images when the source AsciiDoc file changes.
-* SPI discovery: Automatically registered when added to the AsciidoctorJ classpath.
+* **`preview::[]` Macro**: Automatically renders and embeds PNG previews of AsciiDoc files.
+* **Theming**: Supports `theme`, `format`, and `dpi` attributes for consistent previews.
+* **Caching**: Intelligent caching system that only regenerates images when the source file changes.
+* **Easy Integration**: SPI discovery for automatic registration with AsciidoctorJ.
 
 == Usage in AsciiDoc
 
@@ -16,11 +21,25 @@ The `asciidoc-preview` module provides an AsciidoctorJ block macro extension to 
 preview::my-template.adoc[theme=word, dpi=300]
 ----
 
-== Dependencies
+== Maven Coordinates
 
-* `asciidoc-compiler`
-* `asciidoctorj`
+[source,xml]
+----
+<dependency>
+    <groupId>pro.verron.office-stamper</groupId>
+    <artifactId>asciidoc-preview</artifactId>
+    <version>${project.version}</version>
+</dependency>
+----
 
-== Module name
+== Documentation
 
-`pro.verron.officestamper.asciidoc.preview`
+For more information, visit the {docs}[Official Documentation].
+
+== Author
+
+Joseph Verron - {blog}/about.html[About Me]
+
+== License
+
+MIT License

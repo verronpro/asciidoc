@@ -1,19 +1,20 @@
+// suppress inspection "AsciiDocLinkResolve" for whole file
+:ghos: https://github.com/verronpro/asciidoc
+:docs: https://asciidoc.verron.pro
+:blog: https://verron.pro
+
 = Office-stamper AsciiDoc DOCX
 
 The `asciidoc-docx` module provides bidirectional integration between AsciiDoc and Microsoft Word (DOCX) formats.
+It leverages Docx4J to map AsciiDoc structures to WordprocessingML and vice versa.
 
-== Features
+== Key Features
 
-* `AsciiDocToDocx`: Converts AsciiDoc model to Docx4j `R` (Run) objects.
-* `DocxToAsciiDoc`: Converts Docx4j `R` objects or full documents back to AsciiDoc text.
-* Handles complex formatting mapping between the two formats.
+* **AsciiDoc to DOCX**: `AsciiDocToDocx` converts the AsciiDoc model to Docx4J `R` (Run) objects, preserving formatting.
+* **DOCX to AsciiDoc**: `DocxToAsciiDoc` converts Docx4J objects or full documents back to AsciiDoc text.
+* **Formatting Mapping**: Handles complex mapping of styles, bold, italic, and other inline formatting between the two formats.
 
-== Dependencies
-
-* `asciidoc-core`
-* `docx4j-JAXB-ReferenceImpl`
-
-== Usage
+== Quick Start
 
 [source,java]
 ----
@@ -22,6 +23,25 @@ AsciiDocToDocx converter = new AsciiDocToDocx();
 List<Object> runs = converter.convert(model);
 ----
 
-== Module name
+== Maven Coordinates
 
-`pro.verron.officestamper.asciidoc.docx`
+[source,xml]
+----
+<dependency>
+    <groupId>pro.verron.office-stamper</groupId>
+    <artifactId>asciidoc-docx</artifactId>
+    <version>${project.version}</version>
+</dependency>
+----
+
+== Documentation
+
+For more information, visit the {docs}[Official Documentation].
+
+== Author
+
+Joseph Verron - {blog}/about.html[About Me]
+
+== License
+
+MIT License

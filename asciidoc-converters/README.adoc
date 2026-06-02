@@ -1,14 +1,19 @@
+// suppress inspection "AsciiDocLinkResolve" for whole file
+:ghos: https://github.com/verronpro/asciidoc
+:docs: https://asciidoc.verron.pro
+:blog: https://verron.pro
+
 = Office-stamper AsciiDoc Converters
 
-The `asciidoc-converters` module provides lightweight converters from the `AsciiDocModel` to various text-based formats.
+The `asciidoc-converters` module provides lightweight converters from the `AsciiDocModel` to various text-based and vector formats.
 
-== Converters
+== Key Features
 
-* `AsciiDocToHtml`: Converts the model to basic HTML spans.
-* `AsciiDocToText`: Converts the model to plain text.
-* `AsciiDocToSvg`: Converts the model to SVG, with support for different editor themes (Word, Google Docs, LibreOffice).
+* **HTML Converter**: `AsciiDocToHtml` converts the model to basic HTML spans.
+* **Text Converter**: `AsciiDocToText` converts the model to plain text.
+* **SVG Converter**: `AsciiDocToSvg` converts the model to SVG, with support for different editor themes (Word, Google Docs, LibreOffice).
 
-== Usage
+== Quick Start
 
 [source,java]
 ----
@@ -17,6 +22,25 @@ AsciiDocToHtml converter = new AsciiDocToHtml();
 String html = converter.convert(model);
 ----
 
-== Module name
+== Maven Coordinates
 
-`pro.verron.officestamper.asciidoc.converters`
+[source,xml]
+----
+<dependency>
+    <groupId>pro.verron.office-stamper</groupId>
+    <artifactId>asciidoc-converters</artifactId>
+    <version>${project.version}</version>
+</dependency>
+----
+
+== Documentation
+
+For more information, visit the {docs}[Official Documentation].
+
+== Author
+
+Joseph Verron - {blog}/about.html[About Me]
+
+== License
+
+MIT License

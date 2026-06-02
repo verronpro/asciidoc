@@ -1,14 +1,20 @@
+// suppress inspection "AsciiDocLinkResolve" for whole file
+:ghos: https://github.com/verronpro/asciidoc
+:docs: https://asciidoc.verron.pro
+:blog: https://verron.pro
+
 = Office-stamper AsciiDoc Core
 
 The `asciidoc-core` module provides the foundational data model and parsing logic for AsciiDoc integration in Office-stamper.
+It is designed to be lightweight and efficient, focusing on the core structures needed for bidirectional conversion.
 
-== Features
+== Key Features
 
-* `AsciiDocModel`: A structured representation of AsciiDoc content (comments, parts).
-* `AsciiDocParser`: A regex-based parser for extracting model components from raw text.
-* Lightweight and dependency-free (only JSpecify for nullability annotations).
+* **Data Model**: `AsciiDocModel` provides a structured representation of AsciiDoc content, including comments and different document parts.
+* **Regex-based Parser**: `AsciiDocParser` allows for fast extraction of model components from raw AsciiDoc text.
+* **Lightweight**: Minimal dependencies, ensuring it can be easily integrated into various environments.
 
-== Usage
+== Quick Start
 
 [source,java]
 ----
@@ -16,6 +22,25 @@ AsciiDocParser parser = new AsciiDocParser();
 AsciiDocModel model = parser.parse("Some *bold* text");
 ----
 
-== Module name
+== Maven Coordinates
 
-`pro.verron.officestamper.asciidoc.core`
+[source,xml]
+----
+<dependency>
+    <groupId>pro.verron.office-stamper</groupId>
+    <artifactId>asciidoc-core</artifactId>
+    <version>${project.version}</version>
+</dependency>
+----
+
+== Documentation
+
+For more information, visit the {docs}[Official Documentation].
+
+== Author
+
+Joseph Verron - {blog}/about.html[About Me]
+
+== License
+
+MIT License

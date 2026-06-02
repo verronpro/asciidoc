@@ -1,19 +1,21 @@
+// suppress inspection "AsciiDocLinkResolve" for whole file
+:ghos: https://github.com/verronpro/asciidoc
+:docs: https://asciidoc.verron.pro
+:blog: https://verron.pro
+
 = Office-stamper AsciiDoc Compiler
 
-The `asciidoc-compiler` module provides a high-level facade for all AsciiDoc operations and includes PNG export utilities using Batik.
+The `asciidoc-compiler` module provides a high-level facade for all AsciiDoc operations.
+It includes PNG export utilities powered by Apache Batik, allowing for easy conversion of AsciiDoc content to image formats.
 
-== Features
+== Key Features
 
-* `AsciiDocCompiler`: A unified API for converting AsciiDoc source directly to SVG or PNG.
-* Integrated PNG exporting with support for DPI and background options.
-* Facade pattern over core, converters, and docx modules.
+* **Unified API**: `AsciiDocCompiler` provides a single entry point for common operations.
+* **Image Export**: Built-in support for compiling AsciiDoc directly to SVG or PNG.
+* **Customization**: Support for different DPI settings and themes.
+* **Integration**: Combines functionality from core, converters, and docx modules.
 
-== Dependencies
-
-* `asciidoc-core`, `asciidoc-converters`, `asciidoc-docx`
-* `batik-transcoder`, `batik-codec`
-
-== Usage
+== Quick Start
 
 [source,java]
 ----
@@ -21,6 +23,25 @@ AsciiDocCompiler compiler = new AsciiDocCompiler();
 Path pngPath = compiler.compileToPng("source.adoc", "output.png", 300, Theme.WORD);
 ----
 
-== Module name
+== Maven Coordinates
 
-`pro.verron.officestamper.asciidoc.compiler`
+[source,xml]
+----
+<dependency>
+    <groupId>pro.verron.office-stamper</groupId>
+    <artifactId>asciidoc-compiler</artifactId>
+    <version>${project.version}</version>
+</dependency>
+----
+
+== Documentation
+
+For more information, visit the {docs}[Official Documentation].
+
+== Author
+
+Joseph Verron - {blog}/about.html[About Me]
+
+== License
+
+MIT License
