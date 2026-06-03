@@ -2,7 +2,8 @@ package pro.verron.asciidoc.core.core;
 
 /// Marker interface for document blocks.
 public sealed interface Block
-        permits QuoteBlock, Break, CodeBlock, CommentBlock, Heading, ImageBlock, MacroBlock, OpenBlock, OrderedList,
-        Paragraph, Table, UnorderedList {
+        permits QuoteBlock, Break, CodeBlock, CommentBlock, Heading,
+        ImageBlock, MacroBlock, OpenBlock, OrderedList, Paragraph, Table,
+        UnorderedList {
     int size();
 }
