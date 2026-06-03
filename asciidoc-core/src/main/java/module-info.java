@@ -1,5 +1,5 @@
-module pro.verron.officestamper.asciidoc.core {
+module pro.verron.asciidoc.core {
     requires org.jspecify;
 
-    exports pro.verron.officestamper.asciidoc.core;
+    exports pro.verron.asciidoc.core.core;
 }

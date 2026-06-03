@@ -1,6 +1,6 @@
-module pro.verron.officestamper.asciidoc.converters {
-    requires pro.verron.officestamper.asciidoc.core;
+module pro.verron.asciidoc.converters {
+    requires pro.verron.asciidoc.core;
     requires java.desktop;
 
-    exports pro.verron.officestamper.asciidoc.converters;
+    exports pro.verron.asciidoc.converters.converters;
 }

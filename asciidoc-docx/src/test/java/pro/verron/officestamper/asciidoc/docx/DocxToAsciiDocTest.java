@@ -1,8 +1,10 @@
 package pro.verron.officestamper.asciidoc.docx;
 
 import org.junit.jupiter.api.Test;
-import pro.verron.officestamper.asciidoc.converters.AsciiDocToText;
-import pro.verron.officestamper.asciidoc.core.*;
+import pro.verron.asciidoc.converters.converters.AsciiDocToText;
+import pro.verron.asciidoc.core.core.*;
+import pro.verron.asciidoc.docx.AsciiDocToDocx;
+import pro.verron.asciidoc.docx.DocxToAsciiDoc;
 
 import java.util.List;
 
@@ -20,7 +22,9 @@ class DocxToAsciiDocTest {
         var row = new Row(List.of(cellA, cellB));
         var nestedTable = new Table(List.of(row));
 
-        var rootCell = new Cell(List.of(new Paragraph(List.of(new Text("Nested:"))), nestedTable));
+        var rootCell = new Cell(List.of(new Paragraph(List.of(new Text(
+                        "Nested:"))),
+                nestedTable));
         var otherCell = Cell.ofInlines(List.of(new Text("Other")));
         var rootRow = new Row(List.of(rootCell, otherCell));
         var rootTable = new Table(List.of(rootRow));
@@ -29,7 +33,9 @@ class DocxToAsciiDocTest {
 
         // Convert to DOCX and back to AsciiDoc
         var pkg = new AsciiDocToDocx().apply(model);
-        var result = new AsciiDocToText(false).apply(new DocxToAsciiDoc(pkg).apply(pkg));
+        var result =
+                new AsciiDocToText(false).apply(new DocxToAsciiDoc(pkg).apply(
+                        pkg));
 
         var expected = """
                 |===
@@ -61,7 +67,9 @@ class DocxToAsciiDocTest {
 
         var model = AsciiDocModel.of(List.of(rootTable));
         var pkg = new AsciiDocToDocx().apply(model);
-        var result = new AsciiDocToText(false).apply(new DocxToAsciiDoc(pkg).apply(pkg));
+        var result =
+                new AsciiDocToText(false).apply(new DocxToAsciiDoc(pkg).apply(
+                        pkg));
 
         var expected = """
                 |===

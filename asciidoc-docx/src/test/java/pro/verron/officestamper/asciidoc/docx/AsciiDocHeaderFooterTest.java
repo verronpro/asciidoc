@@ -6,7 +6,8 @@ import org.docx4j.openpackaging.parts.WordprocessingML.HeaderPart;
 import org.docx4j.wml.SectPr;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import pro.verron.officestamper.asciidoc.core.AsciiDocParser;
+import pro.verron.asciidoc.core.core.AsciiDocParser;
+import pro.verron.asciidoc.docx.AsciiDocToDocx;
 
 import java.util.List;
 
