@@ -86,7 +86,7 @@ public final class AsciiDocToText
 
     private static String renderList(List<ListItem> items1, String x) {
         return items1.stream()
-                     .map(item -> x + renderInlines(item.inlines()) + "\n")
+                     .map(item -> x + renderInlines(item.inlines()))
                      .collect(Collectors.joining("\n"));
     }
 
