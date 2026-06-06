@@ -1,29 +1,24 @@
 package pro.verron.asciidoc.preview;
 
-import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.Attributes;
 import org.asciidoctor.Options;
 import org.asciidoctor.SafeMode;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 
+import static java.nio.file.Files.exists;
 import static java.nio.file.Files.getLastModifiedTime;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class AsciiDocPreviewExtensionTest {
-
-    @TempDir Path tempDir;
+class AsciiDocPreviewExtensionTest
+        extends AsciiDocPreviewTest {
 
     @Test
-    public void shouldGeneratePreviewImage()
+    void shouldGeneratePreviewImage()
             throws IOException {
-        // Prepare a template adoc
-        var templatePath = tempDir.resolve("template.adoc");
         Files.writeString(templatePath, """
                 = Template Title
                 
@@ -32,35 +27,35 @@ public class AsciiDocPreviewExtensionTest {
         // Main adoc with the macro
         var adoc = "preview::template.adoc[theme=word,format=png,dpi=96]";
 
-        try (var asciidoctor = Asciidoctor.Factory.create()) {
-            var extensionRegistry = asciidoctor.javaExtensionRegistry();
-            extensionRegistry.blockMacro(AsciiDocPreviewBlockMacro.class);
 
-            var tempDirAbsolutePath = tempDir.toAbsolutePath();
-            var attributes = Attributes.builder()
-                                       .attribute("docdir", tempDirAbsolutePath.toString())
-                                       .attribute("outdir", tempDirAbsolutePath.toString())
-                                       .build();
-            var options = Options.builder()
-                                 .safe(SafeMode.UNSAFE)
-                                 .baseDir(tempDir.toFile())
-                                 .attributes(attributes)
-                                 .build();
+        var tempDirAbsolutePath = tempDir.toAbsolutePath();
+        var tempDirAbsolutePathString = tempDirAbsolutePath.toString();
+        var attrs = Attributes.builder()
+                              .attribute("docdir", tempDirAbsolutePathString)
+                              .attribute("outdir", tempDirAbsolutePathString)
+                              .build();
+        var options = Options.builder()
+                             .safe(SafeMode.UNSAFE)
+                             .baseDir(tempDir.toFile())
+                             .attributes(attrs)
+                             .build();
 
-            var html = asciidoctor.convert(adoc, options);
+        var html = asciidoctor.convert(adoc, options);
 
-            // Check if image was generated
-            var imagePath = tempDir.resolve("template-word-96.png");
-            assertTrue(Files.exists(imagePath), "Image should be generated at " + imagePath);
-            assertTrue(html.contains("src=\"template-word-96.png\""), "HTML should contain image tag");
-        }
+        // Check if image was generated
+        var imagePath = tempDir.resolve("template-word-96.png");
+        var previewMessage = "Image should be generated at %s";
+        assertTrue(exists(imagePath), previewMessage.formatted(imagePath));
+
+        var htmlPreviewMessage = "HTML should contain image tag";
+        var hasPreviewImage = html.contains("src=\"template-word-96.png\"");
+        assertTrue(hasPreviewImage, htmlPreviewMessage);
+
     }
 
     @Test
-    public void shouldCachePreviewImage()
+    void shouldCachePreviewImage()
             throws IOException, InterruptedException {
-        // Prepare a template adoc
-        var templatePath = tempDir.resolve("template.adoc");
         Files.writeString(templatePath, """
                 = Template Title
                 
@@ -69,42 +64,41 @@ public class AsciiDocPreviewExtensionTest {
         // Main adoc with the macro
         var adoc = "preview::template.adoc[theme=word,format=png,dpi=96]";
 
-        try (var asciidoctor = Asciidoctor.Factory.create()) {
-            var javaExtensionRegistry = asciidoctor.javaExtensionRegistry();
-            javaExtensionRegistry.blockMacro(AsciiDocPreviewBlockMacro.class);
+        var tempDirAbsolutePath = tempDir.toAbsolutePath();
+        var tempDirAbsolutePathString = tempDirAbsolutePath.toString();
+        var attrs = Attributes.builder()
+                              .attribute("docdir", tempDirAbsolutePathString)
+                              .attribute("outdir", tempDirAbsolutePathString)
+                              .build();
+        var options = Options.builder()
+                             .safe(SafeMode.UNSAFE)
+                             .baseDir(tempDir.toFile())
+                             .attributes(attrs)
+                             .build();
 
-            var tempDirAbsolutePath = tempDir.toAbsolutePath();
-            var attributes = Attributes.builder()
-                                       .attribute("docdir", tempDirAbsolutePath.toString())
-                                       .attribute("outdir", tempDirAbsolutePath.toString())
-                                       .build();
-            var options = Options.builder()
-                                 .safe(SafeMode.UNSAFE)
-                                 .baseDir(tempDir.toFile())
-                                 .attributes(attributes)
-                                 .build();
+        // First run
+        asciidoctor.convert(adoc, options);
+        var imagePath = tempDir.resolve("template-word-96.png");
+        var firstModified = getLastModifiedTime(imagePath).toMillis();
 
-            // First run
-            asciidoctor.convert(adoc, options);
-            var imagePath = tempDir.resolve("template-word-96.png");
-            var firstModified = getLastModifiedTime(imagePath).toMillis();
+        // Wait a bit to ensure time difference if it were rewritten
+        Thread.sleep(100);
 
-            // Wait a bit to ensure time difference if it were rewritten
-            Thread.sleep(100);
+        // Second run
+        asciidoctor.convert(adoc, options);
+        var secondModified = getLastModifiedTime(imagePath).toMillis();
 
-            // Second run
-            asciidoctor.convert(adoc, options);
-            var secondModified = getLastModifiedTime(imagePath).toMillis();
+        var noChanges = "Image should not be regenerated if no source changes";
+        assertEquals(firstModified, secondModified, noChanges);
 
-            assertEquals(firstModified, secondModified, "Image should not be regenerated if source hasn't changed");
+        // Update source
+        Thread.sleep(100);
+        Files.writeString(templatePath, "= Updated Title\n\nNew content.");
+        asciidoctor.convert(adoc, options);
+        var thirdModified = getLastModifiedTime(imagePath).toMillis();
 
-            // Update source
-            Thread.sleep(100);
-            Files.writeString(templatePath, "= Updated Title\n\nNew content.");
-            asciidoctor.convert(adoc, options);
-            var thirdModified = getLastModifiedTime(imagePath).toMillis();
+        var changes = "Image should be regenerated if source changed";
+        assertTrue(thirdModified > firstModified, changes);
 
-            assertTrue(thirdModified > firstModified, "Image should be regenerated if source changed");
-        }
     }
 }
