@@ -82,4 +82,9 @@ public final class AsciiDocModel {
     public Map<String, String> getAttributes() {
         return attributes;
     }
+
+    public Optional<String> getAttribute(String name) {
+        var value = attributes.get(name);
+        return Optional.ofNullable(value);
+    }
 }
