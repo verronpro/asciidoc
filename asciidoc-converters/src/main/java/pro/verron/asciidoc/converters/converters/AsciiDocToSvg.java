@@ -30,8 +30,8 @@ public final class AsciiDocToSvg
 
     @Override
     public String apply(AsciiDocModel model) {
-        var attributes = model.getAttributes();
-        var themeStr = attributes.getOrDefault("theme", "word");
+        var themeStr = model.getAttribute("theme")
+                            .orElse("word");
         var theme = Theme.valueOf(themeStr.toUpperCase());
 
         var comments = extractComments(model);
@@ -88,7 +88,8 @@ public final class AsciiDocToSvg
         }
 
         // Editor Banner
-        var title = attributes.getOrDefault("title", "Document.docx");
+        var title = model.getAttribute("title")
+                         .orElse("Document.docx");
         switch (theme) {
             case WORD -> renderWordBanner(fullSvg, title);
             case GDOCS -> renderGoogleDocsBanner(fullSvg, title);

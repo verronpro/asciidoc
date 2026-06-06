@@ -335,7 +335,7 @@ public final class AsciiDocParser
             currentContainer.add(createParagraph(nextBlockHeader, inlines));
         }
 
-        return AsciiDocModel.of(blocks, attributes);
+        return AsciiDocModel.of(attributes, blocks);
     }
 
     private static @NonNull Paragraph createParagraph(ArrayList<String> nextBlockHeader, String string) {

@@ -12,7 +12,7 @@ public class AsciiDocToSvgTest {
 
     @Test
     void apply_shouldRenderEmptyModelCorrectly() {
-        var model = AsciiDocModel.of(List.of(), Map.of("theme", "none"));
+        var model = AsciiDocModel.of(Map.of("theme", "none"));
         var converter = new AsciiDocToSvg();
 
         var html = converter.apply(model);
@@ -31,7 +31,7 @@ public class AsciiDocToSvgTest {
     void apply_shouldRenderHeadingCorrectly() {
         var text = new Text("Sample Heading");
         var heading = new Heading(1, List.of(text));
-        var model = AsciiDocModel.of(List.of(heading), Map.of("theme", "none"));
+        var model = AsciiDocModel.of(Map.of("theme", "none"), heading);
         var converter = new AsciiDocToSvg();
 
         var html = converter.apply(model);
@@ -51,8 +51,7 @@ public class AsciiDocToSvgTest {
     void apply_shouldRenderParagraphCorrectly() {
         var text = new Text("This is a paragraph.");
         var paragraph = new Paragraph(List.of(), List.of(text));
-        var model = AsciiDocModel.of(List.of(paragraph),
-                Map.of("theme", "none"));
+        var model = AsciiDocModel.of(Map.of("theme", "none"), paragraph);
         var converter = new AsciiDocToSvg();
 
         var html = converter.apply(model);
@@ -74,8 +73,7 @@ public class AsciiDocToSvgTest {
         var item2 = new Text("Item 2");
         var orderedList = new OrderedList(List.of(new ListItem(List.of(item1)),
                 new ListItem(List.of(item2))));
-        var model = AsciiDocModel.of(List.of(orderedList),
-                Map.of("theme", "none"));
+        var model = AsciiDocModel.of(Map.of("theme", "none"), orderedList);
         var converter = new AsciiDocToSvg();
 
         var html = converter.apply(model);
@@ -98,9 +96,8 @@ public class AsciiDocToSvgTest {
         var item2 = new Text("Item 2");
         var unorderedList =
                 new UnorderedList(List.of(new ListItem(List.of(item1)),
-                new ListItem(List.of(item2))));
-        var model = AsciiDocModel.of(List.of(unorderedList),
-                Map.of("theme", "none"));
+                        new ListItem(List.of(item2))));
+        var model = AsciiDocModel.of(Map.of("theme", "none"), unorderedList);
         var converter = new AsciiDocToSvg();
 
         var html = converter.apply(model);
@@ -130,7 +127,7 @@ public class AsciiDocToSvgTest {
         var cell4 = new Cell(List.of(new Paragraph(List.of(), List.of(text4))));
         var row2 = new Row(List.of(cell3, cell4));
         var table = new Table(List.of(row1, row2));
-        var model = AsciiDocModel.of(List.of(table), Map.of("theme", "none"));
+        var model = AsciiDocModel.of(Map.of("theme", "none"), table);
         var converter = new AsciiDocToSvg();
 
         var html = converter.apply(model);
@@ -156,8 +153,7 @@ public class AsciiDocToSvgTest {
     void apply_shouldRenderImageBlockCorrectly() {
         var imageBlock = new ImageBlock("https://example.com/image.png",
                 "Example Image");
-        var model = AsciiDocModel.of(List.of(imageBlock),
-                Map.of("theme", "none"));
+        var model = AsciiDocModel.of(Map.of("theme", "none"), imageBlock);
         var converter = new AsciiDocToSvg();
 
         var html = converter.apply(model);

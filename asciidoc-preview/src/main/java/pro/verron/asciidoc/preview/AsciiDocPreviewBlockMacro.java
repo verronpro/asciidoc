@@ -56,7 +56,7 @@ public class AsciiDocPreviewBlockMacro
             // Re-create model with overridden theme
             Map<String, String> newAttributes = new HashMap<>(model.getAttributes());
             newAttributes.put("theme", theme);
-            model = AsciiDocModel.of(model.getBlocks(), newAttributes);
+            model = AsciiDocModel.of(newAttributes, model.getBlocks());
 
             String baseName = target.contains(".") ? target.substring(0, target.lastIndexOf('.')) : target;
             String fileName = baseName + "-" + theme + "-" + dpi + "." + format;
