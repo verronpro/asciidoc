@@ -2,12 +2,14 @@ package pro.verron.asciidoc.converters.converters;
 
 import pro.verron.asciidoc.core.core.*;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import static pro.verron.asciidoc.converters.converters.AsciiDocFont.getAwtFont;
 import static pro.verron.asciidoc.converters.converters.AsciiDocIcon.findIcon;
 
 /// Renderer converting an [AsciiDocModel] into an SVG document simulating
@@ -71,10 +73,19 @@ public final class AsciiDocToSvg
                 VIEWPORT_WIDTH,
                 pageY + pageHeight + 50));
 
-        fullSvg.append(String.format(
-                "<rect x=\"0\" y=\"0\" width=\"100%%\" height=\"100%%\" "
-                + "fill=\"%s\"/>\n",
-                theme.getBgColor()));
+        var bgColor = theme.getBgColor();
+        if (bgColor.isPresent()) {
+            var format =
+                    "<rect x=\"0\" y=\"0\" width=\"100%%\" height=\"100%%\" "
+                    + "fill=\"%s\"/>\n";
+            var str = String.format(format, bgColor.get());
+            fullSvg.append(str);
+        }
+        else {
+            var str = "<rect x=\"0\" y=\"0\" width=\"100%%\" height=\"100%%\""
+                      + " />\n";
+            fullSvg.append(str);
+        }
 
         // Editor Banner
         var title = attributes.getOrDefault("title", "Document.docx");
@@ -254,36 +265,78 @@ public final class AsciiDocToSvg
                 }
                 nextY += 8;
             }
-            case ImageBlock(String url, String altText) -> {
+            case ImageBlock(String url, String _) -> {
                 nextY += 8;
-                body.append("<rect x=\"")
-                    .append(x)
-                    .append("\" y=\"")
-                    .append(nextY)
-                    .append("\" width=\"320\" height=\"120\" fill=\"#f0f0f0\""
-                            + " stroke=\"#c0c0c0\" rx=\"4\"/>\n");
-                nextY = appendTextLine(body,
-                        "[image] " + altText + " (" + url + ")",
-                        x + 8,
-                        nextY + 30,
-                        12,
-                        400,
-                        theme);
-                nextY += 84;
+                var format = "<image x=\"%d\" y=\"%d\" width=\"320\" "
+                             + "height=\"120\" rx=\"4\" href=\"%s\"/>\n";
+                body.append(format.formatted(x, nextY, url));
+                nextY += 114 + LINE_HEIGHT;
+            }
+            case Table tbl -> {
+                nextY += 8;
+                var rows = tbl.rows();
+                var nbRows = rows.size();
+                var rowHeight = 8 + LINE_HEIGHT;
+                var tblHeight = rowHeight * nbRows;
+                var tblWidth = 380;
+                var tblStr = ("<rect x=\"%d\" y=\"%d\" width=\"%d\" "
+                              + "height=\"%d\" stroke=\"black\" "
+                              + "fill=\"white\"/>\n").formatted(x,
+                        nextY,
+                        tblWidth,
+                        tblHeight);
+                body.append(tblStr);
+                for (var row : rows) {
+                    var rowStr = ("<rect x=\"%d\" y=\"%d\" width=\"%d\" "
+                                  + "height=\"%d\" stroke=\"black\" "
+                                  + "fill=\"white\"/>\n").formatted(x,
+                            nextY,
+                            tblWidth,
+                            rowHeight);
+                    body.append(rowStr);
+                    var nextX = x;
+                    var cells = row.cells();
+                    var cellWidth = tblWidth / cells.size();
+                    for (var cell : cells) {
+                        var cellStr = ("<rect x=\"%d\" y=\"%d\" width=\"%d\" "
+                                       + "height=\"%d\" stroke=\"black\" "
+                                       + "fill=\"white\"/>\n").formatted(nextX,
+                                nextY,
+                                cellWidth,
+                                rowHeight);
+                        body.append(cellStr);
+                        nextX += cellWidth;
+                    }
+                    nextY += rowHeight;
+                }
             }
             default -> nextY += LINE_HEIGHT;
         }
 
         if (highlight) {
             var highlightColor = theme.getHighlightColor();
-            String highlightRect = String.format(
-                    "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" "
-                    + "fill=\"%s\"/>\n",
-                    x - 5,
-                    y - 2,
-                    PAGE_WIDTH - 2 * PAGE_PADDING + 10,
-                    nextY - y,
-                    highlightColor);
+
+            String highlightRect;
+            if (highlightColor.isPresent()) {
+                var format = "<rect x=\"%d\" y=\"%d\" width=\"%d\" "
+                             + "height=\"%d\" fill=\"%s\"/>\n";
+                highlightRect = String.format(format,
+                        x - 5,
+                        y - 2,
+                        PAGE_WIDTH - 2 * PAGE_PADDING + 10,
+                        nextY - y,
+                        highlightColor.get());
+            }
+            else {
+                var format = "<rect x=\"%d\" y=\"%d\" width=\"%d\" "
+                             + "height=\"%d\"/>\n";
+                highlightRect = String.format(format,
+                        x - 5,
+                        y - 2,
+                        PAGE_WIDTH - 2 * PAGE_PADDING + 10,
+                        nextY - y);
+            }
+
             body.insert(contentStartIdx, highlightRect);
         }
 
@@ -409,23 +462,15 @@ public final class AsciiDocToSvg
             Theme theme
     ) {
         int commentY = BANNER_HEIGHT + PAGE_MARGIN_TOP + PAGE_PADDING;
-        String strokeColor = switch (theme) {
-            case WORD -> "#ffc000";
-            case GDOCS -> "#0b57d0";
-            case LIBRE -> "#808080";
-        };
+        var strokeColor = theme.getStrokeColor();
         for (BlockPosition pos : blockPositions) {
             List<CommentInfo> comments = blockToComments.get(pos.index);
             if (comments != null) {
                 for (CommentInfo c : comments) {
                     int commentPadding = 10;
                     int textWidth = COMMENT_WIDTH - 2 * commentPadding;
-                    java.awt.Font authorFont = AsciiDocFont.getAwtFont(theme,
-                            11,
-                            700);
-                    java.awt.Font valueFont = AsciiDocFont.getAwtFont(theme,
-                            11,
-                            400);
+                    Font authorFont = getAwtFont(theme, 11, 700);
+                    Font valueFont = getAwtFont(theme, 11, 400);
                     List<String> valueLines = AsciiDocMetrics.wrapText(c.value,
                             valueFont,
                             textWidth);
@@ -511,20 +556,18 @@ public final class AsciiDocToSvg
             int weight,
             Theme theme
     ) {
-        String fontFamily = theme.getFontFamily();
-        body.append("<text x=\"")
-            .append(x)
-            .append("\" y=\"")
-            .append(y)
-            .append("\" font-family=\"")
-            .append(fontFamily)
-            .append("\" font-size=\"")
-            .append(fontSize)
-            .append("\" font-weight=\"")
-            .append(weight)
-            .append("\" fill=\"#111\">")
-            .append(escape(line))
-            .append("</text>\n");
+        body.append("<text ");
+        body.append("x=\"%d\" ".formatted(x));
+        body.append("y=\"%d\" ".formatted(y));
+        var fontFamily = theme.getFontFamily();
+        fontFamily.ifPresent(ff -> body.append("font-family=\"%s\" ".formatted(
+                ff)));
+        body.append("font-size=\"%s\" ".formatted(fontSize));
+        body.append("font-weight=\"%s\" ".formatted(weight));
+        body.append("fill=\"#111\"");
+        body.append(">");
+        body.append(escape(line));
+        body.append("</text>\n");
         return y + LINE_HEIGHT;
     }
 
@@ -538,7 +581,7 @@ public final class AsciiDocToSvg
             Theme theme,
             int maxWidth
     ) {
-        java.awt.Font font = AsciiDocFont.getAwtFont(theme, fontSize, weight);
+        Font font = getAwtFont(theme, fontSize, weight);
         List<String> lines = AsciiDocMetrics.wrapText(text, font, maxWidth);
         int currentY = y;
         for (String line : lines) {

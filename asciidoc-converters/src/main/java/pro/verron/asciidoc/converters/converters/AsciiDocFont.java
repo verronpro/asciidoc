@@ -14,22 +14,17 @@ final class AsciiDocFont {
 
     /// Returns an AWT Font for metrics calculations.
     ///
-    /// @param theme target editor theme
+    /// @param theme    target editor theme
     /// @param fontSize font size
-    /// @param weight font weight (e.g. 400, 700)
+    /// @param weight   font weight (e.g. 400, 700)
+    ///
     /// @return AWT Font
     static Font getAwtFont(Theme theme, int fontSize, int weight) {
         var key = String.format("%s-%d-%d", theme, fontSize, weight);
-        return FONT_CACHE.computeIfAbsent(key, _ -> createFont(theme, fontSize, weight));
-    }
-
-    private static Font createFont(Theme theme, int fontSize, int weight) {
         var primaryFont = theme.getPrimaryFont();
         var style = (weight >= 700) ? Font.BOLD : Font.PLAIN;
-        var font = new Font(primaryFont, style, fontSize);
-
-        // Check if font is actually loaded, if not use fallback
-        return Font.DIALOG.equals(font.getFamily()) ? new Font(theme.getAwtFallbacks(), style, fontSize) : font;
+        return FONT_CACHE.computeIfAbsent(key,
+                _ -> new Font(primaryFont.orElse(null), style, fontSize));
     }
 
 }
