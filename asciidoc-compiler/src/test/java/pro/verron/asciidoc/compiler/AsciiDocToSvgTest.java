@@ -12,10 +12,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /// while applying various themes and verifying the output.
 ///
 /// The tests ensure that different styling, themes, and content attributes from AsciiDoc
-/// are correctly rendered into SVG or PNG using the \`AsciiDocCompiler\` utility. Each test
+/// are correctly rendered into SVG or PNG using the [AsciiDocCompiler] utility. Each test
 /// verifies the presence of expected elements in the rendered output and validates specific
 /// styling or content attributes.
-public class AsciiDocToSvgTest {
+class AsciiDocToSvgTest {
 
     @Test
     void shouldRenderModelWithCommentToSvg() {

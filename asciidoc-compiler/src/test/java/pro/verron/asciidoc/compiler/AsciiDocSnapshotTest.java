@@ -10,16 +10,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /// This class contains snapshot tests for AsciiDoc rendering with different
-/// themes.
-/// The tests generate visual representations of AsciiDoc documents in PNG
-/// format
-/// and compare them against predefined golden files to detect any rendering
-/// inconsistencies.
+/// themes. The tests generate visual representations of AsciiDoc
+/// documents in PNG format and compare them against predefined golden files to
+/// detect any rendering inconsistencies.
 ///
 /// The test outputs are saved in a directory and compared with the expected
-/// outputs
-/// using a tolerance for any minor differences.
-public class AsciiDocSnapshotTest {
+/// outputs using a tolerance for any minor differences.
+class AsciiDocSnapshotTest {
 
     private static final Path GOLDEN_DIR = Path.of("src/test/resources/golden");
     private static final Path ACTUAL_DIR = Path.of("target/test-snapshots");

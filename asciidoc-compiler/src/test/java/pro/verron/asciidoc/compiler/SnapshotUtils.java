@@ -52,6 +52,11 @@ public final class SnapshotUtils {
 
     /// Calculates the difference between two images.
     /// 0.0 means identical, 1.0 means completely different.
+    ///
+    /// @param img1 first image to be compared
+    /// @param img2 second image to be compared
+    ///
+    /// @return The difference between the two images
     public static double calculateDifference(
             BufferedImage img1,
             BufferedImage img2
