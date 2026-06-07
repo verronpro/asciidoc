@@ -441,27 +441,19 @@ public final class AsciiDocToSvg {
     private String renderInlines(List<Inline> inlines) {
         var text = new StringBuilder();
         for (var inline : inlines) {
-            switch (inline) {
-                case Text(String value) -> text.append(value);
-                case Bold(List<Inline> children) ->
-                        text.append(renderInlines(children));
-                case Italic(List<Inline> children) ->
-                        text.append(renderInlines(children));
+            var string = switch (inline) {
+                case Text(String value) -> value;
+                case Bold(List<Inline> children) -> renderInlines(children);
+                case Italic(List<Inline> children) -> renderInlines(children);
                 case Link(String url, String label) ->
-                        text.append(label.isBlank() ? url : label);
-                case ImageInline(
-                        String url, Map<String, String> attributes
-                ) -> {
-                    var title = attributes.getOrDefault("title", "image");
-                    text.append('[')
-                        .append(title)
-                        .append(": ")
-                        .append(url)
-                        .append(']');
-                }
-                case Tab _ -> text.append("    ");
-                default -> text.append(inline.text());
-            }
+                        label.isBlank() ? url : label;
+                case ImageInline(String url, Map<String, String> attributes) ->
+                        "[%s: %s]".formatted(attributes.getOrDefault("title",
+                                "image"), url);
+                case Tab _ -> "    ";
+                default -> inline.text();
+            };
+            text.append(string);
         }
         return text.toString();
     }
