@@ -4,10 +4,8 @@ import pro.verron.asciidoc.converters.converters.svg.*;
 import pro.verron.asciidoc.core.core.*;
 
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 import static pro.verron.asciidoc.converters.converters.svg.AsciiDocFont.getAwtFont;
 import static pro.verron.asciidoc.converters.converters.svg.AsciiDocIcon.findIcon;
@@ -28,7 +26,6 @@ public final class AsciiDocToSvg {
     private static final int BODY_FONT_SIZE = 14;
     private static final int LINE_HEIGHT = 20;
 
-    @Override
     public String apply(AsciiDocModel model) {
         var themeStr = model.getAttribute("theme")
                             .orElse("word");
@@ -117,23 +114,15 @@ public final class AsciiDocToSvg {
     private List<CommentInfo> extractComments(AsciiDocModel model) {
         var comments = new ArrayList<CommentInfo>();
         for (var block : model.getBlocks()) {
-            if (block instanceof MacroBlock(
-                    String name, String id, List<String> list
-            ) && name.equals("comment")) {
-                var attributeMap = new HashMap<String, String>();
-                for (var attr : list) {
-                    var trimmed = attr.trim();
-                    var keyValueSeparator = "=";
-                    if (!trimmed.contains(keyValueSeparator)) continue;
-                    var split = trimmed.split(keyValueSeparator);
-                    attributeMap.put(split[0], split[1].replace("\"", ""));
-                }
-                var commentInfo = new CommentInfo(id,
-                        attributeMap.getOrDefault("start", ""),
-                        attributeMap.getOrDefault("author", ""),
-                        attributeMap.getOrDefault("value", ""));
-                comments.add(commentInfo);
-            }
+            if (!(block instanceof MacroBlock macro)) continue;
+            if (!Objects.equals(macro.name(), "comment")) continue;
+
+            var attributes = macro.attributes();
+            var commentInfo = new CommentInfo(macro.id(),
+                    attributes.getOrDefault("start", ""),
+                    attributes.getOrDefault("author", ""),
+                    attributes.getOrDefault("value", ""));
+            comments.add(commentInfo);
         }
         return comments;
     }
