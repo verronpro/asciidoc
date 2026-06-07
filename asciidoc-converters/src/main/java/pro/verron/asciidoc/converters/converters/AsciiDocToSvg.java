@@ -1,21 +1,21 @@
 package pro.verron.asciidoc.converters.converters;
 
+import pro.verron.asciidoc.converters.converters.svg.*;
 import pro.verron.asciidoc.core.core.*;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.TreeMap;
 
-import static pro.verron.asciidoc.converters.converters.AsciiDocFont.getAwtFont;
-import static pro.verron.asciidoc.converters.converters.AsciiDocIcon.findIcon;
+import static pro.verron.asciidoc.converters.converters.svg.AsciiDocFont.getAwtFont;
+import static pro.verron.asciidoc.converters.converters.svg.AsciiDocIcon.findIcon;
+import static pro.verron.asciidoc.converters.converters.svg.SvgAttribute.attr;
 
 /// Renderer converting an [AsciiDocModel] into an SVG document simulating
 /// various editor interfaces.
-public final class AsciiDocToSvg
-        implements Function<AsciiDocModel, String> {
+public final class AsciiDocToSvg {
 
     private static final int VIEWPORT_WIDTH = 1200;
     private static final int BANNER_HEIGHT = 100;
@@ -37,11 +37,11 @@ public final class AsciiDocToSvg
         var comments = extractComments(model);
         var blockToComments = mapCommentsToBlocks(comments);
 
-        var svgContent = new StringBuilder();
         var pageY = BANNER_HEIGHT + PAGE_MARGIN_TOP;
         var currentY = pageY + PAGE_PADDING;
 
         var blockPositions = new ArrayList<BlockPosition>();
+        var bodyElements = new ArrayList<SvgElement>();
 
         var modelBlocks = model.getBlocks();
         for (int i = 0; i < modelBlocks.size(); i++) {
@@ -52,75 +52,66 @@ public final class AsciiDocToSvg
             int startY = currentY;
             boolean isCommented = blockToComments.containsKey(i);
 
-            currentY = renderBlock(svgContent,
-                    block,
+            var result = renderBlock(block,
                     PAGE_LEFT + PAGE_PADDING,
                     currentY,
                     isCommented,
                     theme);
+            currentY = result.nextY();
+            bodyElements.addAll(result.elements());
             blockPositions.add(new BlockPosition(i, startY, currentY - 8));
         }
 
         var pageHeight = Math.max(800, currentY - pageY + PAGE_PADDING);
+        int totalHeight = pageY + pageHeight + 50;
 
-        var fullSvg = new StringBuilder();
-        fullSvg.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        fullSvg.append(String.format(
-                "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%d\" "
-                + "height=\"%d\" viewBox=\"0 0 %d %d\">\n",
-                VIEWPORT_WIDTH,
-                pageY + pageHeight + 50,
-                VIEWPORT_WIDTH,
-                pageY + pageHeight + 50));
+        var children = new ArrayList<SvgElement>();
 
+        // Background
         var bgColor = theme.getBgColor();
-        if (bgColor.isPresent()) {
-            var format =
-                    "<rect x=\"0\" y=\"0\" width=\"100%%\" height=\"100%%\" "
-                    + "fill=\"%s\"/>\n";
-            var str = String.format(format, bgColor.get());
-            fullSvg.append(str);
-        }
+        SvgRect bg;
+        if (bgColor.isEmpty()) bg = new SvgRect("0", "0", "100%", "100%");
         else {
-            var str = "<rect x=\"0\" y=\"0\" width=\"100%%\" height=\"100%%\""
-                      + " />\n";
-            fullSvg.append(str);
+            var fill = attr("fill", bgColor.get());
+            bg = new SvgRect("0", "0", "100%", "100%", fill);
         }
+        children.add(bg);
 
         // Editor Banner
         var title = model.getAttribute("title")
                          .orElse("Document.docx");
         switch (theme) {
-            case WORD -> renderWordBanner(fullSvg, title);
-            case GDOCS -> renderGoogleDocsBanner(fullSvg, title);
-            case LIBRE -> renderLibreOfficeBanner(fullSvg, title);
+            case WORD -> children.addAll(renderWordBanner(title));
+            case GDOCS -> children.addAll(renderGoogleDocsBanner(title));
+            case LIBRE -> children.addAll(renderLibreOfficeBanner(title));
         }
 
         // Page Shadow
-        fullSvg.append(String.format(
-                "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" "
-                + "fill=\"#000\" fill-opacity=\"0.1\" rx=\"2\"/>\n",
-                PAGE_LEFT + 4,
-                pageY + 4,
-                PAGE_WIDTH,
-                pageHeight));
+        children.add(new SvgRect(String.valueOf(PAGE_LEFT + 4),
+                String.valueOf(pageY + 4),
+                String.valueOf(PAGE_WIDTH),
+                String.valueOf(pageHeight),
+                attr("fill", "#000"),
+                attr("fill-opacity", "0.1"),
+                attr("rx", "2")));
         // Page
-        fullSvg.append(String.format(
-                "<rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" "
-                + "fill=\"white\" stroke=\"#ccc\" " + "stroke-width=\"1\"/>\n",
-                PAGE_LEFT,
-                pageY,
-                PAGE_WIDTH,
-                pageHeight));
+        children.add(new SvgRect(String.valueOf(PAGE_LEFT),
+                String.valueOf(pageY),
+                String.valueOf(PAGE_WIDTH),
+                String.valueOf(pageHeight),
+                attr("fill", "white"),
+                attr("stroke", "#ccc"),
+                attr("stroke-width", "1")));
 
-        // Add rendered content
-        fullSvg.append(svgContent);
+        // Body content
+        children.addAll(bodyElements);
 
-        // Render comments and connectors
-        renderComments(fullSvg, blockToComments, blockPositions, theme);
+        // Comments and connectors
+        children.addAll(renderComments(blockToComments, blockPositions, theme));
 
-        fullSvg.append("</svg>");
-        return fullSvg.toString();
+        var doc = new SvgDocument(VIEWPORT_WIDTH, totalHeight, children);
+        var serialized = doc.serialize();
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + serialized;
     }
 
     private List<CommentInfo> extractComments(AsciiDocModel model) {
@@ -147,44 +138,43 @@ public final class AsciiDocToSvg
         return comments;
     }
 
-    private int renderBlock(
-            StringBuilder body,
+    private BlockRenderResult renderBlock(
             Block block,
             int x,
             int y,
             boolean highlight,
             Theme theme
     ) {
-        var contentStartIdx = body.length();
+        var elements = new ArrayList<SvgElement>();
         var nextY = y;
         var maxWidth = PAGE_WIDTH - 2 * PAGE_PADDING;
         switch (block) {
             case Heading(_, int level, List<Inline> inlines) -> {
                 var fontSize = Math.max(18, 34 - (level * 3));
-                nextY = appendWrappedText(body,
-                        renderInlines(inlines),
+                var result = appendWrappedText(renderInlines(inlines),
                         x,
                         y + fontSize,
                         fontSize,
                         700,
                         theme,
                         maxWidth);
-                nextY += 10;
+                elements.addAll(result.elements());
+                nextY = result.nextY() + 10;
             }
             case Paragraph(_, List<Inline> inlines) -> {
-                nextY = appendWrappedText(body,
-                        renderInlines(inlines),
+                var result = appendWrappedText(renderInlines(inlines),
                         x,
                         y + BODY_FONT_SIZE,
                         BODY_FONT_SIZE,
                         400,
                         theme,
                         maxWidth);
-                nextY += 8;
+                elements.addAll(result.elements());
+                nextY = result.nextY() + 8;
             }
             case UnorderedList(List<ListItem> items) -> {
                 for (ListItem item : items) {
-                    nextY = appendWrappedText(body,
+                    var result = appendWrappedText(
                             "• " + renderInlines(item.inlines()),
                             x,
                             nextY + BODY_FONT_SIZE,
@@ -192,13 +182,15 @@ public final class AsciiDocToSvg
                             400,
                             theme,
                             maxWidth);
+                    elements.addAll(result.elements());
+                    nextY = result.nextY();
                 }
                 nextY += 6;
             }
             case OrderedList(List<ListItem> items) -> {
                 int index = 1;
                 for (ListItem item : items) {
-                    nextY = appendWrappedText(body,
+                    var result = appendWrappedText(
                             index + ". " + renderInlines(item.inlines()),
                             x,
                             nextY + BODY_FONT_SIZE,
@@ -206,6 +198,8 @@ public final class AsciiDocToSvg
                             400,
                             theme,
                             maxWidth);
+                    elements.addAll(result.elements());
+                    nextY = result.nextY();
                     index++;
                 }
                 nextY += 6;
@@ -213,23 +207,21 @@ public final class AsciiDocToSvg
             case QuoteBlock(List<Inline> inlines) -> {
                 nextY += 8;
                 int startY = nextY;
-                nextY = appendWrappedText(body,
-                        renderInlines(inlines),
+                var result = appendWrappedText(renderInlines(inlines),
                         x + 10,
                         nextY + BODY_FONT_SIZE,
                         BODY_FONT_SIZE,
                         400,
                         theme,
                         maxWidth - 10);
-                body.append("<line x1=\"")
-                    .append(x)
-                    .append("\" y1=\"")
-                    .append(startY)
-                    .append("\" x2=\"")
-                    .append(x)
-                    .append("\" y2=\"")
-                    .append(nextY - 4)
-                    .append("\" stroke=\"#888\" stroke-width=\"3\"/>\n");
+                elements.addAll(result.elements());
+                nextY = result.nextY();
+                elements.add(new SvgLine(String.valueOf(x),
+                        String.valueOf(startY),
+                        String.valueOf(x),
+                        String.valueOf(nextY - 4),
+                        "#888",
+                        attr("stroke-width", 3)));
             }
             case CodeBlock(String language, String content) -> {
                 nextY += 8;
@@ -237,40 +229,42 @@ public final class AsciiDocToSvg
                         (content.lines()
                                 .toList()
                                 .size() + 1) * LINE_HEIGHT);
-                body.append("<rect x=\"")
-                    .append(x)
-                    .append("\" y=\"")
-                    .append(nextY)
-                    .append("\" width=\"")
-                    .append(PAGE_WIDTH - (PAGE_PADDING * 2))
-                    .append("\" height=\"")
-                    .append(blockHeight)
-                    .append("\" fill=\"#f6f8fa\" stroke=\"#d0d7de\" "
-                            + "rx=\"6\"/>\n");
-                nextY = appendTextLine(body,
-                        "[" + language + "]",
+                elements.add(new SvgRect(String.valueOf(x),
+                        String.valueOf(nextY),
+                        String.valueOf(PAGE_WIDTH - (PAGE_PADDING * 2)),
+                        String.valueOf(blockHeight),
+                        attr("fill", "#f6f8fa"),
+                        attr("stroke", "#d0d7de"),
+                        attr("rx", "6")));
+                var textResult = appendTextLine("[" + language + "]",
                         x + 10,
                         nextY + BODY_FONT_SIZE,
                         12,
                         600,
                         theme);
+                elements.add(textResult.element());
+                nextY = textResult.nextY();
                 for (String line : content.lines()
                                           .toList()) {
-                    nextY = appendTextLine(body,
-                            line,
+                    var lineResult = appendTextLine(line,
                             x + 10,
                             nextY + 12,
                             13,
                             400,
                             theme);
+                    elements.add(lineResult.element());
+                    nextY = lineResult.nextY();
                 }
                 nextY += 8;
             }
             case ImageBlock(String url, String _) -> {
                 nextY += 8;
-                var format = "<image x=\"%d\" y=\"%d\" width=\"320\" "
-                             + "height=\"120\" rx=\"4\" href=\"%s\"/>\n";
-                body.append(format.formatted(x, nextY, url));
+                elements.add(new SvgImage(String.valueOf(x),
+                        String.valueOf(nextY),
+                        "320",
+                        "120",
+                        url,
+                        attr("rx", 4)));
                 nextY += 114 + LINE_HEIGHT;
             }
             case Table tbl -> {
@@ -280,32 +274,29 @@ public final class AsciiDocToSvg
                 var rowHeight = 8 + LINE_HEIGHT;
                 var tblHeight = rowHeight * nbRows;
                 var tblWidth = 380;
-                var tblStr = ("<rect x=\"%d\" y=\"%d\" width=\"%d\" "
-                              + "height=\"%d\" stroke=\"black\" "
-                              + "fill=\"white\"/>\n").formatted(x,
-                        nextY,
-                        tblWidth,
-                        tblHeight);
-                body.append(tblStr);
+                elements.add(new SvgRect(String.valueOf(x),
+                        String.valueOf(nextY),
+                        String.valueOf(tblWidth),
+                        String.valueOf(tblHeight),
+                        attr("stroke", "black"),
+                        attr("fill", "white")));
                 for (var row : rows) {
-                    var rowStr = ("<rect x=\"%d\" y=\"%d\" width=\"%d\" "
-                                  + "height=\"%d\" stroke=\"black\" "
-                                  + "fill=\"white\"/>\n").formatted(x,
-                            nextY,
-                            tblWidth,
-                            rowHeight);
-                    body.append(rowStr);
+                    elements.add(new SvgRect(String.valueOf(x),
+                            String.valueOf(nextY),
+                            String.valueOf(tblWidth),
+                            String.valueOf(rowHeight),
+                            attr("stroke", "black"),
+                            attr("fill", "white")));
                     var nextX = x;
                     var cells = row.cells();
                     var cellWidth = tblWidth / cells.size();
                     for (var cell : cells) {
-                        var cellStr = ("<rect x=\"%d\" y=\"%d\" width=\"%d\" "
-                                       + "height=\"%d\" stroke=\"black\" "
-                                       + "fill=\"white\"/>\n").formatted(nextX,
-                                nextY,
-                                cellWidth,
-                                rowHeight);
-                        body.append(cellStr);
+                        elements.add(new SvgRect(String.valueOf(nextX),
+                                String.valueOf(nextY),
+                                String.valueOf(cellWidth),
+                                String.valueOf(rowHeight),
+                                attr("stroke", "black"),
+                                attr("fill", "white")));
                         nextX += cellWidth;
                     }
                     nextY += rowHeight;
@@ -315,153 +306,173 @@ public final class AsciiDocToSvg
         }
 
         if (highlight) {
-            var highlightColor = theme.getHighlightColor();
-
-            String highlightRect;
-            if (highlightColor.isPresent()) {
-                var format = "<rect x=\"%d\" y=\"%d\" width=\"%d\" "
-                             + "height=\"%d\" fill=\"%s\"/>\n";
-                highlightRect = String.format(format,
-                        x - 5,
-                        y - 2,
-                        PAGE_WIDTH - 2 * PAGE_PADDING + 10,
-                        nextY - y,
-                        highlightColor.get());
-            }
-            else {
-                var format = "<rect x=\"%d\" y=\"%d\" width=\"%d\" "
-                             + "height=\"%d\"/>\n";
-                highlightRect = String.format(format,
-                        x - 5,
-                        y - 2,
-                        PAGE_WIDTH - 2 * PAGE_PADDING + 10,
-                        nextY - y);
-            }
-
-            body.insert(contentStartIdx, highlightRect);
+            var attrFill = theme.getHighlightColor()
+                                .map(c -> attr("fill", c))
+                                .orElse(SvgAttribute.NONE);
+            var highlightRect = new SvgRect(String.valueOf(x - 5),
+                    String.valueOf(y - 2),
+                    String.valueOf(PAGE_WIDTH - 2 * PAGE_PADDING + 10),
+                    String.valueOf(nextY - y),
+                    attrFill);
+            elements.addFirst(highlightRect);
         }
 
-        return nextY;
+        return new BlockRenderResult(nextY, elements);
     }
 
-    private void renderWordBanner(StringBuilder svg, String title) {
+    private List<SvgElement> renderWordBanner(String title) {
+        var elements = new ArrayList<SvgElement>();
         // Blue top bar
-        svg.append("<rect x=\"0\" y=\"0\" width=\"100%\" height=\"30\" "
-                   + "fill=\"#2b579a\"/>\n");
-        svg.append(String.format(
-                "<text x=\"50%%\" y=\"20\" font-family=\"Segoe UI, Arial\" "
-                + "font-size=\"12\" fill=\"white\" "
-                + "text-anchor=\"middle\">%s - Word</text>\n",
-                title));
+        elements.add(new SvgRect("0",
+                "0",
+                "100%",
+                "30",
+                attr("fill", "#2b579a")));
+        elements.add(new SvgText("50%",
+                "20",
+                "12",
+                "white",
+                title + " - Word",
+                attr("font-family", "Segoe UI, Arial"),
+                attr("text-anchor", "middle")));
 
         // Top bar icons
-        findIcon("save", 10, 7, 16, "white").ifPresent(svg::append);
-        findIcon("undo", 35, 7, 16, "white").ifPresent(svg::append);
-        findIcon("redo", 60, 7, 16, "white").ifPresent(svg::append);
+        findIcon("save", 10, 7, 16, "white").ifPresent(elements::add);
+        findIcon("undo", 35, 7, 16, "white").ifPresent(elements::add);
+        findIcon("redo", 60, 7, 16, "white").ifPresent(elements::add);
 
         // Ribbon area
-        svg.append(String.format(
-                "<rect x=\"0\" y=\"30\" width=\"100%%\" height=\"%d\" "
-                + "fill=\"#f3f2f1\"/>\n",
-                BANNER_HEIGHT - 30));
-        svg.append("<line x1=\"0\" y1=\"30\" x2=\"100%\" y2=\"30\" "
-                   + "stroke=\"#ccc\"/>\n");
-        svg.append(String.format(
-                "<line x1=\"0\" y1=\"%d\" x2=\"100%%\" y2=\"%d\" "
-                + "stroke=\"#ccc\"/>\n",
-                BANNER_HEIGHT,
-                BANNER_HEIGHT));
+        elements.add(new SvgRect("0",
+                "30",
+                "100%",
+                String.valueOf(BANNER_HEIGHT - 30),
+                attr("fill", "#f3f2f1")));
+        elements.add(new SvgLine("0", "30", "100%", "30", "#ccc"));
+        elements.add(new SvgLine("0",
+                String.valueOf(BANNER_HEIGHT),
+                "100%",
+                String.valueOf(BANNER_HEIGHT),
+                "#ccc"));
 
         // Simple ribbon icons simulation
-        svg.append("<text x=\"20\" y=\"55\" font-family=\"Segoe UI, Arial\" "
-                   + "font-size=\"11\" fill=\"#333\">File  Home  "
-                   + "Insert  Layout  References  Review  View</text>\n");
+        elements.add(new SvgText("20",
+                "55",
+                "11",
+                "#333",
+                "File  Home  Insert  Layout  References  Review  View",
+                attr("font-family", "Segoe UI, Arial")));
 
-        findIcon("bold", 20, 70, 16, "#333").ifPresent(svg::append);
-        findIcon("italic", 45, 70, 16, "#333").ifPresent(svg::append);
-        findIcon("image", 70, 70, 16, "#333").ifPresent(svg::append);
-        findIcon("table", 95, 70, 16, "#333").ifPresent(svg::append);
-        findIcon("link", 120, 70, 16, "#333").ifPresent(svg::append);
+        findIcon("bold", 20, 70, 16, "#333").ifPresent(elements::add);
+        findIcon("italic", 45, 70, 16, "#333").ifPresent(elements::add);
+        findIcon("image", 70, 70, 16, "#333").ifPresent(elements::add);
+        findIcon("table", 95, 70, 16, "#333").ifPresent(elements::add);
+        findIcon("link", 120, 70, 16, "#333").ifPresent(elements::add);
+
+        return elements;
     }
 
-    private void renderGoogleDocsBanner(StringBuilder svg, String title) {
+    private List<SvgElement> renderGoogleDocsBanner(String title) {
+        var elements = new ArrayList<SvgElement>();
         // Top bar
-        svg.append("<rect x=\"0\" y=\"0\" width=\"100%\" height=\"60\" "
-                   + "fill=\"white\"/>\n");
-        svg.append("<circle cx=\"30\" cy=\"30\" r=\"15\" fill=\"#4285f4\"/>\n");
-        findIcon("table", 22, 22, 16, "white").ifPresent(svg::append);
+        elements.add(new SvgRect("0",
+                "0",
+                "100%",
+                "60",
+                attr("fill", "white")));
+        elements.add(new SvgCircle("30", "30", "15", "#4285f4"));
+        findIcon("table", 22, 22, 16, "white").ifPresent(elements::add);
 
-        svg.append(String.format(
-                "<text x=\"60\" y=\"25\" font-family=\"Product Sans, Arial\" "
-                + "font-size=\"18\" " + "fill=\"#3c4043\">%s</text>\n",
-                title));
-        svg.append("<text x=\"60\" y=\"45\" font-family=\"Arial\" "
-                   + "font-size=\"12\" fill=\"#5f6368\">File  Edit  View  "
-                   + "Insert  Format  Tools  Extensions  Help</text>\n");
+        elements.add(new SvgText("60",
+                "25",
+                "18",
+                "#3c4043",
+                title,
+                attr("font-family", "Product Sans, Arial")));
+        elements.add(new SvgText("60",
+                "45",
+                "12",
+                "#5f6368",
+                "File  Edit  View  Insert  Format  Tools  Extensions  Help",
+                attr("font-family", "Arial")));
 
         // Toolbar
-        svg.append(String.format(
-                "<rect x=\"0\" y=\"65\" width=\"100%%\" height=\"%d\" "
-                + "fill=\"#edf2fa\" rx=\"15\"/>\n",
-                BANNER_HEIGHT - 70));
-        svg.append("<line x1=\"0\" y1=\"100\" x2=\"100%\" y2=\"100\" "
-                   + "stroke=\"#ccc\"/>\n");
+        elements.add(new SvgRect("0",
+                "65",
+                "100%",
+                String.valueOf(BANNER_HEIGHT - 70),
+                attr("fill", "#edf2fa"),
+                attr("rx", "15")));
+        elements.add(new SvgLine("0", "100", "100%", "100", "#ccc"));
 
-        findIcon("undo", 20, 72, 16, "#5f6368").ifPresent(svg::append);
-        findIcon("redo", 45, 72, 16, "#5f6368").ifPresent(svg::append);
-        findIcon("print", 70, 72, 16, "#5f6368").ifPresent(svg::append);
-        findIcon("bold", 110, 72, 16, "#5f6368").ifPresent(svg::append);
-        findIcon("italic", 135, 72, 16, "#5f6368").ifPresent(svg::append);
-        findIcon("link", 160, 72, 16, "#5f6368").ifPresent(svg::append);
+        findIcon("undo", 20, 72, 16, "#5f6368").ifPresent(elements::add);
+        findIcon("redo", 45, 72, 16, "#5f6368").ifPresent(elements::add);
+        findIcon("print", 70, 72, 16, "#5f6368").ifPresent(elements::add);
+        findIcon("bold", 110, 72, 16, "#5f6368").ifPresent(elements::add);
+        findIcon("italic", 135, 72, 16, "#5f6368").ifPresent(elements::add);
+        findIcon("link", 160, 72, 16, "#5f6368").ifPresent(elements::add);
         findIcon("chat-left-text",
                 185,
                 72,
                 16,
-                "#5f6368").ifPresent(svg::append);
+                "#5f6368").ifPresent(elements::add);
+
+        return elements;
     }
 
-    private void renderLibreOfficeBanner(StringBuilder svg, String title) {
+    private List<SvgElement> renderLibreOfficeBanner(String title) {
+        var elements = new ArrayList<SvgElement>();
         // Top bar
-        svg.append("<rect x=\"0\" y=\"0\" width=\"100%\" height=\"30\" "
-                   + "fill=\"#dfdfdf\"/>\n");
-        svg.append(String.format(
-                "<text x=\"10\" y=\"20\" font-family=\"Arial\" "
-                + "font-size=\"12\" fill=\"black\">%s - LibreOffice "
-                + "Writer</text>\n",
-                title));
+        elements.add(new SvgRect("0",
+                "0",
+                "100%",
+                "30",
+                attr("fill", "#dfdfdf")));
+        elements.add(new SvgText("10",
+                "20",
+                "12",
+                "black",
+                title + " - LibreOffice Writer",
+                attr("font-family", "Arial")));
 
         // Menu bar
-        svg.append("<rect x=\"0\" y=\"30\" width=\"100%\" height=\"25\" "
-                   + "fill=\"#eeeeee\"/>\n");
-        svg.append("<text x=\"10\" y=\"47\" font-family=\"Arial\" "
-                   + "font-size=\"11\" fill=\"black\">File  Edit  View  "
-                   + "Insert  Format  Styles  Table  Form  Tools  Window  "
-                   + "Help</text>\n");
+        elements.add(new SvgRect("0",
+                "30",
+                "100%",
+                "25",
+                attr("fill", "#eeeeee")));
+        elements.add(new SvgText("10",
+                "47",
+                "11",
+                "black",
+                "File  Edit  View  Insert  Format  Styles  Table  Form  Tools"
+                + "  Window  Help",
+                attr("font-family", "Arial")));
 
         // Toolbars
-        svg.append(String.format(
-                "<rect x=\"0\" y=\"55\" width=\"100%%\" height=\"%d\" "
-                + "fill=\"#eeeeee\"/>\n",
-                BANNER_HEIGHT - 55));
-        svg.append("<line x1=\"0\" y1=\"55\" x2=\"100%\" y2=\"55\" "
-                   + "stroke=\"#ccc\"/>\n");
-        svg.append("<line x1=\"0\" y1=\"100\" x2=\"100%\" y2=\"100\" "
-                   + "stroke=\"#ccc\"/>\n");
+        elements.add(new SvgRect("0",
+                "55",
+                "100%",
+                String.valueOf(BANNER_HEIGHT - 55),
+                attr("fill", "#eeeeee")));
+        elements.add(new SvgLine("0", "55", "100%", "55", "#ccc"));
+        elements.add(new SvgLine("0", "100", "100%", "100", "#ccc"));
 
-        findIcon("save", 10, 65, 20, "#333").ifPresent(svg::append);
-        findIcon("print", 40, 65, 20, "#333").ifPresent(svg::append);
-        findIcon("undo", 70, 65, 20, "#333").ifPresent(svg::append);
-        findIcon("redo", 100, 65, 20, "#333").ifPresent(svg::append);
-        findIcon("bold", 150, 65, 20, "#333").ifPresent(svg::append);
-        findIcon("italic", 180, 65, 20, "#333").ifPresent(svg::append);
+        findIcon("save", 10, 65, 20, "#333").ifPresent(elements::add);
+        findIcon("print", 40, 65, 20, "#333").ifPresent(elements::add);
+        findIcon("undo", 70, 65, 20, "#333").ifPresent(elements::add);
+        findIcon("redo", 100, 65, 20, "#333").ifPresent(elements::add);
+        findIcon("bold", 150, 65, 20, "#333").ifPresent(elements::add);
+        findIcon("italic", 180, 65, 20, "#333").ifPresent(elements::add);
+
+        return elements;
     }
 
-    private void renderComments(
-            StringBuilder svg,
+    private List<SvgElement> renderComments(
             Map<Integer, List<CommentInfo>> blockToComments,
             List<BlockPosition> blockPositions,
             Theme theme
     ) {
+        var elements = new ArrayList<SvgElement>();
         int commentY = BANNER_HEIGHT + PAGE_MARGIN_TOP + PAGE_PADDING;
         var strokeColor = theme.getStrokeColor();
         for (BlockPosition pos : blockPositions) {
@@ -478,41 +489,44 @@ public final class AsciiDocToSvg
 
                     int rectHeight = 30 + (valueLines.size() * 15);
 
-                    svg.append(String.format(
-                            "<rect x=\"%d\" y=\"%d\" width=\"%d\" "
-                            + "height=\"%d\" fill=\"#f9f9f9\" stroke=\"%s\" "
-                            + "stroke-width=\"1\" rx=\"4\"/>\n",
-                            COMMENTS_LEFT,
-                            commentY,
-                            COMMENT_WIDTH,
-                            rectHeight,
-                            strokeColor));
+                    var attrStroke = strokeColor.map(sc -> attr("stroke", sc))
+                                                .orElse(SvgAttribute.NONE);
+                    elements.add(new SvgRect(String.valueOf(COMMENTS_LEFT),
+                            String.valueOf(commentY),
+                            String.valueOf(COMMENT_WIDTH),
+                            String.valueOf(rectHeight),
+                            attr("fill", "#f9f9f9"),
+                            attr("stroke-width", "1"),
+                            attr("rx", "4"),
+                            attrStroke));
                     if (theme == Theme.GDOCS) {
-                        svg.append(String.format(
-                                "<circle cx=\"%d\" cy=\"%d\" r=\"5\" "
-                                + "fill=\"#4285f4\"/>\n",
-                                COMMENTS_LEFT + 15,
-                                commentY + 20));
+                        elements.add(new SvgCircle(String.valueOf(
+                                COMMENTS_LEFT + 15),
+                                String.valueOf(commentY + 20),
+                                "5",
+                                "#4285f4"));
                     }
-                    svg.append(String.format(
-                            "<text x=\"%d\" y=\"%d\" font-family=\"%s\" "
-                            + "font-size=\"11\" "
-                            + "font-weight=\"bold\" fill=\"#333\">%s</text>\n",
-                            COMMENTS_LEFT + (theme == Theme.GDOCS ? 25 : 10),
-                            commentY + 20,
-                            theme.getFontFamily(),
-                            escape(c.author)));
+                    var attrFF = theme.getFontFamily()
+                                      .map(ff -> attr("font-family", ff))
+                                      .orElse(SvgAttribute.NONE);
+                    elements.add(new SvgText(String.valueOf(
+                            COMMENTS_LEFT + (theme == Theme.GDOCS ? 25 : 10)),
+                            String.valueOf(commentY + 20),
+                            "11",
+                            "#333",
+                            c.author,
+                            attr("font-weight", "bold"),
+                            attrFF));
 
                     int lineY = commentY + 35;
                     for (String line : valueLines) {
-                        svg.append(String.format(
-                                "<text x=\"%d\" y=\"%d\" font-family=\"%s\" "
-                                + "font-size=\"11\" "
-                                + "fill=\"#666\">%s</text>\n",
-                                COMMENTS_LEFT + 10,
-                                lineY,
-                                theme.getFontFamily(),
-                                escape(line)));
+                        elements.add(new SvgText(String.valueOf(
+                                COMMENTS_LEFT + 10),
+                                String.valueOf(lineY),
+                                "11",
+                                "#666",
+                                line,
+                                attrFF));
                         lineY += 15;
                     }
 
@@ -520,24 +534,23 @@ public final class AsciiDocToSvg
                     int startY = (pos.startY + pos.endY) / 2;
                     int endX = COMMENTS_LEFT;
                     int endY = commentY + (rectHeight / 2);
-                    svg.append(String.format(
-                            "<line x1=\"%d\" y1=\"%d\" x2=\"%d\" y2=\"%d\" "
-                            + "stroke=\"%s\" stroke-width=\"1\" "
-                            + "stroke-dasharray=\"4\"/>\n",
-                            startX,
-                            startY,
-                            endX,
-                            endY,
-                            strokeColor));
+                    elements.add(new SvgLine(String.valueOf(startX),
+                            String.valueOf(startY),
+                            String.valueOf(endX),
+                            String.valueOf(endY),
+                            strokeColor.orElse(""),
+                            attr("stroke-width", 1),
+                            attr("stroke-dasharray", 4)));
 
                     commentY += rectHeight + 10;
                 }
             }
         }
+        return elements;
     }
 
     private Map<Integer, List<CommentInfo>> mapCommentsToBlocks(List<CommentInfo> comments) {
-        Map<Integer, List<CommentInfo>> map = new HashMap<>();
+        Map<Integer, List<CommentInfo>> map = new TreeMap<>();
         for (CommentInfo c : comments) {
             try {
                 int blockIndex = Integer.parseInt(c.start.split(",")[0]);
@@ -548,8 +561,7 @@ public final class AsciiDocToSvg
         return map;
     }
 
-    private int appendTextLine(
-            StringBuilder body,
+    private TextLineResult appendTextLine(
             String line,
             int x,
             int y,
@@ -557,23 +569,19 @@ public final class AsciiDocToSvg
             int weight,
             Theme theme
     ) {
-        body.append("<text ");
-        body.append("x=\"%d\" ".formatted(x));
-        body.append("y=\"%d\" ".formatted(y));
-        var fontFamily = theme.getFontFamily();
-        fontFamily.ifPresent(ff -> body.append("font-family=\"%s\" ".formatted(
-                ff)));
-        body.append("font-size=\"%s\" ".formatted(fontSize));
-        body.append("font-weight=\"%s\" ".formatted(weight));
-        body.append("fill=\"#111\"");
-        body.append(">");
-        body.append(escape(line));
-        body.append("</text>\n");
-        return y + LINE_HEIGHT;
+        var text = new SvgText(String.valueOf(x),
+                String.valueOf(y),
+                String.valueOf(fontSize),
+                "#111",
+                line,
+                attr("font-weight", weight),
+                theme.getFontFamily()
+                     .map(ff -> attr("font-family", ff))
+                     .orElse(SvgAttribute.NONE));
+        return new TextLineResult(text, y + LINE_HEIGHT);
     }
 
-    private int appendWrappedText(
-            StringBuilder body,
+    private WrappedTextResult appendWrappedText(
             String text,
             int x,
             int y,
@@ -584,17 +592,19 @@ public final class AsciiDocToSvg
     ) {
         Font font = getAwtFont(theme, fontSize, weight);
         List<String> lines = AsciiDocMetrics.wrapText(text, font, maxWidth);
+        var elements = new ArrayList<SvgElement>();
         int currentY = y;
         for (String line : lines) {
-            currentY = appendTextLine(body,
-                    line,
+            var result = appendTextLine(line,
                     x,
                     currentY,
                     fontSize,
                     weight,
                     theme);
+            elements.add(result.element());
+            currentY = result.nextY();
         }
-        return currentY;
+        return new WrappedTextResult(currentY, elements);
     }
 
     private String renderInlines(List<Inline> inlines) {
@@ -625,20 +635,15 @@ public final class AsciiDocToSvg
         return text.toString();
     }
 
-    private String escape(String value) {
-        if (value == null) return "";
-        return value.replace("&", "&amp;")
-                    .replace("<", "&lt;")
-                    .replace(">", "&gt;")
-                    .replace("\"", "&quot;")
-                    .replace("'", "&apos;")
-                    .replaceAll("\\p{Cntrl}", "")
-                    .stripTrailing();
-    }
-
     private record CommentInfo(
             String id, String start, String author, String value
     ) {}
 
     private record BlockPosition(int index, int startY, int endY) {}
+
+    private record BlockRenderResult(int nextY, List<SvgElement> elements) {}
+
+    private record TextLineResult(SvgText element, int nextY) {}
+
+    private record WrappedTextResult(int nextY, List<SvgElement> elements) {}
 }

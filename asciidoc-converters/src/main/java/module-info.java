@@ -4,4 +4,5 @@ module pro.verron.asciidoc.converters {
     requires org.jspecify;
 
     exports pro.verron.asciidoc.converters.converters;
+    exports pro.verron.asciidoc.converters.converters.svg;
 }

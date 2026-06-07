@@ -1,5 +1,6 @@
-package pro.verron.asciidoc.converters.converters;
+package pro.verron.asciidoc.converters.converters.svg;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -8,7 +9,7 @@ import static java.util.Optional.ofNullable;
 
 /// Provides SVG paths for icons used in simulated editor interfaces.
 /// Icons are sourced from Bootstrap Icons (MIT License).
-final class AsciiDocIcon {
+public final class AsciiDocIcon {
 
     private static final Map<String, String> PATHS = Map.of("save",
             "M11 2H9v3h2zM1.5 0h11.586a1.5 1.5 0 0 1 1.06.44l1.415 1.414A1.5 1.5 0 0 1 16 2.914V14.5a1.5 1.5 0 0 1-1"
@@ -55,19 +56,25 @@ final class AsciiDocIcon {
         throw new UnsupportedOperationException("Utility class");
     }
 
-    /// find an icon to the SVG representation
+    /// find an icon and return it as an SVG group model
     ///
     /// @param name icon name
     /// @param x x coordinate
     /// @param y y coordinate
     /// @param size icon size (width and height)
     /// @param color icon color
-    static Optional<String> findIcon(String name, int x, int y, int size, String color) {
-        return ofNullable(PATHS.get(name)).map(path -> String.format(Locale.ROOT, """
-                <g transform="translate(%d, %d) scale(%f)">
-                <path d="%s" fill="%s"/>
-                </g>
-                """, x, y, size / 16.0, path, color));
+    public static Optional<SvgGroup> findIcon(
+            String name,
+            int x,
+            int y,
+            int size,
+            String color
+    ) {
+        return ofNullable(PATHS.get(name)).map(path -> {
+            var transform = String.format(Locale.ROOT,
+                    "translate(%d, %d) scale(%f)", x, y, size / 16.0);
+            return new SvgGroup(transform, List.of(new SvgPath(path, color)));
+        });
     }
 
 }

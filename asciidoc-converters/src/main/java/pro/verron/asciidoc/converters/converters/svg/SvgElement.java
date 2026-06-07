@@ -1,0 +1,46 @@
+package pro.verron.asciidoc.converters.converters.svg;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.StringJoiner;
+
+import static java.lang.String.format;
+
+/// Sealed interface for SVG element model objects.
+/// Each subtype represents a specific SVG element type.
+sealed public interface SvgElement
+        permits SvgCircle, SvgContent, SvgDocument, SvgGroup, SvgImage,
+        SvgLine, SvgPath, SvgRect, SvgText {
+
+    default String serialize() {
+        var locale = Locale.ROOT;
+        var attrs = new StringJoiner(" ");
+        for (var attr : attributes()) {
+            attrs.add(attr.serialize());
+        }
+
+        if (children().isEmpty()) {
+            var format = "<%1s %2s/>";
+            return format(locale, format, markup(), attrs);
+        }
+
+        var children = new StringJoiner("\n", "\n", "\n");
+        for (var child : children()) children.add(child.serialize());
+
+        var format = "<%1$s %2$s>%3$s</%1$s>";
+        return format(locale, format, markup(), attrs, children);
+
+    }
+
+    default String markup() {
+        throw new UnsupportedOperationException();
+    }
+
+    default SvgAttributes attributes() {
+        return new SvgAttributes();
+    }
+
+    default List<SvgElement> children() {
+        return List.of();
+    }
+}

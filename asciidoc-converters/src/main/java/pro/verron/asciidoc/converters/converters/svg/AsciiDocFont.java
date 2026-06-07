@@ -1,11 +1,11 @@
-package pro.verron.asciidoc.converters.converters;
+package pro.verron.asciidoc.converters.converters.svg;
 
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
 /// Utility class for font management in AsciiDoc previews.
-final class AsciiDocFont {
+public final class AsciiDocFont {
     private static final Map<String, Font> FONT_CACHE = new HashMap<>();
 
     private AsciiDocFont() {
@@ -19,7 +19,7 @@ final class AsciiDocFont {
     /// @param weight   font weight (e.g. 400, 700)
     ///
     /// @return AWT Font
-    static Font getAwtFont(Theme theme, int fontSize, int weight) {
+    public static Font getAwtFont(Theme theme, int fontSize, int weight) {
         var key = String.format("%s-%d-%d", theme, fontSize, weight);
         var primaryFont = theme.getPrimaryFont();
         var style = (weight >= 700) ? Font.BOLD : Font.PLAIN;

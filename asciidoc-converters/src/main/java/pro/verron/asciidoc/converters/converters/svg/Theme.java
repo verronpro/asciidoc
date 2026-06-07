@@ -1,4 +1,4 @@
-package pro.verron.asciidoc.converters.converters;
+package pro.verron.asciidoc.converters.converters.svg;
 
 import java.awt.*;
 import java.util.Optional;
@@ -9,7 +9,7 @@ public enum Theme {
     GDOCS,
     LIBRE;
 
-    Optional<String> getStrokeColor() {
+    public Optional<String> getStrokeColor() {
         return switch (this) {
             case NONE -> Optional.empty();
             case WORD -> Optional.of("#ffc000");
@@ -18,7 +18,7 @@ public enum Theme {
         };
     }
 
-    Optional<String> getHighlightColor() {
+    public Optional<String> getHighlightColor() {
         return switch (this) {
             case NONE -> Optional.empty();
             case WORD -> Optional.of("#fff2cc");
@@ -28,7 +28,7 @@ public enum Theme {
     }
 
     // Background
-    Optional<String> getBgColor() {
+    public Optional<String> getBgColor() {
         return switch (this) {
             case NONE -> Optional.empty();
             case WORD -> Optional.of("#e6e6e6");
@@ -48,7 +48,7 @@ public enum Theme {
     /// Returns the SVG font-family string for a given theme.
     ///
     /// @return font-family string
-    Optional<String> getFontFamily() {
+    public Optional<String> getFontFamily() {
         return switch (this) {
             case NONE -> Optional.empty();
             case WORD -> Optional.of("Calibri, 'Carlito', 'Arial', sans-serif");

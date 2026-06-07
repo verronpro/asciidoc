@@ -19,10 +19,10 @@ public class AsciiDocToSvgTest {
 
         var expectedHtml = """
                 <?xml version="1.0" encoding="UTF-8"?>
-                <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="990" viewBox="0 0 1200 990">
-                <rect x="0" y="0" width="100%%" height="100%%" />
-                <rect x="54" y="144" width="800" height="800" fill="#000" fill-opacity="0.1" rx="2"/>
-                <rect x="50" y="140" width="800" height="800" fill="white" stroke="#ccc" stroke-width="1"/>
+                <svg height="990" viewBox="0 0 1200 990" width="1200" xmlns="http://www.w3.org/2000/svg">
+                <rect height="100%" width="100%" x="0" y="0"/>
+                <rect fill="#000" fill-opacity="0.1" height="800" rx="2" width="800" x="54" y="144"/>
+                <rect fill="white" height="800" stroke="#ccc" stroke-width="1" width="800" x="50" y="140"/>
                 </svg>""";
         assertEquals(expectedHtml, html);
     }
@@ -38,11 +38,13 @@ public class AsciiDocToSvgTest {
 
         var expectedHtml = """
                 <?xml version="1.0" encoding="UTF-8"?>
-                <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="990" viewBox="0 0 1200 990">
-                <rect x="0" y="0" width="100%%" height="100%%" />
-                <rect x="54" y="144" width="800" height="800" fill="#000" fill-opacity="0.1" rx="2"/>
-                <rect x="50" y="140" width="800" height="800" fill="white" stroke="#ccc" stroke-width="1"/>
-                <text x="122" y="243" font-size="31" font-weight="700" fill="#111">Sample Heading</text>
+                <svg height="990" viewBox="0 0 1200 990" width="1200" xmlns="http://www.w3.org/2000/svg">
+                <rect height="100%" width="100%" x="0" y="0"/>
+                <rect fill="#000" fill-opacity="0.1" height="800" rx="2" width="800" x="54" y="144"/>
+                <rect fill="white" height="800" stroke="#ccc" stroke-width="1" width="800" x="50" y="140"/>
+                <text fill="#111" font-size="31" font-weight="700" x="122" y="243">
+                Sample Heading
+                </text>
                 </svg>""";
         assertEquals(expectedHtml, html);
     }
@@ -58,11 +60,13 @@ public class AsciiDocToSvgTest {
 
         var expectedHtml = """
                 <?xml version="1.0" encoding="UTF-8"?>
-                <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="990" viewBox="0 0 1200 990">
-                <rect x="0" y="0" width="100%%" height="100%%" />
-                <rect x="54" y="144" width="800" height="800" fill="#000" fill-opacity="0.1" rx="2"/>
-                <rect x="50" y="140" width="800" height="800" fill="white" stroke="#ccc" stroke-width="1"/>
-                <text x="122" y="226" font-size="14" font-weight="400" fill="#111">This is a paragraph.</text>
+                <svg height="990" viewBox="0 0 1200 990" width="1200" xmlns="http://www.w3.org/2000/svg">
+                <rect height="100%" width="100%" x="0" y="0"/>
+                <rect fill="#000" fill-opacity="0.1" height="800" rx="2" width="800" x="54" y="144"/>
+                <rect fill="white" height="800" stroke="#ccc" stroke-width="1" width="800" x="50" y="140"/>
+                <text fill="#111" font-size="14" font-weight="400" x="122" y="226">
+                This is a paragraph.
+                </text>
                 </svg>""";
         assertEquals(expectedHtml, html);
     }
@@ -80,12 +84,16 @@ public class AsciiDocToSvgTest {
 
         var expectedHtml = """
                 <?xml version="1.0" encoding="UTF-8"?>
-                <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="990" viewBox="0 0 1200 990">
-                <rect x="0" y="0" width="100%%" height="100%%" />
-                <rect x="54" y="144" width="800" height="800" fill="#000" fill-opacity="0.1" rx="2"/>
-                <rect x="50" y="140" width="800" height="800" fill="white" stroke="#ccc" stroke-width="1"/>
-                <text x="122" y="226" font-size="14" font-weight="400" fill="#111">1. Item 1</text>
-                <text x="122" y="260" font-size="14" font-weight="400" fill="#111">2. Item 2</text>
+                <svg height="990" viewBox="0 0 1200 990" width="1200" xmlns="http://www.w3.org/2000/svg">
+                <rect height="100%" width="100%" x="0" y="0"/>
+                <rect fill="#000" fill-opacity="0.1" height="800" rx="2" width="800" x="54" y="144"/>
+                <rect fill="white" height="800" stroke="#ccc" stroke-width="1" width="800" x="50" y="140"/>
+                <text fill="#111" font-size="14" font-weight="400" x="122" y="226">
+                1. Item 1
+                </text>
+                <text fill="#111" font-size="14" font-weight="400" x="122" y="260">
+                2. Item 2
+                </text>
                 </svg>""";
         assertEquals(expectedHtml, html);
     }
@@ -96,7 +104,7 @@ public class AsciiDocToSvgTest {
         var item2 = new Text("Item 2");
         var unorderedList =
                 new UnorderedList(List.of(new ListItem(List.of(item1)),
-                        new ListItem(List.of(item2))));
+                new ListItem(List.of(item2))));
         var model = AsciiDocModel.of(Map.of("theme", "none"), unorderedList);
         var converter = new AsciiDocToSvg();
 
@@ -104,12 +112,16 @@ public class AsciiDocToSvgTest {
 
         var expectedHtml = """
                 <?xml version="1.0" encoding="UTF-8"?>
-                <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="990" viewBox="0 0 1200 990">
-                <rect x="0" y="0" width="100%%" height="100%%" />
-                <rect x="54" y="144" width="800" height="800" fill="#000" fill-opacity="0.1" rx="2"/>
-                <rect x="50" y="140" width="800" height="800" fill="white" stroke="#ccc" stroke-width="1"/>
-                <text x="122" y="226" font-size="14" font-weight="400" fill="#111">• Item 1</text>
-                <text x="122" y="260" font-size="14" font-weight="400" fill="#111">• Item 2</text>
+                <svg height="990" viewBox="0 0 1200 990" width="1200" xmlns="http://www.w3.org/2000/svg">
+                <rect height="100%" width="100%" x="0" y="0"/>
+                <rect fill="#000" fill-opacity="0.1" height="800" rx="2" width="800" x="54" y="144"/>
+                <rect fill="white" height="800" stroke="#ccc" stroke-width="1" width="800" x="50" y="140"/>
+                <text fill="#111" font-size="14" font-weight="400" x="122" y="226">
+                • Item 1
+                </text>
+                <text fill="#111" font-size="14" font-weight="400" x="122" y="260">
+                • Item 2
+                </text>
                 </svg>""";
         assertEquals(expectedHtml, html);
     }
@@ -134,17 +146,17 @@ public class AsciiDocToSvgTest {
 
         var expectedHtml = """
                 <?xml version="1.0" encoding="UTF-8"?>
-                <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="990" viewBox="0 0 1200 990">
-                <rect x="0" y="0" width="100%%" height="100%%" />
-                <rect x="54" y="144" width="800" height="800" fill="#000" fill-opacity="0.1" rx="2"/>
-                <rect x="50" y="140" width="800" height="800" fill="white" stroke="#ccc" stroke-width="1"/>
-                <rect x="122" y="220" width="380" height="56" stroke="black" fill="white"/>
-                <rect x="122" y="220" width="380" height="28" stroke="black" fill="white"/>
-                <rect x="122" y="220" width="190" height="28" stroke="black" fill="white"/>
-                <rect x="312" y="220" width="190" height="28" stroke="black" fill="white"/>
-                <rect x="122" y="248" width="380" height="28" stroke="black" fill="white"/>
-                <rect x="122" y="248" width="190" height="28" stroke="black" fill="white"/>
-                <rect x="312" y="248" width="190" height="28" stroke="black" fill="white"/>
+                <svg height="990" viewBox="0 0 1200 990" width="1200" xmlns="http://www.w3.org/2000/svg">
+                <rect height="100%" width="100%" x="0" y="0"/>
+                <rect fill="#000" fill-opacity="0.1" height="800" rx="2" width="800" x="54" y="144"/>
+                <rect fill="white" height="800" stroke="#ccc" stroke-width="1" width="800" x="50" y="140"/>
+                <rect fill="white" height="56" stroke="black" width="380" x="122" y="220"/>
+                <rect fill="white" height="28" stroke="black" width="380" x="122" y="220"/>
+                <rect fill="white" height="28" stroke="black" width="190" x="122" y="220"/>
+                <rect fill="white" height="28" stroke="black" width="190" x="312" y="220"/>
+                <rect fill="white" height="28" stroke="black" width="380" x="122" y="248"/>
+                <rect fill="white" height="28" stroke="black" width="190" x="122" y="248"/>
+                <rect fill="white" height="28" stroke="black" width="190" x="312" y="248"/>
                 </svg>""";
         assertEquals(expectedHtml, html);
     }
@@ -160,11 +172,11 @@ public class AsciiDocToSvgTest {
 
         var expectedHtml = """
                 <?xml version="1.0" encoding="UTF-8"?>
-                <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="990" viewBox="0 0 1200 990">
-                <rect x="0" y="0" width="100%%" height="100%%" />
-                <rect x="54" y="144" width="800" height="800" fill="#000" fill-opacity="0.1" rx="2"/>
-                <rect x="50" y="140" width="800" height="800" fill="white" stroke="#ccc" stroke-width="1"/>
-                <image x="122" y="220" width="320" height="120" rx="4" href="https://example.com/image.png"/>
+                <svg height="990" viewBox="0 0 1200 990" width="1200" xmlns="http://www.w3.org/2000/svg">
+                <rect height="100%" width="100%" x="0" y="0"/>
+                <rect fill="#000" fill-opacity="0.1" height="800" rx="2" width="800" x="54" y="144"/>
+                <rect fill="white" height="800" stroke="#ccc" stroke-width="1" width="800" x="50" y="140"/>
+                <image height="120" href="https://example.com/image.png" rx="4" width="320" x="122" y="220"/>
                 </svg>""";
         assertEquals(expectedHtml, html);
     }
