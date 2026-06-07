@@ -3,11 +3,10 @@ package pro.verron.asciidoc.converters.converters;
 import pro.verron.asciidoc.converters.converters.svg.*;
 import pro.verron.asciidoc.core.core.*;
 
-import java.awt.*;
 import java.util.*;
-import java.util.List;
 
 import static pro.verron.asciidoc.converters.converters.svg.AsciiDocFont.getAwtFont;
+import static pro.verron.asciidoc.converters.converters.svg.AsciiDocMetrics.wrapText;
 import static pro.verron.asciidoc.converters.converters.svg.SvgAttribute.attr;
 
 /// Renderer converting an [AsciiDocModel] into an SVG document simulating
@@ -311,77 +310,71 @@ public final class AsciiDocToSvg {
             Theme theme
     ) {
         var elements = new ArrayList<SvgElement>();
-        int commentY = BANNER_HEIGHT + PAGE_MARGIN_TOP + PAGE_PADDING;
+        var commentY = BANNER_HEIGHT + PAGE_MARGIN_TOP + PAGE_PADDING;
         var strokeColor = theme.getStrokeColor();
-        for (BlockPosition pos : blockPositions) {
-            List<CommentInfo> comments = blockToComments.get(pos.index);
-            if (comments != null) {
-                for (CommentInfo c : comments) {
-                    int commentPadding = 10;
-                    int textWidth = COMMENT_WIDTH - 2 * commentPadding;
-                    Font authorFont = getAwtFont(theme, 11, 700);
-                    Font valueFont = getAwtFont(theme, 11, 400);
-                    List<String> valueLines = AsciiDocMetrics.wrapText(c.value,
-                            valueFont,
-                            textWidth);
-
-                    int rectHeight = 30 + (valueLines.size() * 15);
-
-                    var attrStroke = strokeColor.map(sc -> attr("stroke", sc))
-                                                .orElse(SvgAttribute.NONE);
-                    elements.add(new SvgRect(String.valueOf(COMMENTS_LEFT),
-                            String.valueOf(commentY),
-                            String.valueOf(COMMENT_WIDTH),
-                            String.valueOf(rectHeight),
-                            attr("fill", "#f9f9f9"),
-                            attr("stroke-width", "1"),
-                            attr("rx", "4"),
-                            attrStroke));
-                    if (theme == Theme.GDOCS) {
-                        elements.add(new SvgCircle(String.valueOf(
-                                COMMENTS_LEFT + 15),
-                                String.valueOf(commentY + 20),
-                                "5",
-                                "#4285f4"));
-                    }
-                    var attrFF = theme.getFontFamily()
-                                      .map(ff -> attr("font-family", ff))
-                                      .orElse(SvgAttribute.NONE);
-                    elements.add(new SvgText(String.valueOf(
-                            COMMENTS_LEFT + (theme == Theme.GDOCS ? 25 : 10)),
+        for (var pos : blockPositions) {
+            var comments = blockToComments.get(pos.index);
+            if (comments == null) continue;
+            for (var c : comments) {
+                var commentPadding = 10;
+                var textWidth = COMMENT_WIDTH - 2 * commentPadding;
+                var authorFont = getAwtFont(theme, 11, 700);
+                var valueFont = getAwtFont(theme, 11, 400);
+                var valueLines = wrapText(c.value, valueFont, textWidth);
+                var rectHeight = 30 + (valueLines.size() * 15);
+                var attrStroke = strokeColor.map(sc -> attr("stroke", sc))
+                                            .orElse(SvgAttribute.NONE);
+                elements.add(new SvgRect(String.valueOf(COMMENTS_LEFT),
+                        String.valueOf(commentY),
+                        String.valueOf(COMMENT_WIDTH),
+                        String.valueOf(rectHeight),
+                        attr("fill", "#f9f9f9"),
+                        attr("stroke-width", "1"),
+                        attr("rx", "4"),
+                        attrStroke));
+                if (theme == Theme.GDOCS) {
+                    elements.add(new SvgCircle(String.valueOf(
+                            COMMENTS_LEFT + 15),
                             String.valueOf(commentY + 20),
-                            "11",
-                            "#333",
-                            c.author,
-                            attr("font-weight", "bold"),
-                            attrFF));
-
-                    int lineY = commentY + 35;
-                    for (String line : valueLines) {
-                        elements.add(new SvgText(String.valueOf(
-                                COMMENTS_LEFT + 10),
-                                String.valueOf(lineY),
-                                "11",
-                                "#666",
-                                line,
-                                attrFF));
-                        lineY += 15;
-                    }
-
-                    int startX = PAGE_LEFT + PAGE_WIDTH;
-                    int startY = (pos.startY + pos.endY) / 2;
-                    int endX = COMMENTS_LEFT;
-                    int endY = commentY + (rectHeight / 2);
-                    elements.add(new SvgLine(String.valueOf(startX),
-                            String.valueOf(startY),
-                            String.valueOf(endX),
-                            String.valueOf(endY),
-                            strokeColor.orElse(""),
-                            attr("stroke-width", 1),
-                            attr("stroke-dasharray", 4)));
-
-                    commentY += rectHeight + 10;
+                            "5",
+                            "#4285f4"));
                 }
+                var attrFF = theme.getFontFamily()
+                                  .map(ff -> attr("font-family", ff))
+                                  .orElse(SvgAttribute.NONE);
+                elements.add(new SvgText(String.valueOf(
+                        COMMENTS_LEFT + (theme == Theme.GDOCS ? 25 : 10)),
+                        String.valueOf(commentY + 20),
+                        "11",
+                        "#333",
+                        c.author,
+                        attr("font-weight", "bold"),
+                        attrFF));
+
+                var lineY = commentY + 35;
+                for (var line : valueLines) {
+                    elements.add(new SvgText(String.valueOf(COMMENTS_LEFT + 10),
+                            String.valueOf(lineY),
+                            "11",
+                            "#666",
+                            line,
+                            attrFF));
+                    lineY += 15;
+                }
+
+                var startX = PAGE_LEFT + PAGE_WIDTH;
+                var startY = (pos.startY + pos.endY) / 2;
+                var endX = COMMENTS_LEFT;
+                var endY = commentY + (rectHeight / 2);
+                elements.add(new SvgLine(String.valueOf(startX),
+                        String.valueOf(startY),
+                        String.valueOf(endX),
+                        String.valueOf(endY),
+                        strokeColor.orElse(""),
+                        attr("stroke-width", 1),
+                        attr("stroke-dasharray", 4)));
+
+                commentY += rectHeight + 10;
             }
         }
         return elements;
@@ -428,11 +421,11 @@ public final class AsciiDocToSvg {
             Theme theme,
             int maxWidth
     ) {
-        Font font = getAwtFont(theme, fontSize, weight);
-        List<String> lines = AsciiDocMetrics.wrapText(text, font, maxWidth);
+        var font = getAwtFont(theme, fontSize, weight);
+        var lines = wrapText(text, font, maxWidth);
         var elements = new ArrayList<SvgElement>();
-        int currentY = y;
-        for (String line : lines) {
+        var currentY = y;
+        for (var line : lines) {
             var result = appendTextLine(line,
                     x,
                     currentY,
