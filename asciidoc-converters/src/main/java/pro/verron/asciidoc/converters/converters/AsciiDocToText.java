@@ -84,10 +84,10 @@ public final class AsciiDocToText
                 ____""".formatted(renderInlines(inlines));
     }
 
-    private static String renderList(List<ListItem> items1, String x) {
-        return items1.stream()
-                     .map(item -> x + renderInlines(item.inlines()))
-                     .collect(Collectors.joining("\n"));
+    private static String renderList(List<ListItem> items, String x) {
+        return items.stream()
+                    .map(item -> x + renderInlines(item.inlines()))
+                    .collect(Collectors.joining("\n"));
     }
 
     private static String renderHeading(int level, List<Inline> inlines) {
@@ -161,10 +161,10 @@ public final class AsciiDocToText
         var sb = new StringBuilder();
         sb.append(tableDelimiter);
         sb.append("\n");
-        for (Row row : rows) {
+        for (var row : rows) {
             var style = row.style();
             if (style != null) sb.append("[%s]\n".formatted(style));
-            for (Cell cell : row.cells()) {
+            for (var cell : row.cells()) {
                 var blockList = cell.blocks();
                 var size = blockList.size();
                 boolean isAsciidoc = size > 1 || (size == 1
