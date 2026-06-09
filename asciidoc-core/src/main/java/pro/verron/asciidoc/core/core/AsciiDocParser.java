@@ -9,10 +9,6 @@ import java.util.function.Function;
 /// and transforming it into structured models. It provides both static and
 /// instance-based parsing capabilities and is designed to work with inline
 /// structures within the text.
-/// ## Superclasses
-/// This class extends the following superclasses:
-/// - [Object]
-/// - [Function]
 ///
 /// ## Methods
 ///   - [#parse(String)]: A static method to parse an AsciiDoc string into an
@@ -26,6 +22,9 @@ import java.util.function.Function;
 /// elements from a given text input.
 public final class AsciiDocParser
         implements Function<String, AsciiDocModel> {
+
+    /// Constructs an [AsciiDocParser].
+    public AsciiDocParser() {}
 
     /// Parses the given AsciiDoc string and produces an [AsciiDocModel].
     ///

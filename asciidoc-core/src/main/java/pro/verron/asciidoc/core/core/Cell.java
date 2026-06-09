@@ -7,7 +7,7 @@ import java.util.Optional;
 
 /// Table cell containing block-level content.
 public class Cell {
-    public final @Nullable String style;
+    private final @Nullable String style;
     private final List<Block> blocks;
 
     /// Constructs a [Cell] without a style.
@@ -34,10 +34,16 @@ public class Cell {
         return new Cell(List.of(new Paragraph(inlines)));
     }
 
+    /// Returns the cell content blocks.
+    ///
+    /// @return the list of [Block] elements in this cell
     public List<Block> blocks() {
         return blocks;
     }
 
+    /// Returns the cell style, if set.
+    ///
+    /// @return an [Optional] containing the style name, or [Optional#empty()]
     public Optional<String> style() {
         return Optional.ofNullable(style);
     }
