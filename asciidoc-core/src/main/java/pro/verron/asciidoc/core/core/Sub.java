@@ -4,17 +4,15 @@ import java.util.List;
 
 import static java.util.stream.Collectors.joining;
 
-/// Represents a subscript inline element within an AsciiDoc document model.
+/// Subscript inline element.
 ///
-/// This class implements the Inline interface and contains a list of child inlines.
-/// It is used to represent text or elements that should appear as subscript.
-///
-/// The content of this inline element is immutable, and the provided child elements
-/// are deep-copied to preserve immutability.
-///
-/// @param children the list of inline fragments contained within this subscript element
+/// @param children inline fragments within this subscript element
 public record Sub(List<Inline> children)
         implements Inline {
+
+    /// Constructs a [Sub] with the given nested inlines.
+    ///
+    /// @param children inline fragments to include as children
     public Sub(List<Inline> children) {
         this.children = List.copyOf(children);
     }

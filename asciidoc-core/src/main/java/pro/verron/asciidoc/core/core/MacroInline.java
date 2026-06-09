@@ -2,13 +2,11 @@ package pro.verron.asciidoc.core.core;
 
 import java.util.List;
 
-/// Represents an inline macro in an AsciiDoc document.
-/// An inline macro is a specialized inline element with a name, an identifier,
-/// and a list of string values that represent its content.
+/// Inline macro in an AsciiDoc document.
 ///
-/// @param name the name of the macro, describing its purpose or type
-/// @param id   an identifier associated with the macro, often used for reference
-/// @param list a list of strings representing the components of the macro's content
+/// @param name the macro name
+/// @param id   an identifier for the macro
+/// @param list content strings
 public record MacroInline(String name, String id, List<String> list)
         implements Inline {
 

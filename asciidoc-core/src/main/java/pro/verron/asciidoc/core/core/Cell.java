@@ -5,31 +5,31 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-/// Table cell.
-///
-
+/// Table cell containing block-level content.
 public class Cell {
     public final @Nullable String style;
     private final List<Block> blocks;
 
+    /// Constructs a [Cell] without a style.
+    ///
     /// @param blocks cell content blocks
     public Cell(List<Block> blocks) {
         this(blocks, null);
     }
 
-    /// Constructor.
+    /// Constructs a [Cell] with an optional style.
     ///
     /// @param blocks cell content blocks
+    /// @param style  optional cell style, or `null`
     public Cell(List<Block> blocks, @Nullable String style) {
         this.blocks = List.copyOf(blocks);
         this.style = style;
     }
 
-    /// Creates a new [Cell] instance by wrapping a list of [Inline] elements
-    /// into a [Paragraph] and adding it to the cell's content blocks.
+    /// Creates a [Cell] by wrapping [Inline] elements into a [Paragraph].
     ///
-    /// @param inlines the list of [Inline] elements to be wrapped into a [Paragraph]
-    /// @return a [Cell] containing the specified [Inline] elements as a single [Paragraph]
+    /// @param inlines inline elements to wrap into a [Paragraph]
+    /// @return a [Cell] containing the specified inlines as a single [Paragraph]
     public static Cell ofInlines(List<Inline> inlines) {
         return new Cell(List.of(new Paragraph(inlines)));
     }

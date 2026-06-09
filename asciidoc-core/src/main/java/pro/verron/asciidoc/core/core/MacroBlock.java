@@ -2,37 +2,43 @@ package pro.verron.asciidoc.core.core;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
-/// Represents a macro block in an AsciiDoc document, which is a specialized
-/// block
-/// containing a unique identifier, a name, and a list of associated data.
+/// Block-level macro in an AsciiDoc document.
 ///
-/// The [MacroBlock] is immutable and implements the [Block] interface.
-/// It provides a concrete implementation for determining the size of the
-/// block.
-///
-/// @param name the name of the macro block
-/// @param id   the unique identifier for the macro block
-/// @param list an ordered list of strings associated with the macro block
-public record MacroBlock(String name, String id, List<String> list)
+/// @param header an ordered list of strings associated with the macro
+/// @param name   the macro name
+/// @param id     the unique identifier for the macro
+public record MacroBlock(List<String> header, String name, String id)
         implements Block {
 
+    @Override
+    public int size() {
+        return 1;
+    }
+
+    /// Returns the value of the named attribute from the header.
+    ///
+    /// @param name attribute name
+    ///
+    /// @return attribute value, or `null` if absent
+    public Optional<String> attribute(String name) {
+        return Optional.ofNullable(attributes().get(name));
+    }
+
+    /// Parses the header list into a key-value attribute map.
+    ///
+    /// @return attribute map parsed from `key="value"` entries in the header
     public Map<String, String> attributes() {
         var attributeMap = new TreeMap<String, String>();
-        for (var attr : list) {
+        for (var attr : header) {
             var trimmed = attr.trim();
             var keyValueSeparator = "=";
             if (!trimmed.contains(keyValueSeparator)) continue;
             var split = trimmed.split(keyValueSeparator);
             attributeMap.put(split[0], split[1].replace("\"", ""));
         }
-
         return attributeMap;
-    }
-
-    @Override
-    public int size() {
-        return 1;
     }
 }

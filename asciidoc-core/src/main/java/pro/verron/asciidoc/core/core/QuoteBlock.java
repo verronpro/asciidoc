@@ -2,12 +2,12 @@ package pro.verron.asciidoc.core.core;
 
 import java.util.List;
 
-/// QuoteBlock.
+/// Block-level quotation.
 ///
 /// @param inlines inline fragments
 public record QuoteBlock(List<Inline> inlines)
         implements Block {
-    /// Constructor.
+    /// Constructs a [QuoteBlock] with the given inline fragments.
     ///
     /// @param inlines inline fragments
     public QuoteBlock(List<Inline> inlines) {

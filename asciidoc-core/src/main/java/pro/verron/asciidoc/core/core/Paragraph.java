@@ -6,20 +6,21 @@ import static java.util.Collections.emptyList;
 
 /// Paragraph block.
 ///
+/// @param header  AsciiDoc block headers containing optional information
 /// @param inlines inline fragments
 public record Paragraph(List<String> header, List<Inline> inlines)
         implements Block {
-    /// Constructs a Paragraph object with the specified list of inline elements.
-    /// This constructor initializes the paragraph without any header and sets the
-    /// inline fragments to the provided list.
+
+    /// Constructs a [Paragraph] without block headers.
     ///
-    /// @param inlines the list of inline elements that make up the paragraph
+    /// @param inlines inline fragments
     public Paragraph(List<Inline> inlines) {
         this(emptyList(), inlines);
     }
 
-    /// Constructor.
+    /// Constructs a [Paragraph] with block headers.
     ///
+    /// @param header  header elements, if any
     /// @param inlines inline fragments
     public Paragraph(List<String> header, List<Inline> inlines) {
         this.header = List.copyOf(header);

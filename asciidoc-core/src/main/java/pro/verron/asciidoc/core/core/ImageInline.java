@@ -11,11 +11,10 @@ import java.util.TreeMap;
 public record ImageInline(String path, Map<String, String> map)
         implements Inline {
 
-    /// Constructs an instance of the ImageInline class with the specified image path and alternative text mappings.
+    /// Constructs an [ImageInline] with the specified path and attributes.
     ///
     /// @param path the path to the image
-    /// @param map a mapping of alternative text attributes associated with the image;
-    ///            keys and values represent descriptive labels for different use cases or locales
+    /// @param map  a mapping of alternative text attributes
     public ImageInline(String path, Map<String, String> map) {
         this.path = path;
         this.map = Collections.unmodifiableMap(new TreeMap<>(map));

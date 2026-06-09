@@ -2,7 +2,7 @@ package pro.verron.asciidoc.core.core;
 
 import java.util.List;
 
-/// Unordered list.
+/// Unordered (bulleted) list.
 ///
 /// @param items list items
 public record UnorderedList(List<ListItem> items)

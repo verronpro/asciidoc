@@ -7,7 +7,7 @@ import java.util.List;
 /// @param children nested inline fragments
 public record Italic(List<Inline> children)
         implements Inline {
-    /// Constructor.
+    /// Constructs an [Italic] with the given nested inlines.
     ///
     /// @param children nested inline fragments
     public Italic(List<Inline> children) {

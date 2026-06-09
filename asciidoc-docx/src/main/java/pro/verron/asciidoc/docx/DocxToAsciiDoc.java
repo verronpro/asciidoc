@@ -600,23 +600,19 @@ public final class DocxToAsciiDoc
                 }
                 cells.add(new Cell(cellBlocks, ccnfStyle));
             }
-            String cnfStyle = null;
-            if (tr.getTrPr() != null && tr.getTrPr()
-                                          .getCnfStyleOrDivIdOrGridBefore()
-                                        != null) {
-                cnfStyle = tr.getTrPr()
-                             .getCnfStyleOrDivIdOrGridBefore()
-                             .stream()
-                             .map(DocxToAsciiDoc::unwrap)
-                             .filter(CTCnf.class::isInstance)
-                             .map(CTCnf.class::cast)
-                             .findFirst()
-                             .map(s -> "rowStyle=" + Long.parseLong(s.getVal(),
-                                     2))
-                             .orElse(null);
+            List<String> header = new ArrayList<>();
+            if (tr.getTrPr() instanceof TrPr trpr
+                && trpr.getCnfStyleOrDivIdOrGridBefore() instanceof List<JAXBElement<?>> elements) {
+                elements.stream()
+                        .map(DocxToAsciiDoc::unwrap)
+                        .filter(CTCnf.class::isInstance)
+                        .map(CTCnf.class::cast)
+                        .findFirst()
+                        .map(s -> "rowStyle=" + Long.parseLong(s.getVal(), 2))
+                        .ifPresent(header::add);
 
             }
-            rows.add(new Row(cells, cnfStyle));
+            rows.add(new Row(header, cells));
         }
         return new Table(rows);
     }
@@ -820,8 +816,8 @@ public final class DocxToAsciiDoc
             var startProp = "start=\"%d,%d\"".formatted(blockStart, lineStart);
             var endProp = "end=\"%d,%d\"".formatted(blockEnd, lineEnd);
             var valueProp = "value=\"%s\"".formatted(commentMessage);
-            var list = List.of(startProp, endProp, valueProp);
-            return new MacroBlock("comment", idStr, list);
+            var header = List.of(startProp, endProp, valueProp);
+            return new MacroBlock(header, "comment", idStr);
         }
 
         private String extractComment(BigInteger id) {

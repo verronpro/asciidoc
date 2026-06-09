@@ -8,7 +8,7 @@ import java.util.List;
 /// @param rows table rows
 public record Table(List<Row> rows)
         implements Block {
-    /// Constructor.
+    /// Constructs a [Table] with the given rows.
     ///
     /// @param rows table rows
     public Table(List<Row> rows) {

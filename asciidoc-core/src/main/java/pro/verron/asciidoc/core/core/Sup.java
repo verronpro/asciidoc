@@ -4,21 +4,14 @@ import java.util.List;
 
 import static java.util.stream.Collectors.joining;
 
-/// Represents a superscript inline fragment in an AsciiDoc document.
+/// Superscript inline element.
 ///
-/// This class encapsulates a list of child [Inline] elements and provides a method to return
-/// the concatenated text content of all child elements. It is an immutable record type, providing
-/// safety and ensuring that the children list cannot be externally modified after the instance
-/// is created.
+/// @param children inline fragments within this superscript element
 public record Sup(List<Inline> children)
         implements Inline {
-    /// Constructs a [Sup] instance, representing a superscript inline fragment in an AsciiDoc document.
+    /// Constructs a [Sup] with the given nested inlines.
     ///
-    /// The Sup instance encapsulates a list of [Inline] child elements. The list is copied to ensure immutability,
-    /// providing safety and preventing external modification after creation.
-    ///
-    /// @param children the list of [Inline] elements to be included as children of the superscript fragment
-    ///                 (must not be null; each element should represent a valid inline fragment)
+    /// @param children inline fragments to include as children
     public Sup(List<Inline> children) {
         this.children = List.copyOf(children);
     }

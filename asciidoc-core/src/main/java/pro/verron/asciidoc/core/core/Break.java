@@ -1,8 +1,8 @@
 package pro.verron.asciidoc.core.core;
 
-/// Represents a line break in a document structure.
-/// This is a marker record that implements the [Block] interface.
-/// It has a fixed size of zero, indicating no content spans across the line break.
+/// Represents a line break in a document.
+///
+/// A marker record with a fixed size of zero, indicating no content spans across the break.
 public record Break()
         implements Block {
     @Override

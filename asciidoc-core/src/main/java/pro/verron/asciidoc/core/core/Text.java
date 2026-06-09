@@ -1,7 +1,7 @@
 package pro.verron.asciidoc.core.core;
 
-/// Text fragment.
+/// Plain text fragment.
 ///
-/// @param text text
+/// @param text text content
 public record Text(String text)
         implements Inline {}

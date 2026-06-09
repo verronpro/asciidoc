@@ -111,11 +111,13 @@ public final class AsciiDocToSvg {
             if (!(block instanceof MacroBlock macro)) continue;
             if (!Objects.equals(macro.name(), "comment")) continue;
 
-            var attributes = macro.attributes();
+            var start = macro.attribute("start");
+            var author = macro.attribute("author");
+            var value = macro.attribute("value");
             var commentInfo = new CommentInfo(macro.id(),
-                    attributes.getOrDefault("start", ""),
-                    attributes.getOrDefault("author", ""),
-                    attributes.getOrDefault("value", ""));
+                    start.orElse(""),
+                    author.orElse(""),
+                    value.orElse(""));
             comments.add(commentInfo);
         }
         return comments;

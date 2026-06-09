@@ -1,6 +1,8 @@
 package pro.verron.asciidoc.core.core;
 
-/// Inline fragment inside a paragraph/heading.
+/// Inline fragment inside a paragraph or heading.
+///
+/// Each inline provides its plain-text representation via [#text()].
 public sealed interface Inline
         permits Bold, ImageInline, MacroInline, Italic, Link, Styled, Sub,
         Sup, Tab, Text {

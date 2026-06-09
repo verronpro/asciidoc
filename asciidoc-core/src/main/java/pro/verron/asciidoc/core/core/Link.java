@@ -1,8 +1,8 @@
 package pro.verron.asciidoc.core.core;
 
-/// Link inline.
+/// Hyperlink inline.
 ///
-/// @param url link URL
-/// @param text link text
+/// @param url  link URL
+/// @param text link display text
 public record Link(String url, String text)
         implements Inline {}

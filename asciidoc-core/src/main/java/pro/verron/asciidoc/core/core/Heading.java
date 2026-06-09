@@ -6,27 +6,30 @@ import static java.util.Collections.emptyList;
 
 /// Heading block (levels 1..6).
 ///
-/// @param level heading level
+/// @param header  AsciiDoc block headers containing optional information
+/// @param level   heading level (1..6)
 /// @param inlines inline fragments
 public record Heading(List<String> header, int level, List<Inline> inlines)
         implements Block {
-    /// Constructs a Heading object with the specified heading level and inline fragments.
+
+    /// Constructs a [Heading] without block headers.
     ///
-    /// @param level the heading level, must be between 1 and 6 (inclusive)
-    /// @param inlines the list of inline fragments representing the content of the heading
-    /// @throws IllegalArgumentException if the heading level is outside the range of 1 to 6
+    /// @param level   the heading level, must be between 1 and 6 (inclusive)
+    /// @param inlines the inline fragments representing the heading content
+    /// @throws IllegalArgumentException if the heading level is outside the range 1..6
     public Heading(int level, List<Inline> inlines) {
         this(emptyList(), level, inlines);
     }
 
-    /// Constructor.
+    /// Constructs a [Heading] with block headers.
     ///
-    /// @param level heading level
-    /// @param inlines inline fragments
+    /// @param header  header elements, if any
+    /// @param level   the heading level, must be between 1 and 6 (inclusive)
+    /// @param inlines the inline fragments representing the heading content
+    /// @throws IllegalArgumentException if the heading level is outside the range 1..6
     public Heading(List<String> header, int level, List<Inline> inlines) {
-        if (level < 1 || level > 6) {
-            throw new IllegalArgumentException("Heading level must be between 1 and 6");
-        }
+        if (level < 1 || level > 6) throw new IllegalArgumentException(
+                "Heading level must be between 1 and 6");
         this.header = List.copyOf(header);
         this.level = level;
         this.inlines = List.copyOf(inlines);

@@ -6,40 +6,47 @@ import java.util.*;
 import java.util.function.Function;
 
 /// The [AsciiDocParser] class is a utility for parsing AsciiDoc-formatted text
-/// and transforming it into structured models. It provides both static and instance-based
-/// parsing capabilities and is designed to work with inline structures within the text.
+/// and transforming it into structured models. It provides both static and
+/// instance-based parsing capabilities and is designed to work with inline
+/// structures within the text.
 /// ## Superclasses
 /// This class extends the following superclasses:
 /// - [Object]
 /// - [Function]
 ///
 /// ## Methods
-///   - [#parse(String)]: A static method to parse an AsciiDoc string into an [AsciiDocModel].
-///   - [#apply(String)]: An instance method implementing the [Function] interface for parsing an AsciiDoc string
+///   - [#parse(String)]: A static method to parse an AsciiDoc string into an
+/// [AsciiDocModel].
+///   - [#apply(String)]: An instance method implementing the [Function]
+/// interface for parsing an AsciiDoc string
 /// into an [AsciiDocModel].
 ///
 /// ## Internal Behavior
-///   - [#parseInlines(String)]: A private static helper method to parse inline elements from a given text input.
+///   - [#parseInlines(String)]: A private static helper method to parse inline
+/// elements from a given text input.
 public final class AsciiDocParser
         implements Function<String, AsciiDocModel> {
 
-    /// Parses the given AsciiDoc string and produces an [AsciiDocModel] representation.
+    /// Parses the given AsciiDoc string and produces an [AsciiDocModel].
     ///
-    /// @param asciidoc the AsciiDoc content to be parsed
-    /// @return an [AsciiDocModel] representing the parsed structure of the input AsciiDoc
+    /// @param asciidoc the AsciiDoc content to parse
+    ///
+    /// @return an [AsciiDocModel] representing the parsed structure
     public static AsciiDocModel parse(String asciidoc) {
         return new AsciiDocParser().apply(asciidoc);
     }
 
-    /// Processes an AsciiDoc-formatted string and converts it into an [AsciiDocModel]
-    /// representation containing structured blocks such as paragraphs, headings,
+    /// Processes an AsciiDoc-formatted string and converts it into an
+    /// [AsciiDocModel].
+    ///
+    /// The resulting model contains structured blocks such as paragraphs,
+    /// headings,
     /// lists, tables, images, code blocks, and blockquotes.
     ///
-    /// @param asciidoc the AsciiDoc-formatted input string. It may include various types of
-    ///                 blocks (e.g., paragraphs, headings, lists, tables, etc.) and
-    ///                 formatting constructs.
-    /// @return an [AsciiDocModel] object representing the parsed blocks and their
-    ///         structure in the input string. Returns an empty model if the input is blank.
+    /// @param asciidoc the AsciiDoc-formatted input string
+    ///
+    /// @return an [AsciiDocModel] representing the parsed blocks; empty model
+    /// if input is blank
     public AsciiDocModel apply(String asciidoc) {
         if (asciidoc.isBlank()) return AsciiDocModel.of(new ArrayList<>());
 
@@ -81,21 +88,26 @@ public final class AsciiDocParser
             var line = lines[i];
             var trimmed = line.trim();
 
-            if (trimmed.startsWith("[") && trimmed.endsWith("]") && !inCodeBlock && !inBlockquote && !inTable) {
-                nextBlockHeader.addAll(Arrays.asList(trimmed.substring(1, trimmed.length() - 1)
+            if (trimmed.startsWith("[") && trimmed.endsWith("]") && !inCodeBlock
+                && !inBlockquote && !inTable) {
+                nextBlockHeader.addAll(Arrays.asList(trimmed.substring(1,
+                                                                    trimmed.length() - 1)
                                                             .split(",")));
                 continue;
             }
 
-            if (trimmed.equals("--") && !inCodeBlock && !inBlockquote && !inTable) {
+            if (trimmed.equals("--") && !inCodeBlock && !inBlockquote
+                && !inTable) {
                 if (!currentParagraph.isEmpty()) {
-                    currentContainer.add(createParagraph(nextBlockHeader, currentParagraph.toString()));
+                    currentContainer.add(createParagraph(nextBlockHeader,
+                            currentParagraph.toString()));
                     nextBlockHeader.clear();
                     currentParagraph.setLength(0);
                 }
 
                 if (inOpenBlock) {
-                    blocks.add(new OpenBlock(new ArrayList<>(openBlockHeader), new ArrayList<>(openBlockBlocks)));
+                    blocks.add(new OpenBlock(new ArrayList<>(openBlockHeader),
+                            new ArrayList<>(openBlockBlocks)));
                     openBlockBlocks.clear();
                     openBlockHeader.clear();
                     inOpenBlock = false;
@@ -112,14 +124,17 @@ public final class AsciiDocParser
 
             if (trimmed.equals("____")) {
                 if (inBlockquote) {
-                    var currentBlockContentString = currentBlockContent.toString();
-                    currentContainer.add(new QuoteBlock(parseInlines(currentBlockContentString.trim())));
+                    var currentBlockContentString =
+                            currentBlockContent.toString();
+                    currentContainer.add(new QuoteBlock(parseInlines(
+                            currentBlockContentString.trim())));
                     currentBlockContent.setLength(0);
                     inBlockquote = false;
                 }
                 else {
                     if (!currentParagraph.isEmpty()) {
-                        currentContainer.add(createParagraph(nextBlockHeader, currentParagraph.toString()));
+                        currentContainer.add(createParagraph(nextBlockHeader,
+                                currentParagraph.toString()));
                         nextBlockHeader.clear();
                         currentParagraph.setLength(0);
                     }
@@ -139,16 +154,21 @@ public final class AsciiDocParser
 
             if (trimmed.equals("----")) {
                 if (inCodeBlock) {
-                    var currentBlockContentString = currentBlockContent.toString();
-                    var language = (nextBlockHeader.size() > 1) ? nextBlockHeader.get(1) : "";
-                    currentContainer.add(new CodeBlock(language, currentBlockContentString.trim()));
+                    var currentBlockContentString =
+                            currentBlockContent.toString();
+                    var language = (nextBlockHeader.size() > 1)
+                            ? nextBlockHeader.get(1)
+                            : "";
+                    currentContainer.add(new CodeBlock(language,
+                            currentBlockContentString.trim()));
                     currentBlockContent.setLength(0);
                     nextBlockHeader.clear();
                     inCodeBlock = false;
                 }
                 else {
                     if (!currentParagraph.isEmpty()) {
-                        currentContainer.add(createParagraph(nextBlockHeader, currentParagraph.toString()));
+                        currentContainer.add(createParagraph(nextBlockHeader,
+                                currentParagraph.toString()));
                         nextBlockHeader.clear();
                         currentParagraph.setLength(0);
                     }
@@ -162,13 +182,15 @@ public final class AsciiDocParser
                 if (!currentBlockContent.isEmpty()) {
                     currentBlockContent.append("\n");
                 }
-                currentBlockContent.append(line); // Preserve indentation in code blocks
+                currentBlockContent.append(line); // Preserve indentation in
+                // code blocks
                 continue;
             }
 
             if (trimmed.startsWith("image::")) {
                 if (!currentParagraph.isEmpty()) {
-                    currentContainer.add(createParagraph(nextBlockHeader, currentParagraph.toString()));
+                    currentContainer.add(createParagraph(nextBlockHeader,
+                            currentParagraph.toString()));
                     nextBlockHeader.clear();
                     currentParagraph.setLength(0);
                 }
@@ -191,26 +213,30 @@ public final class AsciiDocParser
                 int endBracket = trimmed.indexOf(']', macroNameEnd + 3);
                 if (endBracket != -1) {
                     if (!currentParagraph.isEmpty()) {
-                        currentContainer.add(createParagraph(nextBlockHeader, currentParagraph.toString()));
+                        currentContainer.add(createParagraph(nextBlockHeader,
+                                currentParagraph.toString()));
                         nextBlockHeader.clear();
                         currentParagraph.setLength(0);
                     }
 
-                    String content = trimmed.substring(macroNameEnd + 3, endBracket);
+                    String content = trimmed.substring(macroNameEnd + 3,
+                            endBracket);
                     // Simple attribute parser for id="value", key="value"
-                    List<String> attributesList = new ArrayList<>();
+                    var attrs = new ArrayList<String>();
                     String id = "";
                     String[] parts = content.split(",\\s*");
                     for (String part : parts) {
-                        if (part.startsWith("id=\"") || part.startsWith("id=")) {
+                        if (part.startsWith("id=\"")
+                            || part.startsWith("id=")) {
                             id = part.substring(part.indexOf('=') + 1)
                                      .replace("\"", "");
                         }
                         else {
-                            attributesList.add(part.trim());
+                            attrs.add(part.trim());
                         }
                     }
-                    currentContainer.add(new MacroBlock(macroName, id, attributesList));
+                    var macroBlock = new MacroBlock(attrs, macroName, id);
+                    currentContainer.add(macroBlock);
                     continue;
                 }
             }
@@ -223,7 +249,8 @@ public final class AsciiDocParser
                 }
                 else {
                     if (!currentParagraph.isEmpty()) {
-                        currentContainer.add(createParagraph(nextBlockHeader, currentParagraph.toString()));
+                        currentContainer.add(createParagraph(nextBlockHeader,
+                                currentParagraph.toString()));
                         nextBlockHeader.clear();
                         currentParagraph.setLength(0);
                     }
@@ -248,7 +275,8 @@ public final class AsciiDocParser
 
             if (trimmed.isBlank()) {
                 if (!currentParagraph.isEmpty()) {
-                    currentContainer.add(createParagraph(nextBlockHeader, currentParagraph.toString()));
+                    currentContainer.add(createParagraph(nextBlockHeader,
+                            currentParagraph.toString()));
                     nextBlockHeader.clear();
                     currentParagraph.setLength(0);
                 }
@@ -259,20 +287,23 @@ public final class AsciiDocParser
             // Check for Headings
             if (trimmed.startsWith("=")) {
                 int level = 0;
-                while (level < trimmed.length() && trimmed.charAt(level) == '=') {
+                while (level < trimmed.length()
+                       && trimmed.charAt(level) == '=') {
                     level++;
                 }
                 if (level > 0 && level <= 6 && level < trimmed.length()
                     && Character.isWhitespace(trimmed.charAt(level))) {
                     if (!currentParagraph.isEmpty()) {
-                        currentContainer.add(createParagraph(nextBlockHeader, currentParagraph.toString()));
+                        currentContainer.add(createParagraph(nextBlockHeader,
+                                currentParagraph.toString()));
                         nextBlockHeader.clear();
                         currentParagraph.setLength(0);
                     }
 
                     var title = trimmed.substring(level);
                     title = title.trim();
-                    currentContainer.add(new Heading(new ArrayList<>(nextBlockHeader), level, parseInlines(title)));
+                    currentContainer.add(new Heading(new ArrayList<>(
+                            nextBlockHeader), level, parseInlines(title)));
                     nextBlockHeader.clear();
                     continue;
                 }
@@ -281,7 +312,8 @@ public final class AsciiDocParser
             // Check for Unordered List Item
             if (trimmed.startsWith("* ")) {
                 if (!currentParagraph.isEmpty()) {
-                    currentContainer.add(createParagraph(nextBlockHeader, currentParagraph.toString()));
+                    currentContainer.add(createParagraph(nextBlockHeader,
+                            currentParagraph.toString()));
                     nextBlockHeader.clear();
                     currentParagraph.setLength(0);
                 }
@@ -289,12 +321,14 @@ public final class AsciiDocParser
                 var itemText = trimmed.substring(2);
                 itemText = itemText.trim();
                 var item = new ListItem(parseInlines(itemText));
-                if (!currentContainer.isEmpty() && currentContainer.getLast() instanceof UnorderedList(
+                if (!currentContainer.isEmpty()
+                    && currentContainer.getLast() instanceof UnorderedList(
                         List<ListItem> items1
                 )) {
                     List<ListItem> items = new ArrayList<>(items1);
                     items.add(item);
-                    currentContainer.set(currentContainer.size() - 1, new UnorderedList(items));
+                    currentContainer.set(currentContainer.size() - 1,
+                            new UnorderedList(items));
                 }
                 else currentContainer.add(new UnorderedList(List.of(item)));
                 continue;
@@ -303,7 +337,8 @@ public final class AsciiDocParser
             // Check for Ordered List Item
             if (trimmed.startsWith(". ")) {
                 if (!currentParagraph.isEmpty()) {
-                    currentContainer.add(createParagraph(nextBlockHeader, currentParagraph.toString()));
+                    currentContainer.add(createParagraph(nextBlockHeader,
+                            currentParagraph.toString()));
                     nextBlockHeader.clear();
                     currentParagraph.setLength(0);
                 }
@@ -311,12 +346,14 @@ public final class AsciiDocParser
                 String itemText = trimmed.substring(2)
                                          .trim();
                 var item = new ListItem(parseInlines(itemText));
-                if (!currentContainer.isEmpty() && currentContainer.getLast() instanceof OrderedList(
+                if (!currentContainer.isEmpty()
+                    && currentContainer.getLast() instanceof OrderedList(
                         List<ListItem> items1
                 )) {
                     List<ListItem> items = new ArrayList<>(items1);
                     items.add(item);
-                    currentContainer.set(currentContainer.size() - 1, new OrderedList(items));
+                    currentContainer.set(currentContainer.size() - 1,
+                            new OrderedList(items));
                 }
                 else currentContainer.add(new OrderedList(List.of(item)));
                 continue;
@@ -338,13 +375,18 @@ public final class AsciiDocParser
         return AsciiDocModel.of(attributes, blocks);
     }
 
-    private static @NonNull Paragraph createParagraph(ArrayList<String> nextBlockHeader, String string) {
+    private static @NonNull Paragraph createParagraph(
+            ArrayList<String> nextBlockHeader,
+            String string
+    ) {
         return createParagraph(nextBlockHeader, parseInlines(string.trim()));
     }
 
     private static List<Inline> parseInlines(String text) {
-        // Stack-based inline parser with simple tokens for '*', '_', text, and escapes.
-        // Non-overlapping nesting is allowed; crossing markers are treated as plain text.
+        // Stack-based inline parser with simple tokens for '*', '_', text,
+        // and escapes.
+        // Non-overlapping nesting is allowed; crossing markers are treated
+        // as plain text.
         var root = new Frame(FrameType.ROOT);
         var stack = new ArrayList<Frame>();
         stack.add(root);
@@ -375,12 +417,16 @@ public final class AsciiDocParser
                 if (top.type == type) {
                     // Close current frame
                     top.flushTextToChildren();
-                    Inline node = (type == FrameType.BOLD) ? new Bold(top.children) : new Italic(top.children);
+                    Inline node = (type == FrameType.BOLD)
+                            ? new Bold(top.children)
+                            : new Italic(top.children);
                     stack.removeLast();
                     Frame parent = stack.getLast();
                     parent.children.add(node);
                 }
-                else if (top.type == FrameType.BOLD || top.type == FrameType.ITALIC || top.type == FrameType.ROOT) {
+                else if (top.type == FrameType.BOLD
+                         || top.type == FrameType.ITALIC
+                         || top.type == FrameType.ROOT) {
                     // Open new frame
                     top.flushTextToChildren();
                     Frame f = new Frame(type);
@@ -394,8 +440,9 @@ public final class AsciiDocParser
             }
 
             // Detect literal |TAB| token -> emit a Tab inline
-            if (c == '|' && i + 4 < text.length() && text.charAt(i + 1) == 'T' && text.charAt(i + 2) == 'A'
-                && text.charAt(i + 3) == 'B' && text.charAt(i + 4) == '|') {
+            if (c == '|' && i + 4 < text.length() && text.charAt(i + 1) == 'T'
+                && text.charAt(i + 2) == 'A' && text.charAt(i + 3) == 'B'
+                && text.charAt(i + 4) == '|') {
                 // Flush any pending text
                 stack.getLast()
                      .flushTextToChildren();
@@ -431,7 +478,8 @@ public final class AsciiDocParser
                              .flushTextToChildren();
                         String url = text.substring(i + 6, endUrl);
                         String title = text.substring(endUrl + 1, endText);
-                        stack.getLast().children.add(new ImageInline(url, Map.of("title", title)));
+                        stack.getLast().children.add(new ImageInline(url,
+                                Map.of("title", title)));
                         i = endText;
                         continue;
                     }
@@ -442,12 +490,14 @@ public final class AsciiDocParser
             stack.getLast().text.append(c);
         }
 
-        // Unwind: any unclosed frames become literal markers + content as plain text in parent
+        // Unwind: any unclosed frames become literal markers + content as
+        // plain text in parent
         while (stack.size() > 1) {
             Frame unfinished = stack.removeLast();
             char marker = unfinished.type == FrameType.BOLD ? '*' : '_';
             unfinished.flushTextToChildren();
-            // Build literal: marker + children as text + (no closing marker since it is missing)
+            // Build literal: marker + children as text + (no closing marker
+            // since it is missing)
             StringBuilder literal = new StringBuilder();
             literal.append(marker);
             for (Inline in : unfinished.children) {
@@ -461,7 +511,10 @@ public final class AsciiDocParser
         return root.children;
     }
 
-    private static @NonNull Paragraph createParagraph(ArrayList<String> nextBlockHeader, List<Inline> string) {
+    private static @NonNull Paragraph createParagraph(
+            ArrayList<String> nextBlockHeader,
+            List<Inline> string
+    ) {
         return new Paragraph(new ArrayList<>(nextBlockHeader), string);
     }
 

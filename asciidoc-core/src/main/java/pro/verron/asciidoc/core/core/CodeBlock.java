@@ -1,8 +1,8 @@
 package pro.verron.asciidoc.core.core;
 
-/// Code block.
+/// Fenced code block.
 ///
-/// @param language language
+/// @param language source language identifier
 /// @param content code content
 public record CodeBlock(String language, String content)
         implements Block {

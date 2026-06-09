@@ -9,7 +9,7 @@ import static java.util.stream.Collectors.joining;
 /// @param children nested inline fragments
 public record Bold(List<Inline> children)
         implements Inline {
-    /// Constructor.
+    /// Constructs a [Bold] with the given nested inlines.
     ///
     /// @param children nested inline fragments
     public Bold(List<Inline> children) {

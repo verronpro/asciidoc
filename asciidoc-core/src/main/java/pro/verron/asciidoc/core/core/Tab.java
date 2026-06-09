@@ -1,6 +1,8 @@
 package pro.verron.asciidoc.core.core;
 
-/// Inline tab marker to be rendered as a DOCX tab stop.
+/// Inline tab marker, rendered as a tab stop.
+///
+/// Yields a `"\t"` character as plain text.
 public record Tab()
         implements Inline {
     @Override

@@ -148,7 +148,7 @@ public class AsciiDocToTextTest {
     // Test case 9: Render macro blocks
     @Test
     void shouldRenderMacroBlocks() {
-        var macroBlock = new MacroBlock("macro", "id", List.of("arg1", "arg2"));
+        var macroBlock = new MacroBlock(List.of("arg1", "arg2"), "macro", "id");
         var model = AsciiDocModel.of(List.of(macroBlock));
 
         var result = new AsciiDocToText(false).apply(model);

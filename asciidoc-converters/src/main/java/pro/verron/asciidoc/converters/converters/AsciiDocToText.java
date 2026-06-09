@@ -129,7 +129,7 @@ public final class AsciiDocToText
             case ImageBlock(String url, String altText) ->
                     renderImageBlock(url, altText);
             case OpenBlock openBlock -> render(openBlock);
-            case MacroBlock(String name, String id, List<String> list) ->
+            case MacroBlock(List<String> list, String name, String id) ->
                     "%s::%s[%s]".formatted(name, id, String.join(", ", list));
             case Break _ -> "<<<";
             case CommentBlock(String comment) ->
@@ -162,7 +162,7 @@ public final class AsciiDocToText
         sb.append(tableDelimiter);
         sb.append("\n");
         for (var row : rows) {
-            var style = row.style();
+            var style = row.header();
             if (style != null) sb.append("[%s]\n".formatted(style));
             for (var cell : row.cells()) {
                 var blockList = cell.blocks();
