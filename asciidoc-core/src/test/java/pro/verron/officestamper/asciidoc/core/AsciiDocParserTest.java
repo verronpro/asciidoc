@@ -172,7 +172,8 @@ public class AsciiDocParserTest {
 
     @Test
     void parse_shouldParseInlines() {
-        String asciidoc = "Text with *bold*, _italic_, and a http://example.com[Link].";
+        String asciidoc = "Text with *bold*, _italic_, and a http://example"
+                          + ".com[Link].";
         AsciiDocModel result = AsciiDocParser.parse(asciidoc);
         var blocks = result.getBlocks();
         var paragraph = assertInstanceOf(Paragraph.class, blocks.getFirst());
@@ -271,16 +272,17 @@ public class AsciiDocParserTest {
 
     @Test
     void parse_shouldParseMacroBlock() {
-        String asciidoc = "comment::[id=\"c1\", author=\"John Doe\", value=\"Some comment\"]";
+        String asciidoc = "comment::[id=\"c1\", author=\"John Doe\", "
+                          + "value=\"Some comment\"]";
         AsciiDocModel result = AsciiDocParser.parse(asciidoc);
         var blocks = result.getBlocks();
         assertEquals(1, blocks.size());
         var macro = assertInstanceOf(MacroBlock.class, blocks.getFirst());
         assertEquals("comment", macro.name());
         assertEquals("c1", macro.id());
-        assertTrue(macro.list()
-                        .contains("author=\"John Doe\""));
-        assertTrue(macro.list()
-                        .contains("value=\"Some comment\""));
+        var author = macro.attribute("author");
+        assertEquals("John Doe", author.orElseThrow());
+        var value = macro.attribute("value");
+        assertEquals("Some comment", value.orElseThrow());
     }
 }
