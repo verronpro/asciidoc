@@ -1,7 +1,7 @@
 package pro.verron.officestamper.asciidoc.docx;
 
 import org.junit.jupiter.api.Test;
-import pro.verron.asciidoc.converters.converters.AsciiDocToText;
+import pro.verron.asciidoc.converters.AsciiDocToText;
 import pro.verron.asciidoc.core.core.*;
 import pro.verron.asciidoc.docx.AsciiDocToDocx;
 import pro.verron.asciidoc.docx.DocxToAsciiDoc;

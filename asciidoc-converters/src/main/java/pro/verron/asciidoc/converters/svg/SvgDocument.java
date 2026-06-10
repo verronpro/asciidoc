@@ -1,9 +1,9 @@
-package pro.verron.asciidoc.converters.converters.svg;
+package pro.verron.asciidoc.converters.svg;
 
 import java.util.List;
 import java.util.Locale;
 
-import static pro.verron.asciidoc.converters.converters.svg.SvgAttribute.attr;
+import static pro.verron.asciidoc.converters.svg.SvgAttribute.attr;
 
 /// SVG document root model ({@code <svg>} element).
 public record SvgDocument(int width, int height, List<SvgElement> children)

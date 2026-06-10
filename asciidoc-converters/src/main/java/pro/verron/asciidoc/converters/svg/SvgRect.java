@@ -1,4 +1,4 @@
-package pro.verron.asciidoc.converters.converters.svg;
+package pro.verron.asciidoc.converters.svg;
 
 /// SVG {@code <rect>} element model.
 /// Attributes are stored in a list to preserve insertion order.

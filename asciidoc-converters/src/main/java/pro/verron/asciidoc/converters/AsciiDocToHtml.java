@@ -1,4 +1,4 @@
-package pro.verron.asciidoc.converters.converters;
+package pro.verron.asciidoc.converters;
 
 import pro.verron.asciidoc.core.core.*;
 

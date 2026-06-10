@@ -1,4 +1,4 @@
-package pro.verron.asciidoc.converters.converters.svg;
+package pro.verron.asciidoc.converters.svg;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -6,8 +6,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import static pro.verron.asciidoc.converters.converters.svg.AsciiDocIcon.findIcon;
-import static pro.verron.asciidoc.converters.converters.svg.SvgAttribute.attr;
+import static pro.verron.asciidoc.converters.svg.AsciiDocIcon.findIcon;
+import static pro.verron.asciidoc.converters.svg.SvgAttribute.attr;
 
 public enum Theme {
     NONE,

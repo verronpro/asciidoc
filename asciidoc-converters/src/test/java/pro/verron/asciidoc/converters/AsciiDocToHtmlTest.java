@@ -1,4 +1,4 @@
-package pro.verron.asciidoc.converters.converters;
+package pro.verron.asciidoc.converters;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;

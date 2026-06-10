@@ -1,4 +1,4 @@
-package pro.verron.asciidoc.converters.converters.svg;
+package pro.verron.asciidoc.converters.svg;
 
 /// SVG {@code <circle>} element model.
 public record SvgCircle(String cx, String cy, String r, String fill)

@@ -1,4 +1,4 @@
-package pro.verron.asciidoc.converters.converters.svg;
+package pro.verron.asciidoc.converters.svg;
 
 import org.jspecify.annotations.NonNull;
 
@@ -6,8 +6,8 @@ import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import static pro.verron.asciidoc.converters.converters.svg.SvgAttribute.NONE;
-import static pro.verron.asciidoc.converters.converters.svg.SvgAttribute.attr;
+import static pro.verron.asciidoc.converters.svg.SvgAttribute.NONE;
+import static pro.verron.asciidoc.converters.svg.SvgAttribute.attr;
 
 public class SvgAttributes
         implements Iterable<SvgAttribute> {

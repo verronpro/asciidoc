@@ -1,8 +1,8 @@
-package pro.verron.asciidoc.converters.converters.svg;
+package pro.verron.asciidoc.converters.svg;
 
 import java.util.List;
 
-import static pro.verron.asciidoc.converters.converters.svg.SvgAttribute.attr;
+import static pro.verron.asciidoc.converters.svg.SvgAttribute.attr;
 
 /// SVG {@code <g>} element model.
 public record SvgGroup(String transform, List<SvgElement> children)

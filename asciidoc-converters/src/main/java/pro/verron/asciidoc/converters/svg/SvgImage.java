@@ -1,4 +1,4 @@
-package pro.verron.asciidoc.converters.converters.svg;
+package pro.verron.asciidoc.converters.svg;
 
 /// SVG {@code <image>} element model.
 public record SvgImage(

@@ -1,4 +1,4 @@
-package pro.verron.asciidoc.converters.converters;
+package pro.verron.asciidoc.converters;
 
 import pro.verron.asciidoc.core.core.*;
 
@@ -162,8 +162,10 @@ public final class AsciiDocToText
         sb.append(tableDelimiter);
         sb.append("\n");
         for (var row : rows) {
-            var style = row.header();
-            if (style != null) sb.append("[%s]\n".formatted(style));
+            var header = String.join(",", row.header());
+            if (!header.isEmpty()) sb.append('[')
+                                     .append(header)
+                                     .append("]\n");
             for (var cell : row.cells()) {
                 var blockList = cell.blocks();
                 var size = blockList.size();

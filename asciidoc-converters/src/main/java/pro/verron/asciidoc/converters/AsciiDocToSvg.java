@@ -1,13 +1,13 @@
-package pro.verron.asciidoc.converters.converters;
+package pro.verron.asciidoc.converters;
 
-import pro.verron.asciidoc.converters.converters.svg.*;
+import pro.verron.asciidoc.converters.svg.*;
 import pro.verron.asciidoc.core.core.*;
 
 import java.util.*;
 
-import static pro.verron.asciidoc.converters.converters.svg.AsciiDocFont.getAwtFont;
-import static pro.verron.asciidoc.converters.converters.svg.AsciiDocMetrics.wrapText;
-import static pro.verron.asciidoc.converters.converters.svg.SvgAttribute.attr;
+import static pro.verron.asciidoc.converters.svg.AsciiDocFont.getAwtFont;
+import static pro.verron.asciidoc.converters.svg.AsciiDocMetrics.wrapText;
+import static pro.verron.asciidoc.converters.svg.SvgAttribute.attr;
 
 /// Renderer converting an [AsciiDocModel] into an SVG document simulating
 /// various editor interfaces.

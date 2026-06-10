@@ -3,6 +3,6 @@ module pro.verron.asciidoc.converters {
     requires java.desktop;
     requires org.jspecify;
 
-    exports pro.verron.asciidoc.converters.converters;
-    exports pro.verron.asciidoc.converters.converters.svg;
+    exports pro.verron.asciidoc.converters;
+    exports pro.verron.asciidoc.converters.svg;
 }

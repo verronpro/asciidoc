@@ -22,7 +22,7 @@ import org.docx4j.wml.PPrBase.PStyle;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pro.verron.asciidoc.converters.converters.AsciiDocToText;
+import pro.verron.asciidoc.converters.AsciiDocToText;
 import pro.verron.asciidoc.core.core.*;
 import pro.verron.asciidoc.core.core.Text;
 
