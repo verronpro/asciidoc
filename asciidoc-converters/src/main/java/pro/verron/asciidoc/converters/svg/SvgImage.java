@@ -11,6 +11,14 @@ public record SvgImage(
 )
         implements SvgElement {
 
+    /// Constructs an [SvgImage] element with variable attributes.
+    ///
+    /// @param x      x coordinate
+    /// @param y      y coordinate
+    /// @param width  image width
+    /// @param height image height
+    /// @param href   image URL
+    /// @param opts   additional SVG attributes
     public SvgImage(
             String x,
             String y,

@@ -9,6 +9,10 @@ import java.util.TreeSet;
 import static pro.verron.asciidoc.converters.svg.SvgAttribute.NONE;
 import static pro.verron.asciidoc.converters.svg.SvgAttribute.attr;
 
+/// An ordered, deduplicated collection of [SvgAttribute] instances.
+///
+/// [SvgAttribute#NONE] attributes are silently ignored when added. Attributes
+/// are sorted by name to produce deterministic SVG output.
 public class SvgAttributes
         implements Iterable<SvgAttribute> {
     SortedSet<SvgAttribute> set = new TreeSet<>();

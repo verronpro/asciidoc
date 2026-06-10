@@ -24,6 +24,15 @@ public final class AsciiDocToSvg {
     private static final int BODY_FONT_SIZE = 14;
     private static final int LINE_HEIGHT = 20;
 
+    /// Converts the given AsciiDoc model into an SVG document simulating an
+    /// editor interface.
+    ///
+    /// The theme is read from the model attribute `"theme"`. Supported
+    /// values are `"word"`, `"gdocs"`, and `"libre"`.
+    ///
+    /// @param model the AsciiDocModel containing the blocks to be rendered
+    ///
+    /// @return the SVG document as an XML string
     public String apply(AsciiDocModel model) {
         var themeStr = model.getAttribute("theme")
                             .orElse("word");

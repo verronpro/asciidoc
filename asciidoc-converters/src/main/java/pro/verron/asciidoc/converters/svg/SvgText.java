@@ -13,6 +13,14 @@ public record SvgText(
 )
         implements SvgElement {
 
+    /// Constructs an [SvgText] element with variable attributes.
+    ///
+    /// @param x        x coordinate
+    /// @param y        y coordinate
+    /// @param fontSize font size
+    /// @param fill     fill color
+    /// @param content  text content
+    /// @param opts     additional SVG attributes
     public SvgText(
             String x,
             String y,

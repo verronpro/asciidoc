@@ -12,6 +12,7 @@ sealed public interface SvgElement
         permits SvgCircle, SvgContent, SvgDocument, SvgGroup, SvgImage,
         SvgLine, SvgPath, SvgRect, SvgText {
 
+    /// Serializes this element and its children into an SVG markup string.
     default String serialize() {
         var locale = Locale.ROOT;
         var attrs = new StringJoiner(" ");
@@ -32,14 +33,17 @@ sealed public interface SvgElement
 
     }
 
+    /// Returns the SVG tag name for this element.
     default String markup() {
         throw new UnsupportedOperationException();
     }
 
+    /// Returns the SVG attributes for this element.
     default SvgAttributes attributes() {
         return new SvgAttributes();
     }
 
+    /// Returns the child elements of this element.
     default List<SvgElement> children() {
         return List.of();
     }

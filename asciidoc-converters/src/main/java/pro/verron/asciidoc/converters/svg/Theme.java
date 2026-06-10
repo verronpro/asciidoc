@@ -1,6 +1,5 @@
 package pro.verron.asciidoc.converters.svg;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -9,12 +8,19 @@ import java.util.Optional;
 import static pro.verron.asciidoc.converters.svg.AsciiDocIcon.findIcon;
 import static pro.verron.asciidoc.converters.svg.SvgAttribute.attr;
 
+/// Editor theme used by the SVG converter to simulate different word-processor
+/// interfaces (Word, Google Docs, LibreOffice).
 public enum Theme {
+    /// No editor chrome; renders only the document content.
     NONE,
+    /// Microsoft Word-style chrome.
     WORD,
+    /// Google Docs-style chrome.
     GDOCS,
+    /// LibreOffice Writer-style chrome.
     LIBRE;
 
+    /// Returns the stroke color used for comment connectors and element outlines.
     public Optional<String> getStrokeColor() {
         return switch (this) {
             case NONE -> Optional.empty();
@@ -24,6 +30,7 @@ public enum Theme {
         };
     }
 
+    /// Returns the background highlight color for commented blocks.
     public Optional<String> getHighlightColor() {
         return switch (this) {
             case NONE -> Optional.empty();
@@ -33,21 +40,13 @@ public enum Theme {
         };
     }
 
-    // Background
+    /// Returns the overall background color of the simulated editor.
     public Optional<String> getBgColor() {
         return switch (this) {
             case NONE -> Optional.empty();
             case WORD -> Optional.of("#e6e6e6");
             case GDOCS -> Optional.of("#f8f9fa");
             case LIBRE -> Optional.of("#dfdfdf");
-        };
-    }
-
-    Optional<String> getAwtFallbacks() {
-        return switch (this) {
-            case NONE -> Optional.empty();
-            case WORD, GDOCS -> Optional.of(Font.SANS_SERIF);
-            case LIBRE -> Optional.of(Font.SERIF);
         };
     }
 
@@ -64,6 +63,7 @@ public enum Theme {
         };
     }
 
+    /// Returns the primary font name for AWT font instantiation.
     Optional<String> getPrimaryFont() {
         return switch (this) {
             case NONE -> Optional.empty();
@@ -73,6 +73,12 @@ public enum Theme {
         };
     }
 
+    /// Renders the editor banner (toolbar and menu bar) as a collection of SVG elements.
+    ///
+    /// @param title        document title displayed in the banner
+    /// @param bannerHeight total height of the banner area in pixels
+    ///
+    /// @return SVG elements that compose the banner
     public Collection<? extends SvgElement> renderBanner(
             String title,
             double bannerHeight

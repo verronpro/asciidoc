@@ -2,6 +2,8 @@ package pro.verron.asciidoc.converters.svg;
 
 import java.awt.*;
 
+/// Mutable helper for building a single line of text that must not exceed
+/// a given pixel width, as measured by an AWT [FontMetrics].
 final class DocLine {
     private final FontMetrics metrics;
     private final int maxWidth;

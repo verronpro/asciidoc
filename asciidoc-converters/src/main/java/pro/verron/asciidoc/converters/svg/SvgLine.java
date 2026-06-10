@@ -10,6 +10,15 @@ public record SvgLine(
         SvgAttributes opts
 )
         implements SvgElement {
+
+    /// Constructs an [SvgLine] element with variable attributes.
+    ///
+    /// @param x1     start x coordinate
+    /// @param y1     start y coordinate
+    /// @param x2     end x coordinate
+    /// @param y2     end y coordinate
+    /// @param stroke stroke color
+    /// @param opts   additional SVG attributes
     public SvgLine(
             String x1,
             String y1,

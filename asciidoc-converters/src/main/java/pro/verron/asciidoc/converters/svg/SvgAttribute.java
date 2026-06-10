@@ -3,6 +3,11 @@ package pro.verron.asciidoc.converters.svg;
 import java.util.Locale;
 import java.util.Objects;
 
+/// An SVG attribute name/value pair, used when constructing SVG elements.
+///
+/// Instances are created via the factory method [#attr(String, String)].
+/// The sentinel value [#NONE] represents an absent attribute and is
+/// filtered out during serialization.
 public final class SvgAttribute
         implements Comparable<SvgAttribute> {
 

@@ -1,5 +1,7 @@
 package pro.verron.asciidoc.converters.svg;
 
+/// Raw text content inside an SVG element.
+/// Special XML characters (`& < > " '`) are escaped on serialization.
 public record SvgContent(String content)
         implements SvgElement {
 

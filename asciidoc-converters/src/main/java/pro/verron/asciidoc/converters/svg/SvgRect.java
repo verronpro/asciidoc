@@ -1,11 +1,19 @@
 package pro.verron.asciidoc.converters.svg;
 
-/// SVG {@code <rect>} element model.
+/// SVG `<rect>` element model.
 /// Attributes are stored in a list to preserve insertion order.
 public record SvgRect(
         String x, String y, String width, String height, SvgAttributes opts
 )
         implements SvgElement {
+
+    /// Constructs an [SvgRect] element with variable attributes.
+    ///
+    /// @param x      x coordinate
+    /// @param y      y coordinate
+    /// @param width  rectangle width
+    /// @param height rectangle height
+    /// @param opts   additional SVG attributes
     public SvgRect(
             String x,
             String y,
