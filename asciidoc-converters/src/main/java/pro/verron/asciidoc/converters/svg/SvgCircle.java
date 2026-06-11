@@ -1,6 +1,11 @@
 package pro.verron.asciidoc.converters.svg;
 
 /// SVG {@code <circle>} element model.
+///
+/// @param cx   center x coordinate
+/// @param cy   center y coordinate
+/// @param r    radius
+/// @param fill fill color
 public record SvgCircle(String cx, String cy, String r, String fill)
         implements SvgElement {
 

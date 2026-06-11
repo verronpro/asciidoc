@@ -11,6 +11,8 @@ import java.util.Objects;
 public final class SvgAttribute
         implements Comparable<SvgAttribute> {
 
+    /// Sentinel value representing an absent attribute; filtered out during
+    /// serialization.
     public static final SvgAttribute NONE = new SvgAttribute("", "");
 
     private final String name;
@@ -21,10 +23,22 @@ public final class SvgAttribute
         this.value = value;
     }
 
+    /// Creates an attribute with a string value.
+    ///
+    /// @param name  attribute name
+    /// @param value attribute value
+    ///
+    /// @return the new [SvgAttribute]
     public static SvgAttribute attr(String name, String value) {
         return new SvgAttribute(name, value);
     }
 
+    /// Creates an attribute with an integer value.
+    ///
+    /// @param name attribute name
+    /// @param i    attribute value
+    ///
+    /// @return the new [SvgAttribute]
     public static SvgAttribute attr(String name, int i) {
         return new SvgAttribute(name, String.valueOf(i));
     }
@@ -51,6 +65,9 @@ public final class SvgAttribute
         return "attribute[%s]".formatted(serialize());
     }
 
+    /// Serializes this attribute as {@code name="value"}.
+    ///
+    /// @return the serialized attribute string
     public String serialize() {
         return String.format(Locale.ROOT, "%s=\"%s\"", name, value);
     }

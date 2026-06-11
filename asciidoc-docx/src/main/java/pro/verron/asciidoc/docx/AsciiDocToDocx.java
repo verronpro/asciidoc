@@ -17,7 +17,9 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.function.Function;
 
-/// Renders [AsciiDocModel] into a [WordprocessingMLPackage] using docx4j.
+/// Renders an [AsciiDocModel] into a [WordprocessingMLPackage] using Docx4J.
+///
+/// @see DocxToAsciiDoc
 public final class AsciiDocToDocx
         implements Function<AsciiDocModel, WordprocessingMLPackage> {
 

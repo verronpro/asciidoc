@@ -56,13 +56,16 @@ public final class AsciiDocIcon {
         throw new UnsupportedOperationException("Utility class");
     }
 
-    /// find an icon and return it as an SVG group model
+    /// Finds an icon by name and returns it as an SVG group model.
     ///
-    /// @param name icon name
-    /// @param x x coordinate
-    /// @param y y coordinate
-    /// @param size icon size (width and height)
+    /// @param name  icon name
+    /// @param x     x coordinate
+    /// @param y     y coordinate
+    /// @param size  icon size (width and height)
     /// @param color icon color
+    ///
+    /// @return an [Optional] containing the [SvgGroup] for the icon,
+    ///         or empty if the name is not found
     public static Optional<SvgGroup> findIcon(
             String name,
             int x,

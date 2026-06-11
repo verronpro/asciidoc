@@ -1,6 +1,13 @@
 package pro.verron.asciidoc.converters.svg;
 
 /// SVG {@code <line>} element model.
+///
+/// @param x1     start x coordinate
+/// @param y1     start y coordinate
+/// @param x2     end x coordinate
+/// @param y2     end y coordinate
+/// @param stroke stroke color
+/// @param opts   additional SVG attributes
 public record SvgLine(
         String x1,
         String y1,

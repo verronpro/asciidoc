@@ -16,13 +16,24 @@ import java.util.Map;
 
 import static java.util.Collections.emptyList;
 
-/// AsciiDoc block macro to embed a preview of another AsciiDoc template.
+/// Block macro that embeds a visual preview of an external AsciiDoc template
+/// as an image within the current document.
+///
 /// Usage: `preview::template.adoc[theme=word,format=png,dpi=192]`
+///
+/// Attributes:
+/// - `theme` &mdash; the rendering theme (default: `word`)
+/// - `format` &mdash; output format, `png` or `svg` (default: `png`)
+/// - `dpi` &mdash; resolution in dots per inch (default: `96`)
+///
+/// Output images are cached and only regenerated when the source file changes.
+///
+/// @see AsciiDocPreviewExtensionRegistry
 @Name("preview")
 public class AsciiDocPreviewBlockMacro
         extends BlockMacroProcessor {
 
-    /// Constructs a new [AsciiDocPreviewBlockMacro].
+    /// Constructs a new macro processor with the default macro name.
     public AsciiDocPreviewBlockMacro() {
     }
 

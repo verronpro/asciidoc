@@ -2,6 +2,12 @@ package pro.verron.asciidoc.converters.svg;
 
 /// SVG `<rect>` element model.
 /// Attributes are stored in a list to preserve insertion order.
+///
+/// @param x      x coordinate
+/// @param y      y coordinate
+/// @param width  rectangle width
+/// @param height rectangle height
+/// @param opts   additional SVG attributes
 public record SvgRect(
         String x, String y, String width, String height, SvgAttributes opts
 )

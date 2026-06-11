@@ -21,6 +21,8 @@ public enum Theme {
     LIBRE;
 
     /// Returns the stroke color used for comment connectors and element outlines.
+    ///
+    /// @return the stroke color, or empty if the theme has none
     public Optional<String> getStrokeColor() {
         return switch (this) {
             case NONE -> Optional.empty();
@@ -31,6 +33,8 @@ public enum Theme {
     }
 
     /// Returns the background highlight color for commented blocks.
+    ///
+    /// @return the highlight color, or empty if the theme has none
     public Optional<String> getHighlightColor() {
         return switch (this) {
             case NONE -> Optional.empty();
@@ -41,6 +45,8 @@ public enum Theme {
     }
 
     /// Returns the overall background color of the simulated editor.
+    ///
+    /// @return the background color, or empty if the theme has none
     public Optional<String> getBgColor() {
         return switch (this) {
             case NONE -> Optional.empty();

@@ -1,6 +1,13 @@
 package pro.verron.asciidoc.converters.svg;
 
 /// SVG {@code <image>} element model.
+///
+/// @param x      x coordinate
+/// @param y      y coordinate
+/// @param width  image width
+/// @param height image height
+/// @param href   image URL
+/// @param opts   additional SVG attributes
 public record SvgImage(
         String x,
         String y,

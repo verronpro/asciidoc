@@ -17,6 +17,9 @@ public class SvgAttributes
         implements Iterable<SvgAttribute> {
     SortedSet<SvgAttribute> set = new TreeSet<>();
 
+    /// Constructs an attribute set from the given attributes.
+    ///
+    /// @param attributes initial attributes (none-values are ignored)
     public SvgAttributes(SvgAttribute... attributes) {
         addAll(attributes);
     }
@@ -34,10 +37,17 @@ public class SvgAttributes
         return set.iterator();
     }
 
+    /// Adds an attribute with the given name and value.
+    ///
+    /// @param name  attribute name
+    /// @param value attribute value
     public void add(String name, String value) {
         set.add(attr(name, value));
     }
 
+    /// Adds all attributes from another [SvgAttributes] instance.
+    ///
+    /// @param opts attributes to add
     public void addAll(SvgAttributes opts) {
         addAll(opts.set);
     }

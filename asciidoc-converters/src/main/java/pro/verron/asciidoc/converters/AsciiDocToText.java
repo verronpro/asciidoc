@@ -25,6 +25,9 @@ public final class AsciiDocToText
 
     private final boolean skipComments;
 
+    /// Constructs a converter that optionally skips comment blocks.
+    ///
+    /// @param skipComments whether to omit comment blocks in the output
     public AsciiDocToText(boolean skipComments) {
         this.skipComments = skipComments;
     }

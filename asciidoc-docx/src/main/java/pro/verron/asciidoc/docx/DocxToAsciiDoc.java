@@ -35,14 +35,15 @@ import java.util.stream.Stream;
 import static java.util.Optional.ofNullable;
 import static pro.verron.asciidoc.core.core.AsciiDocModel.of;
 
-/// Minimal DOCX → AsciiDoc text extractor used by tests. This intentionally
-/// mirrors a subset of the legacy Stringifier formatting for:
-///  - Paragraphs
-///  - Tables (|=== fences, each cell prefixed with '|')
-///  - Basic inline text extraction
+/// Extracts an [AsciiDocModel] from a [WordprocessingMLPackage], converting
+/// DOCX content into AsciiDoc blocks and inlines.
 ///
-/// More advanced features (headers/footers, breaks, styles) can be added
-/// incrementally as needed by tests.
+/// Handles paragraphs, headings, tables (including nested), inline formatting
+/// (bold, italic, styled, superscript, subscript), hyperlinks, images,
+/// structured document tags, comments, headers/footers, and
+/// footnotes/endnotes.
+///
+/// @see AsciiDocToDocx
 public final class DocxToAsciiDoc
         implements Function<WordprocessingMLPackage, AsciiDocModel> {
     private static final String SVG_EXTENSION =
@@ -56,15 +57,9 @@ public final class DocxToAsciiDoc
     private final WordprocessingMLPackage wordprocessingMLPackage;
     private final CommentsPart commentsPart;
 
-    /// Constructs a new DocxToAsciiDoc instance, initializing necessary
-    /// components for converting a
-    /// WordprocessingMLPackage (Docx) document into AsciiDoc format. This
-    /// constructor extracts and prepares
-    /// the main document part, style definitions part, comments part, and other
-    /// required components for processing.
+    /// Constructs a new [DocxToAsciiDoc] for the given DOCX package.
     ///
-    /// @param pkg the WordprocessingMLPackage instance representing the Docx
-    /// document to be converted
+    /// @param pkg the WordprocessingMLPackage to convert
     public DocxToAsciiDoc(WordprocessingMLPackage pkg) {
         this.wordprocessingMLPackage = pkg;
         var mdp = wordprocessingMLPackage.getMainDocumentPart();
@@ -713,17 +708,8 @@ public final class DocxToAsciiDoc
         }
     }
 
-    /// Maintains and organizes a collection of comments while facilitating
-    /// the construction of structured output representations.
-    ///
-    /// Provides functionality to open and close comments using unique
-    /// identifiers
-    /// and convert comments into macro representations suitable for downstream
-    /// processing.
-    ///
-    /// The class also ensures that comments are opened and closed in a
-    /// well-formed
-    /// manner, enforcing constraints while maintaining the internal structure.
+    /// Tracks comment ranges in the document and produces [MacroBlock]
+    /// representations with start/end positions.
     public static class CommentRecorder {
         private final Deque<CommentBuilder> comments;
         private final List<BigInteger> ids;
@@ -737,17 +723,11 @@ public final class DocxToAsciiDoc
             map = new HashMap<>();
         }
 
-        /// Opens a new comment using the specified identifier and positional
-        /// information.
-        /// The comment is constructed using a [CommentBuilder] and stored
-        /// internally.
+        /// Opens a comment range at the given position.
         ///
-        /// @param id         the unique identifier for the comment as a
-        ///  [BigInteger]
-        /// @param blockStart the starting block position for the comment as
-        /// an integer
-        /// @param lineStart  the starting line position for the comment as
-        /// an integer
+        /// @param id         the unique identifier for the comment
+        /// @param blockStart the starting block position
+        /// @param lineStart  the starting inline position
         public void open(BigInteger id, int blockStart, int lineStart) {
             var builder = new CommentBuilder(id);
             builder.setBlockStart(blockStart);
@@ -756,22 +736,14 @@ public final class DocxToAsciiDoc
             ids.add(id);
         }
 
-        /// Closes a comment identified by the provided ID and assigns the
-        /// ending block
-        /// and line positions for the comment being finalized. The comment is
-        /// then
-        /// stored internally for further processing.
+        /// Closes the comment range matching the given ID.
         ///
-        /// @param id       the unique identifier of the comment as a
-        ///  [BigInteger]
-        /// @param blockEnd the ending block position of the comment as an
-        /// integer
-        /// @param lineEnd  the ending line position of the comment as an
-        /// integer
+        /// @param id       the unique identifier of the comment
+        /// @param blockEnd the ending block position
+        /// @param lineEnd  the ending inline position
         ///
-        /// @throws IllegalStateException if the provided ID does not match
-        /// the ID of
-        ///         the last opened comment
+        /// @throws IllegalStateException if the ID does not match the last
+        ///         opened comment
         public void close(BigInteger id, int blockEnd, int lineEnd) {
             var lastComment = comments.removeLast();
             var lastCommentId = lastComment.getId();
@@ -789,15 +761,10 @@ public final class DocxToAsciiDoc
             if (!bool) throw new IllegalStateException(msg);
         }
 
-        /// Retrieves a collection of all MacroBlock representations for the
-        /// stored comment IDs.
+        /// Returns all recorded comments as [MacroBlock] instances, in
+        /// document order.
         ///
-        /// The method maps the list of IDs through a series of operations to
-        /// construct
-        /// MacroBlock objects from the associated comments.
-        ///
-        /// @return a collection of MacroBlock objects corresponding to the
-        /// stored comment IDs.
+        /// @return the comment macro blocks
         public Collection<MacroBlock> all() {
             return ids.stream()
                       .map(map::get)

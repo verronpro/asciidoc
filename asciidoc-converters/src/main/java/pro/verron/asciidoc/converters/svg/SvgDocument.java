@@ -6,6 +6,10 @@ import java.util.Locale;
 import static pro.verron.asciidoc.converters.svg.SvgAttribute.attr;
 
 /// SVG document root model ({@code <svg>} element).
+///
+/// @param width    viewport width in pixels
+/// @param height   viewport height in pixels
+/// @param children child elements
 public record SvgDocument(int width, int height, List<SvgElement> children)
         implements SvgElement {
 

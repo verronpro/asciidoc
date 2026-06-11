@@ -13,6 +13,8 @@ sealed public interface SvgElement
         SvgLine, SvgPath, SvgRect, SvgText {
 
     /// Serializes this element and its children into an SVG markup string.
+    ///
+    /// @return the SVG markup string
     default String serialize() {
         var locale = Locale.ROOT;
         var attrs = new StringJoiner(" ");
@@ -34,16 +36,22 @@ sealed public interface SvgElement
     }
 
     /// Returns the SVG tag name for this element.
+    ///
+    /// @return the SVG tag name
     default String markup() {
         throw new UnsupportedOperationException();
     }
 
     /// Returns the SVG attributes for this element.
+    ///
+    /// @return the SVG attributes
     default SvgAttributes attributes() {
         return new SvgAttributes();
     }
 
     /// Returns the child elements of this element.
+    ///
+    /// @return the child elements, or an empty list if none
     default List<SvgElement> children() {
         return List.of();
     }

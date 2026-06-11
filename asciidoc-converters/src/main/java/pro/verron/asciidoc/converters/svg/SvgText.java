@@ -3,6 +3,13 @@ package pro.verron.asciidoc.converters.svg;
 import java.util.List;
 
 /// SVG {@code <text>} element model.
+///
+/// @param x        x coordinate
+/// @param y        y coordinate
+/// @param fontSize font size
+/// @param fill     fill color
+/// @param content  text content
+/// @param opts     additional SVG attributes
 public record SvgText(
         String x,
         String y,
