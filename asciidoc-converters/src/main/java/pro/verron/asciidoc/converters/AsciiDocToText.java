@@ -7,19 +7,15 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/// The AsciiDocToText class is a utility for converting an [AsciiDocModel]
-/// to a plain text representation. This class implements the [Function]
-/// interface, where it transforms the given AsciiDoc model into a formatted
-/// string based on specific rules for rendering various AsciiDoc elements.
+/// Converts an [AsciiDocModel] to a plain AsciiDoc text string.
 ///
-/// The conversion logic handles multiple AsciiDoc constructs including, but
-/// not limited to, headings, paragraphs, lists (ordered and unordered), tables,
-/// blockquotes, images, inline elements with styling, code blocks, and macros.
-/// Each AsciiDoc element is translated into its corresponding plain text
-/// representation using custom rendering methods.
+/// Implements [Function]&lt;[AsciiDocModel], String&gt; and renders headings,
+/// paragraphs, lists, tables, blockquotes, code blocks, images, inline
+/// elements (bold, italic, superscript, subscript, styled, links), and macros
+/// into their AsciiDoc text representation.
 ///
-/// This class is immutable and operates as a stateless utility to ensure thread
-/// safety.
+/// @see AsciiDocToHtml
+/// @see AsciiDocToSvg
 public final class AsciiDocToText
         implements Function<AsciiDocModel, String> {
 
@@ -185,15 +181,12 @@ public final class AsciiDocToText
         return sb.toString();
     }
 
-    /// Applies the conversion logic on the given AsciiDoc model and renders its
-    /// blocks
-    /// into a concatenated string representation.
+    /// Applies the conversion on the given AsciiDoc model and renders its
+    /// blocks into a concatenated string representation.
     ///
-    /// @param model the AsciiDoc model containing blocks to be processed and
-    ///  rendered
+    /// @param model the parsed AsciiDoc model
     ///
-    /// @return a string representation of the rendered blocks from the
-    /// provided model
+    /// @return the rendered AsciiDoc text
     public String apply(AsciiDocModel model) {
         return model.getBlocks()
                     .stream()

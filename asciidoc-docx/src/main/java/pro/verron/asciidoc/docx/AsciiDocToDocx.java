@@ -19,12 +19,19 @@ import java.util.function.Function;
 
 /// Renders an [AsciiDocModel] into a [WordprocessingMLPackage] using Docx4J.
 ///
+/// Implements [Function]&lt;[AsciiDocModel], [WordprocessingMLPackage]&gt; and
+/// converts headings, paragraphs, lists, tables, blockquotes, code blocks,
+/// images, and inline elements (bold, italic, links) into their DOCX
+/// counterparts.
+///
 /// @see DocxToAsciiDoc
 public final class AsciiDocToDocx
         implements Function<AsciiDocModel, WordprocessingMLPackage> {
-
     private int headerCount = 1;
     private int footerCount = 1;
+
+    /// Constructs a new [AsciiDocToDocx] converter.
+    public AsciiDocToDocx() {}
 
     private static P createHeading(ObjectFactory factory, Heading heading) {
         P p = factory.createP();

@@ -3,8 +3,11 @@ import pro.verron.asciidoc.converters.AsciiDocToSvg;
 import pro.verron.asciidoc.converters.AsciiDocToText;
 import pro.verron.asciidoc.core.core.AsciiDocModel;
 
-/// Provides lightweight converters from [AsciiDocModel] to various output
-/// formats including HTML, plain text, and SVG.
+/// Converts [AsciiDocModel] instances to various output formats, including
+/// HTML, plain text, and SVG.
+///
+/// Each converter implements [Function]&lt;[AsciiDocModel], String&gt; and can
+/// be used as a standalone mapping function.
 ///
 /// ## Exported Packages
 /// <dl>
@@ -12,12 +15,12 @@ import pro.verron.asciidoc.core.core.AsciiDocModel;
 /// <dd>Core converter implementations:
 ///     [AsciiDocToHtml], [AsciiDocToText], and [AsciiDocToSvg].</dd>
 /// <dt>[pro.verron.asciidoc.converters.svg]</dt>
-/// <dd>SVG element models and theming support used by the SVG converter.</dd>
+/// <dd>SVG element model and theming support used by the SVG converter.</dd>
 /// </dl>
 ///
 /// ## Requirements
 /// - [pro.verron.asciidoc.core/] &mdash; the AsciiDoc document model
-/// - [java.desktop/] &mdash; AWT font metrics for text layout
+/// - [java.desktop/] &mdash; AWT font metrics for SVG text layout
 module pro.verron.asciidoc.converters {
     requires pro.verron.asciidoc.core;
     requires java.desktop;

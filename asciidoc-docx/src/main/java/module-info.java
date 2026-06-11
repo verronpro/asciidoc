@@ -5,16 +5,21 @@ import pro.verron.asciidoc.docx.DocxToAsciiDoc;
 
 import java.util.function.Function;
 
-/// Bidirectional conversion between AsciiDoc document models and Microsoft
-/// Word (DOCX) format, built on top of Docx4J.
+/// Converts between [AsciiDocModel] and Microsoft Word (DOCX) format using
+/// Docx4J.
+///
+/// [AsciiDocToDocx] renders an [AsciiDocModel] into a
+/// [WordprocessingMLPackage], while [DocxToAsciiDoc] extracts an
+/// [AsciiDocModel] from a [WordprocessingMLPackage].
 ///
 /// ## Exported Packages
 /// <dl>
 /// <dt>[pro.verron.asciidoc.docx]</dt>
-/// <dd>Contains [DocxToAsciiDoc] and [AsciiDocToDocx], which implement
+/// <dd>Bidirectional DOCX conversion:
+///     [DocxToAsciiDoc] implements
 ///     [Function]&lt;[WordprocessingMLPackage], [AsciiDocModel]&gt; and
-///     [Function]&lt;[AsciiDocModel], [WordprocessingMLPackage]&gt;
-///     respectively.</dd>
+///     [AsciiDocToDocx] implements
+///     [Function]&lt;[AsciiDocModel], [WordprocessingMLPackage]&gt;.</dd>
 /// </dl>
 ///
 /// ## Requirements

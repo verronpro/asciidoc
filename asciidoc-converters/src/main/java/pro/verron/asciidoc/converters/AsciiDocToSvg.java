@@ -9,10 +9,15 @@ import static pro.verron.asciidoc.converters.svg.AsciiDocFont.getAwtFont;
 import static pro.verron.asciidoc.converters.svg.AsciiDocMetrics.wrapText;
 import static pro.verron.asciidoc.converters.svg.SvgAttribute.attr;
 
-/// Renderer converting an [AsciiDocModel] into an SVG document simulating
-/// various editor interfaces.
+/// Converts an [AsciiDocModel] into an SVG document simulating an editor
+/// interface.
+///
+/// The theme is read from the model attribute {@code "theme"}. Supported
+/// values are {@code "word"}, {@code "gdocs"}, and {@code "libre"}.
+///
+/// @see AsciiDocToHtml
+/// @see AsciiDocToText
 public final class AsciiDocToSvg {
-
     private static final int VIEWPORT_WIDTH = 1200;
     private static final int BANNER_HEIGHT = 100;
     private static final int PAGE_WIDTH = 800;
@@ -24,13 +29,13 @@ public final class AsciiDocToSvg {
     private static final int BODY_FONT_SIZE = 14;
     private static final int LINE_HEIGHT = 20;
 
+    /// Constructs a new [AsciiDocToSvg] converter.
+    public AsciiDocToSvg() {}
+
     /// Converts the given AsciiDoc model into an SVG document simulating an
     /// editor interface.
     ///
-    /// The theme is read from the model attribute `"theme"`. Supported
-    /// values are `"word"`, `"gdocs"`, and `"libre"`.
-    ///
-    /// @param model the AsciiDocModel containing the blocks to be rendered
+    /// @param model the parsed AsciiDoc model
     ///
     /// @return the SVG document as an XML string
     public String apply(AsciiDocModel model) {

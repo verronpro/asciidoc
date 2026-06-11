@@ -38,7 +38,8 @@ import static pro.verron.asciidoc.core.core.AsciiDocModel.of;
 /// Extracts an [AsciiDocModel] from a [WordprocessingMLPackage], converting
 /// DOCX content into AsciiDoc blocks and inlines.
 ///
-/// Handles paragraphs, headings, tables (including nested), inline formatting
+/// Implements [Function]&lt;[WordprocessingMLPackage], [AsciiDocModel]&gt; and
+/// handles paragraphs, headings, tables (including nested), inline formatting
 /// (bold, italic, styled, superscript, subscript), hyperlinks, images,
 /// structured document tags, comments, headers/footers, and
 /// footnotes/endnotes.

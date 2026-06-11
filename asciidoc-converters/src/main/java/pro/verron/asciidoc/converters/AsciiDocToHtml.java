@@ -8,33 +8,21 @@ import java.util.function.Function;
 
 import static java.util.stream.Collectors.joining;
 
-/// The AsciiDocToHtml class is responsible for rendering an AsciiDoc
-/// representation into its corresponding HTML output. It implements the
-///  [Function] interface, converting an [AsciiDocModel] to a String
-/// containing the HTML representation.
+/// Converts an [AsciiDocModel] to an HTML document string.
 ///
-/// This class provides static utility methods for rendering various AsciiDoc
-/// block types and inline elements into their HTML counterparts. The
-/// following block types are supported for conversion:
+/// Implements [Function]&lt;[AsciiDocModel], String&gt; and renders headings,
+/// paragraphs, lists, tables, blockquotes, code blocks, images, and inline
+/// elements (bold, italic, links) into their HTML counterparts.
 ///
-/// - Headings
-/// - Paragraphs
-/// - Unordered and Ordered Lists
-/// - Tables
-/// - Blockquotes
-/// - Code Blocks
-/// - Image Blocks
-///
-/// Additionally, inline elements such as bold, italic, links, images, and text
-/// are rendered with appropriate HTML tags.
-///
-/// The class adheres to the functional programming paradigm by implementing
-/// the [#apply(AsciiDocModel)] method to facilitate the mapping of AsciiDoc
-///  models to HTML.
-///
-/// This class is immutable and cannot be instantiated.
+/// @see AsciiDocToText
+/// @see AsciiDocToSvg
 public final class AsciiDocToHtml
         implements Function<AsciiDocModel, String> {
+
+    /// Constructs a new [AsciiDocToHtml] converter.
+    public AsciiDocToHtml() {
+
+    }
 
     private static String renderBlock(Block block) {
         switch (block) {
@@ -130,9 +118,9 @@ public final class AsciiDocToHtml
 
     /// Converts the given AsciiDoc model into an HTML document string.
     ///
-    /// @param model the AsciiDocModel containing the blocks to be processed.
+    /// @param model the parsed AsciiDoc model
     ///
-    /// @return the resulting HTML document as a string.
+    /// @return the HTML document as a string
     public String apply(AsciiDocModel model) {
         var html = new StringBuilder("""
                 <!DOCTYPE html>
