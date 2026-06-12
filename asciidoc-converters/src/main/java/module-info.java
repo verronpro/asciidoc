@@ -6,8 +6,9 @@ import pro.verron.asciidoc.core.core.AsciiDocModel;
 /// Converts [AsciiDocModel] instances to various output formats, including
 /// HTML, plain text, and SVG.
 ///
-/// Each converter implements [Function]&lt;[AsciiDocModel], String&gt; and can
-/// be used as a standalone mapping function.
+/// Each converter implements [Function][java.util.function.Function]&lt;
+/// [AsciiDocModel], [String]&gt; and can be used as a standalone mapping
+/// function.
 ///
 /// ## Exported Packages
 /// <dl>

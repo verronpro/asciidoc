@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static pro.verron.asciidoc.converters.svg.AsciiDocIcon.findIcon;
+import static pro.verron.asciidoc.converters.svg.Icon.*;
 import static pro.verron.asciidoc.converters.svg.SvgAttribute.attr;
 
 /// Editor theme used by the SVG converter to simulate different word-processor
@@ -102,7 +103,7 @@ public enum Theme {
             double bannerHeight
     ) {
         var elements = new ArrayList<SvgElement>();
-        // Blue top bar
+        // Blue title bar with Quick Access Toolbar
         elements.add(new SvgRect("0",
                 "0",
                 "100%",
@@ -116,12 +117,12 @@ public enum Theme {
                 attr("font-family", "Segoe UI, Arial"),
                 attr("text-anchor", "middle")));
 
-        // Top bar icons
-        findIcon("save", 10, 7, 16, "white").ifPresent(elements::add);
-        findIcon("undo", 35, 7, 16, "white").ifPresent(elements::add);
-        findIcon("redo", 60, 7, 16, "white").ifPresent(elements::add);
+        // Quick Access Toolbar icons
+        findIcon(SAVE, 10, 7, 16, "white").ifPresent(elements::add);
+        findIcon(UNDO, 35, 7, 16, "white").ifPresent(elements::add);
+        findIcon(REDO, 60, 7, 16, "white").ifPresent(elements::add);
 
-        // Ribbon area
+        // Ribbon area background
         elements.add(new SvgRect("0",
                 "30",
                 "100%",
@@ -134,19 +135,43 @@ public enum Theme {
                 String.valueOf(bannerHeight),
                 "#ccc"));
 
-        // Simple ribbon icons simulation
+        // Ribbon tab names
         elements.add(new SvgText("20",
                 "55",
                 "11",
                 "#333",
-                "File  Home  Insert  Layout  References  Review  View",
+                "File  Home  Insert  Design  Layout  References  Mailings  Review  View",
                 attr("font-family", "Segoe UI, Arial")));
 
-        findIcon("bold", 20, 70, 16, "#333").ifPresent(elements::add);
-        findIcon("italic", 45, 70, 16, "#333").ifPresent(elements::add);
-        findIcon("image", 70, 70, 16, "#333").ifPresent(elements::add);
-        findIcon("table", 95, 70, 16, "#333").ifPresent(elements::add);
-        findIcon("link", 120, 70, 16, "#333").ifPresent(elements::add);
+        // Clipboard group
+        findIcon(PASTE, 20, 70, 16, "#333").ifPresent(elements::add);
+        findIcon(CUT, 45, 70, 14, "#333").ifPresent(elements::add);
+        findIcon(COPY, 65, 70, 14, "#333").ifPresent(elements::add);
+        findIcon(FORMAT_PAINTER, 85, 70, 14, "#333").ifPresent(elements::add);
+
+        // Font group
+        findIcon(BOLD, 125, 70, 16, "#333").ifPresent(elements::add);
+        findIcon(ITALIC, 150, 70, 16, "#333").ifPresent(elements::add);
+        findIcon(UNDERLINE, 175, 70, 16, "#333").ifPresent(elements::add);
+        findIcon(STRIKETHROUGH, 200, 70, 14, "#333").ifPresent(elements::add);
+        findIcon(SUBSCRIPT, 220, 70, 14, "#333").ifPresent(elements::add);
+        findIcon(SUPERSCRIPT, 240, 70, 14, "#333").ifPresent(elements::add);
+        findIcon(CLEAR_FORMATTING, 260, 70, 14, "#333").ifPresent(elements::add);
+        findIcon(HIGHLIGHT, 280, 70, 14, "#333").ifPresent(elements::add);
+        findIcon(FONT_COLOR, 300, 70, 14, "#333").ifPresent(elements::add);
+
+        // Paragraph group
+        findIcon(BULLETS, 330, 70, 14, "#333").ifPresent(elements::add);
+        findIcon(NUMBERING, 350, 70, 14, "#333").ifPresent(elements::add);
+        findIcon(INDENT_DECREASE, 370, 70, 14, "#333").ifPresent(elements::add);
+        findIcon(INDENT_INCREASE, 390, 70, 14, "#333").ifPresent(elements::add);
+        findIcon(ALIGN_LEFT, 415, 70, 14, "#333").ifPresent(elements::add);
+        findIcon(ALIGN_CENTER, 435, 70, 14, "#333").ifPresent(elements::add);
+        findIcon(ALIGN_RIGHT, 455, 70, 14, "#333").ifPresent(elements::add);
+        findIcon(JUSTIFY, 475, 70, 14, "#333").ifPresent(elements::add);
+
+        // Editing group
+        findIcon(SEARCH, 510, 70, 14, "#333").ifPresent(elements::add);
 
         return elements;
     }
@@ -163,7 +188,7 @@ public enum Theme {
                 "60",
                 attr("fill", "white")));
         elements.add(new SvgCircle("30", "30", "15", "#4285f4"));
-        findIcon("table", 22, 22, 16, "white").ifPresent(elements::add);
+        findIcon(TABLE, 22, 22, 16, "white").ifPresent(elements::add);
 
         elements.add(new SvgText("60",
                 "25",
@@ -178,7 +203,11 @@ public enum Theme {
                 "File  Edit  View  Insert  Format  Tools  Extensions  Help",
                 attr("font-family", "Arial")));
 
-        // Toolbar
+        // Star and Share
+        findIcon(STAR, 520, 18, 16, "#5f6368").ifPresent(elements::add);
+        findIcon(SHARE, 545, 18, 16, "#5f6368").ifPresent(elements::add);
+
+        // Toolbar background
         elements.add(new SvgRect("0",
                 "65",
                 "100%",
@@ -187,17 +216,36 @@ public enum Theme {
                 attr("rx", "15")));
         elements.add(new SvgLine("0", "100", "100%", "100", "#ccc"));
 
-        findIcon("undo", 20, 72, 16, "#5f6368").ifPresent(elements::add);
-        findIcon("redo", 45, 72, 16, "#5f6368").ifPresent(elements::add);
-        findIcon("print", 70, 72, 16, "#5f6368").ifPresent(elements::add);
-        findIcon("bold", 110, 72, 16, "#5f6368").ifPresent(elements::add);
-        findIcon("italic", 135, 72, 16, "#5f6368").ifPresent(elements::add);
-        findIcon("link", 160, 72, 16, "#5f6368").ifPresent(elements::add);
-        findIcon("chat-left-text",
-                185,
-                72,
-                16,
-                "#5f6368").ifPresent(elements::add);
+        // Undo / Redo / Print
+        findIcon(UNDO, 20, 72, 16, "#5f6368").ifPresent(elements::add);
+        findIcon(REDO, 45, 72, 16, "#5f6368").ifPresent(elements::add);
+        findIcon(PRINT, 70, 72, 16, "#5f6368").ifPresent(elements::add);
+        findIcon(SPELLCHECK, 95, 72, 16, "#5f6368").ifPresent(elements::add);
+
+        // Formatting icons
+        findIcon(BOLD, 135, 72, 16, "#5f6368").ifPresent(elements::add);
+        findIcon(ITALIC, 160, 72, 16, "#5f6368").ifPresent(elements::add);
+        findIcon(UNDERLINE, 185, 72, 16, "#5f6368").ifPresent(elements::add);
+
+        // Text color
+        findIcon(FONT_COLOR, 215, 72, 14, "#5f6368").ifPresent(elements::add);
+        findIcon(HIGHLIGHT, 235, 72, 14, "#5f6368").ifPresent(elements::add);
+
+        // Link / Comment / Image / Chart
+        findIcon(LINK, 265, 72, 14, "#5f6368").ifPresent(elements::add);
+        findIcon(COMMENT, 290, 72, 14, "#5f6368").ifPresent(elements::add);
+        findIcon(IMAGE, 315, 72, 14, "#5f6368").ifPresent(elements::add);
+
+        // Alignment
+        findIcon(ALIGN_LEFT, 350, 72, 14, "#5f6368").ifPresent(elements::add);
+        findIcon(ALIGN_CENTER, 370, 72, 14, "#5f6368").ifPresent(elements::add);
+        findIcon(ALIGN_RIGHT, 390, 72, 14, "#5f6368").ifPresent(elements::add);
+
+        // Line spacing / Bullets / Numbering
+        findIcon(BULLETS, 420, 72, 14, "#5f6368").ifPresent(elements::add);
+        findIcon(NUMBERING, 440, 72, 14, "#5f6368").ifPresent(elements::add);
+        findIcon(INDENT_DECREASE, 460, 72, 14, "#5f6368").ifPresent(elements::add);
+        findIcon(INDENT_INCREASE, 480, 72, 14, "#5f6368").ifPresent(elements::add);
 
         return elements;
     }
@@ -207,7 +255,7 @@ public enum Theme {
             double bannerHeight
     ) {
         var elements = new ArrayList<SvgElement>();
-        // Top bar
+        // Title bar
         elements.add(new SvgRect("0",
                 "0",
                 "100%",
@@ -234,21 +282,73 @@ public enum Theme {
                 + "  Window  Help",
                 attr("font-family", "Arial")));
 
-        // Toolbars
+        // Standard toolbar row
         elements.add(new SvgRect("0",
                 "55",
                 "100%",
-                String.valueOf(bannerHeight - 55),
+                "22",
                 attr("fill", "#eeeeee")));
         elements.add(new SvgLine("0", "55", "100%", "55", "#ccc"));
+
+        // File operations
+        findIcon(NEW, 10, 58, 16, "#333").ifPresent(elements::add);
+        findIcon(OPEN, 35, 58, 16, "#333").ifPresent(elements::add);
+        findIcon(SAVE, 60, 58, 16, "#333").ifPresent(elements::add);
+        findIcon(PDF_EXPORT, 85, 58, 16, "#333").ifPresent(elements::add);
+        findIcon(PRINT, 110, 58, 16, "#333").ifPresent(elements::add);
+
+        // Clipboard operations
+        findIcon(CUT, 145, 58, 14, "#333").ifPresent(elements::add);
+        findIcon(COPY, 165, 58, 14, "#333").ifPresent(elements::add);
+        findIcon(PASTE, 185, 58, 14, "#333").ifPresent(elements::add);
+        findIcon(FORMAT_PAINTER, 210, 58, 14, "#333").ifPresent(elements::add);
+
+        // Undo / Redo / Search
+        findIcon(UNDO, 240, 58, 16, "#333").ifPresent(elements::add);
+        findIcon(REDO, 265, 58, 16, "#333").ifPresent(elements::add);
+        findIcon(SEARCH, 295, 58, 14, "#333").ifPresent(elements::add);
+        findIcon(SPELLCHECK, 315, 58, 14, "#333").ifPresent(elements::add);
+
+        // Insert objects
+        findIcon(TABLE, 350, 58, 14, "#333").ifPresent(elements::add);
+        findIcon(IMAGE, 370, 58, 14, "#333").ifPresent(elements::add);
+        findIcon(CHART, 390, 58, 14, "#333").ifPresent(elements::add);
+        findIcon(LINK, 410, 58, 14, "#333").ifPresent(elements::add);
+        findIcon(COMMENT, 430, 58, 14, "#333").ifPresent(elements::add);
+
+        // Formatting toolbar row
+        elements.add(new SvgRect("0",
+                "77",
+                "100%",
+                String.valueOf(bannerHeight - 77),
+                attr("fill", "#eeeeee")));
+        elements.add(new SvgLine("0", "77", "100%", "77", "#ccc"));
         elements.add(new SvgLine("0", "100", "100%", "100", "#ccc"));
 
-        findIcon("save", 10, 65, 20, "#333").ifPresent(elements::add);
-        findIcon("print", 40, 65, 20, "#333").ifPresent(elements::add);
-        findIcon("undo", 70, 65, 20, "#333").ifPresent(elements::add);
-        findIcon("redo", 100, 65, 20, "#333").ifPresent(elements::add);
-        findIcon("bold", 150, 65, 20, "#333").ifPresent(elements::add);
-        findIcon("italic", 180, 65, 20, "#333").ifPresent(elements::add);
+        // Text formatting
+        findIcon(BOLD, 10, 80, 16, "#333").ifPresent(elements::add);
+        findIcon(ITALIC, 35, 80, 16, "#333").ifPresent(elements::add);
+        findIcon(UNDERLINE, 60, 80, 16, "#333").ifPresent(elements::add);
+        findIcon(STRIKETHROUGH, 85, 80, 14, "#333").ifPresent(elements::add);
+        findIcon(SUBSCRIPT, 105, 80, 14, "#333").ifPresent(elements::add);
+        findIcon(SUPERSCRIPT, 125, 80, 14, "#333").ifPresent(elements::add);
+        findIcon(FONT_COLOR, 150, 80, 14, "#333").ifPresent(elements::add);
+        findIcon(HIGHLIGHT, 170, 80, 14, "#333").ifPresent(elements::add);
+
+        // Alignment
+        findIcon(ALIGN_LEFT, 205, 80, 14, "#333").ifPresent(elements::add);
+        findIcon(ALIGN_CENTER, 225, 80, 14, "#333").ifPresent(elements::add);
+        findIcon(ALIGN_RIGHT, 245, 80, 14, "#333").ifPresent(elements::add);
+        findIcon(JUSTIFY, 265, 80, 14, "#333").ifPresent(elements::add);
+
+        // Lists
+        findIcon(BULLETS, 295, 80, 14, "#333").ifPresent(elements::add);
+        findIcon(NUMBERING, 315, 80, 14, "#333").ifPresent(elements::add);
+        findIcon(INDENT_DECREASE, 340, 80, 14, "#333").ifPresent(elements::add);
+        findIcon(INDENT_INCREASE, 360, 80, 14, "#333").ifPresent(elements::add);
+
+        // Paragraph marks
+        findIcon(PARAGRAPH_MARKS, 390, 80, 14, "#333").ifPresent(elements::add);
 
         return elements;
     }
