@@ -1,5 +1,5 @@
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
-import pro.verron.asciidoc.core.core.AsciiDocModel;
+import pro.verron.asciidoc.core.AsciiDocModel;
 import pro.verron.asciidoc.docx.AsciiDocToDocx;
 import pro.verron.asciidoc.docx.DocxToAsciiDoc;
 

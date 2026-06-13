@@ -8,8 +8,8 @@ import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 import pro.verron.asciidoc.converters.AsciiDocToHtml;
 import pro.verron.asciidoc.converters.AsciiDocToSvg;
 import pro.verron.asciidoc.converters.AsciiDocToText;
-import pro.verron.asciidoc.core.core.AsciiDocModel;
-import pro.verron.asciidoc.core.core.AsciiDocParser;
+import pro.verron.asciidoc.core.AsciiDocModel;
+import pro.verron.asciidoc.core.AsciiDocParser;
 import pro.verron.asciidoc.docx.AsciiDocToDocx;
 import pro.verron.asciidoc.docx.DocxToAsciiDoc;
 

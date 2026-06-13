@@ -4,7 +4,7 @@ import org.asciidoctor.ast.StructuralNode;
 import org.asciidoctor.extension.BlockMacroProcessor;
 import org.asciidoctor.extension.Name;
 import pro.verron.asciidoc.compiler.AsciiDocCompiler;
-import pro.verron.asciidoc.core.core.AsciiDocModel;
+import pro.verron.asciidoc.core.AsciiDocModel;
 
 import java.awt.*;
 import java.io.IOException;

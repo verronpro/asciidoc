@@ -23,8 +23,8 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pro.verron.asciidoc.converters.AsciiDocToText;
-import pro.verron.asciidoc.core.core.*;
-import pro.verron.asciidoc.core.core.Text;
+import pro.verron.asciidoc.core.*;
+import pro.verron.asciidoc.core.Text;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Optional.ofNullable;
-import static pro.verron.asciidoc.core.core.AsciiDocModel.of;
+import static pro.verron.asciidoc.core.AsciiDocModel.of;
 
 /// Extracts an [AsciiDocModel] from a [WordprocessingMLPackage], converting
 /// DOCX content into AsciiDoc blocks and inlines.
@@ -145,8 +145,8 @@ public final class DocxToAsciiDoc
         return (o instanceof JAXBElement<?> j) ? j.getValue() : o;
     }
 
-    private static Function<List<pro.verron.asciidoc.core.core.Inline>,
-            List<pro.verron.asciidoc.core.core.Inline>> getWrapper(
+    private static Function<List<pro.verron.asciidoc.core.Inline>,
+            List<pro.verron.asciidoc.core.Inline>> getWrapper(
             STVerticalAlignRun valign
     ) {
         return switch (valign) {
@@ -156,32 +156,32 @@ public final class DocxToAsciiDoc
         };
     }
 
-    private static Function<List<pro.verron.asciidoc.core.core.Inline>,
-            List<pro.verron.asciidoc.core.core.Inline>> boldwrapper(
+    private static Function<List<pro.verron.asciidoc.core.Inline>,
+            List<pro.verron.asciidoc.core.Inline>> boldwrapper(
             BooleanDefaultTrue w
     ) {
         return is -> List.of(new Bold(is));
     }
 
-    private static Function<List<pro.verron.asciidoc.core.core.Inline>,
-            List<pro.verron.asciidoc.core.core.Inline>> italicwrapper(
+    private static Function<List<pro.verron.asciidoc.core.Inline>,
+            List<pro.verron.asciidoc.core.Inline>> italicwrapper(
             BooleanDefaultTrue booleanDefaultTrue
     ) {
         return is -> List.of(new Italic(is));
     }
 
-    private static Function<List<pro.verron.asciidoc.core.core.Inline>,
-            List<pro.verron.asciidoc.core.core.Inline>> styledwrapper(
+    private static Function<List<pro.verron.asciidoc.core.Inline>,
+            List<pro.verron.asciidoc.core.Inline>> styledwrapper(
             String s
     ) {
         return is -> List.of(new Styled(s, is));
     }
 
-    private List<pro.verron.asciidoc.core.core.Inline> toInlines(
+    private List<pro.verron.asciidoc.core.Inline> toInlines(
             ContentAccessor accessor,
             BreakRecorder breakRecorder
     ) {
-        var inlines = new ArrayList<pro.verron.asciidoc.core.core.Inline>();
+        var inlines = new ArrayList<pro.verron.asciidoc.core.Inline>();
         for (Object o : accessor.getContent()) {
             Object val = unwrap(o);
             switch (val) {
@@ -204,7 +204,7 @@ public final class DocxToAsciiDoc
                                                  .map(s -> "tag=" + s)
                                                  .ifPresent(list::add);
                     list.add(toInlines(sdtRun.getSdtContent()).stream()
-                                                              .map(pro.verron.asciidoc.core.core.Inline::text)
+                                                              .map(pro.verron.asciidoc.core.Inline::text)
                                                               .collect(
                                                                       Collectors.joining()));
                     inlines.add(new MacroInline("form", id, list));
@@ -232,25 +232,25 @@ public final class DocxToAsciiDoc
         return List.copyOf(inlines);
     }
 
-    private List<pro.verron.asciidoc.core.core.Inline> getInlines(
+    private List<pro.verron.asciidoc.core.Inline> getInlines(
             R r,
             BreakRecorder breakRecorder
     ) {
         var runInlines = extractInlines(r, breakRecorder);
-        List<pro.verron.asciidoc.core.core.Inline> styled = runInlines;
+        List<pro.verron.asciidoc.core.Inline> styled = runInlines;
         if (!runInlines.isEmpty())
             styled = significantPr(r.getRPr()).apply(runInlines);
         return styled;
     }
 
-    private List<pro.verron.asciidoc.core.core.Inline> toInlines(ContentAccessor accessor) {
+    private List<pro.verron.asciidoc.core.Inline> toInlines(ContentAccessor accessor) {
         return toInlines(accessor, new BreakRecorder());
     }
 
-    private List<pro.verron.asciidoc.core.core.Inline> extractInlines(ContentAccessor r,
+    private List<pro.verron.asciidoc.core.Inline> extractInlines(ContentAccessor r,
             BreakRecorder brecorder
     ) {
-        var inlines = new ArrayList<pro.verron.asciidoc.core.core.Inline>();
+        var inlines = new ArrayList<pro.verron.asciidoc.core.Inline>();
         var content = r.getContent();
         var iterator = content.iterator();
         var sb = new StringBuilder();
@@ -327,14 +327,14 @@ public final class DocxToAsciiDoc
         return of(blocks.blocks);
     }
 
-    private Function<List<pro.verron.asciidoc.core.core.Inline>,
-            List<pro.verron.asciidoc.core.core.Inline>> significantPr(
+    private Function<List<pro.verron.asciidoc.core.Inline>,
+            List<pro.verron.asciidoc.core.Inline>> significantPr(
             @Nullable RPr rPr
     ) {
         if (rPr == null) return Function.identity();
 
-        List<Function<List<pro.verron.asciidoc.core.core.Inline>,
-                List<pro.verron.asciidoc.core.core.Inline>>> wrappers =
+        List<Function<List<pro.verron.asciidoc.core.Inline>,
+                List<pro.verron.asciidoc.core.Inline>>> wrappers =
                 new ArrayList<>();
         ofNullable(rPr.getVertAlign()).map(CTVerticalAlignRun::getVal)
                                       .map(DocxToAsciiDoc::getWrapper)

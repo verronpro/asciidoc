@@ -3,7 +3,7 @@ package pro.verron.asciidoc.converters;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.junit.jupiter.api.Test;
-import pro.verron.asciidoc.core.core.*;
+import pro.verron.asciidoc.core.*;
 
 import java.util.List;
 

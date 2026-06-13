@@ -1,7 +1,7 @@
 package pro.verron.asciidoc.converters;
 
 import org.junit.jupiter.api.Test;
-import pro.verron.asciidoc.core.core.*;
+import pro.verron.asciidoc.core.*;
 
 import java.util.List;
 import java.util.Map;

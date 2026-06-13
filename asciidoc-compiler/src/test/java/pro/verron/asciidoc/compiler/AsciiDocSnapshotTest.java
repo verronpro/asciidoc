@@ -18,7 +18,10 @@ import java.nio.file.Path;
 /// outputs using a tolerance for any minor differences.
 class AsciiDocSnapshotTest {
 
-    private static final Path GOLDEN_DIR = Path.of("src/test/resources/golden");
+    private static final Path GOLDEN_DIR = Path.of("src/test/resources"
+                                                   + "/pro/verron"
+                                                   + "/asciidoc"
+                                                   + "/compiler/golden");
     private static final Path ACTUAL_DIR = Path.of("target/test-snapshots");
 
     @BeforeAll

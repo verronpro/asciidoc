@@ -1,7 +1,7 @@
 import pro.verron.asciidoc.converters.AsciiDocToHtml;
 import pro.verron.asciidoc.converters.AsciiDocToSvg;
 import pro.verron.asciidoc.converters.AsciiDocToText;
-import pro.verron.asciidoc.core.core.AsciiDocModel;
+import pro.verron.asciidoc.core.AsciiDocModel;
 
 /// Converts [AsciiDocModel] instances to various output formats, including
 /// HTML, plain text, and SVG.

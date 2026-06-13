@@ -1,8 +1,8 @@
-/// Converts [AsciiDocModel][pro.verron.asciidoc.core.core.AsciiDocModel]
+/// Converts [AsciiDocModel][pro.verron.asciidoc.core.AsciiDocModel]
 /// instances to various text-based and vector output formats.
 ///
 /// Each converter implements [Function][java.util.function.Function]&lt;
-/// [AsciiDocModel][pro.verron.asciidoc.core.core.AsciiDocModel], String
+/// [AsciiDocModel][pro.verron.asciidoc.core.AsciiDocModel], String
 /// &gt; and can be applied directly to a parsed model:
 ///
 /// - [AsciiDocToHtml][pro.verron.asciidoc.converters.AsciiDocToHtml] &mdash;

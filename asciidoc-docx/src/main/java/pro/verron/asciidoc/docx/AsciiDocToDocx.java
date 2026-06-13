@@ -10,8 +10,8 @@ import org.docx4j.openpackaging.parts.WordprocessingML.HeaderPart;
 import org.docx4j.relationships.Relationship;
 import org.docx4j.wml.*;
 import org.jspecify.annotations.Nullable;
-import pro.verron.asciidoc.core.core.*;
-import pro.verron.asciidoc.core.core.Text;
+import pro.verron.asciidoc.core.*;
+import pro.verron.asciidoc.core.Text;
 
 import java.math.BigInteger;
 import java.util.List;

@@ -1,7 +1,7 @@
 package pro.verron.asciidoc.converters;
 
 import pro.verron.asciidoc.converters.svg.*;
-import pro.verron.asciidoc.core.core.*;
+import pro.verron.asciidoc.core.*;
 
 import java.util.*;
 

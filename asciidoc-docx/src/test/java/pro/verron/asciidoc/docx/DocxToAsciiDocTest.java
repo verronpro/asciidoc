@@ -2,7 +2,7 @@ package pro.verron.asciidoc.docx;
 
 import org.junit.jupiter.api.Test;
 import pro.verron.asciidoc.converters.AsciiDocToText;
-import pro.verron.asciidoc.core.core.*;
+import pro.verron.asciidoc.core.*;
 
 import java.util.List;
 
