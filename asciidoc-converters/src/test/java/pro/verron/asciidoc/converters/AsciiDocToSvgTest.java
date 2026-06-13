@@ -8,7 +8,20 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/// Test suite for the [AsciiDocToSvg] converter, verifying that
+/// AsciiDoc model elements are correctly rendered into SVG output.
+/// Tests cover rendering of:
+///   - Empty models
+///   - Headings
+///   - Paragraphs
+///   - Ordered and unordered lists
+///   - Tables
+///   - Image blocks
 public class AsciiDocToSvgTest {
+
+    /// Default constructor.
+    public AsciiDocToSvgTest() {
+    }
 
     @Test
     void apply_shouldRenderEmptyModelCorrectly() {

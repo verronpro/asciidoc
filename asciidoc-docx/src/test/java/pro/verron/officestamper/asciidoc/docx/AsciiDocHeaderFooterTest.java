@@ -13,8 +13,21 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/// Test suite for verifying that AsciiDoc header and footer blocks are
+/// correctly mapped to Word document header and footer parts when
+/// converting to DOCX format using [AsciiDocToDocx].
+/// Tests cover:
+///   - Mapping `[header]` block to Word header
+///   - Mapping `[footer]` block to Word footer
+///   - Odd/even header mapping via `[header]` and `[header-even]`
+///   - First-page header/footer mapping via `[header-first]` and
+/// `[footer-first]`
 @DisplayName("AsciiDoc Header/Footer Tests")
 public class AsciiDocHeaderFooterTest {
+
+    /// Default constructor.
+    public AsciiDocHeaderFooterTest() {
+    }
 
     @Test
     @DisplayName("Should map [header] block to Word header")
@@ -31,19 +44,25 @@ public class AsciiDocHeaderFooterTest {
         var model = new AsciiDocParser().apply(adoc);
         WordprocessingMLPackage pkg = new AsciiDocToDocx().apply(model);
 
-        List<HeaderPart> headers = pkg.getParts().getParts().values().stream()
-                .filter(HeaderPart.class::isInstance)
-                .map(HeaderPart.class::cast)
-                .toList();
+        List<HeaderPart> headers = pkg.getParts()
+                                      .getParts()
+                                      .values()
+                                      .stream()
+                                      .filter(HeaderPart.class::isInstance)
+                                      .map(HeaderPart.class::cast)
+                                      .toList();
 
         assertFalse(headers.isEmpty(), "Header part should be created");
 
         // Simple check for content in HeaderPart
-        String headerXml = headers.get(0).getXML();
+        String headerXml = headers.get(0)
+                                  .getXML();
         assertTrue(headerXml.contains("This is the header content"));
 
-        String mainXml = pkg.getMainDocumentPart().getXML();
-        assertFalse(mainXml.contains("This is the header content"), "Header content should not be in main body");
+        String mainXml = pkg.getMainDocumentPart()
+                            .getXML();
+        assertFalse(mainXml.contains("This is the header content"),
+                "Header content should not be in main body");
         assertTrue(mainXml.contains("Main document content"));
     }
 
@@ -62,23 +81,30 @@ public class AsciiDocHeaderFooterTest {
         var model = new AsciiDocParser().apply(adoc);
         WordprocessingMLPackage pkg = new AsciiDocToDocx().apply(model);
 
-        List<FooterPart> footers = pkg.getParts().getParts().values().stream()
-                .filter(FooterPart.class::isInstance)
-                .map(FooterPart.class::cast)
-                .toList();
+        List<FooterPart> footers = pkg.getParts()
+                                      .getParts()
+                                      .values()
+                                      .stream()
+                                      .filter(FooterPart.class::isInstance)
+                                      .map(FooterPart.class::cast)
+                                      .toList();
 
         assertFalse(footers.isEmpty(), "Footer part should be created");
 
-        String footerXml = footers.get(0).getXML();
+        String footerXml = footers.get(0)
+                                  .getXML();
         assertTrue(footerXml.contains("This is the footer content"));
 
-        String mainXml = pkg.getMainDocumentPart().getXML();
-        assertFalse(mainXml.contains("This is the footer content"), "Footer content should not be in main body");
+        String mainXml = pkg.getMainDocumentPart()
+                            .getXML();
+        assertFalse(mainXml.contains("This is the footer content"),
+                "Footer content should not be in main body");
         assertTrue(mainXml.contains("Main document content"));
     }
 
     @Test
-    @DisplayName("Should map [header] and [header-even] to distinct Word headers")
+    @DisplayName(
+            "Should map [header] and [header-even] to distinct Word headers")
     void testOddEvenHeaderMapping() {
         String adoc = """
                 [header]
@@ -97,22 +123,31 @@ public class AsciiDocHeaderFooterTest {
         var model = new AsciiDocParser().apply(adoc);
         WordprocessingMLPackage pkg = new AsciiDocToDocx().apply(model);
 
-        List<HeaderPart> headers = pkg.getParts().getParts().values().stream()
-                .filter(HeaderPart.class::isInstance)
-                .map(HeaderPart.class::cast)
-                .toList();
+        List<HeaderPart> headers = pkg.getParts()
+                                      .getParts()
+                                      .values()
+                                      .stream()
+                                      .filter(HeaderPart.class::isInstance)
+                                      .map(HeaderPart.class::cast)
+                                      .toList();
 
         assertEquals(2, headers.size(), "Should have 2 header parts");
 
-        boolean foundOdd = headers.stream().anyMatch(h -> h.getXML().contains("Odd header"));
-        boolean foundEven = headers.stream().anyMatch(h -> h.getXML().contains("Even header"));
+        boolean foundOdd = headers.stream()
+                                  .anyMatch(h -> h.getXML()
+                                                  .contains("Odd header"));
+        boolean foundEven = headers.stream()
+                                   .anyMatch(h -> h.getXML()
+                                                   .contains("Even header"));
 
         assertTrue(foundOdd, "Should find odd header");
         assertTrue(foundEven, "Should find even header");
     }
 
     @Test
-    @DisplayName("Should map [header-first] and [footer-first] to first page Word headers/footers")
+    @DisplayName(
+            "Should map [header-first] and [footer-first] to first page Word "
+            + "headers/footers")
     void testFirstPageHeaderFooterMapping() {
         String adoc = """
                 [header-first]
@@ -131,22 +166,37 @@ public class AsciiDocHeaderFooterTest {
         var model = new AsciiDocParser().apply(adoc);
         WordprocessingMLPackage pkg = new AsciiDocToDocx().apply(model);
 
-        List<HeaderPart> headers = pkg.getParts().getParts().values().stream()
-                .filter(HeaderPart.class::isInstance)
-                .map(HeaderPart.class::cast)
-                .toList();
-        List<FooterPart> footers = pkg.getParts().getParts().values().stream()
-                .filter(FooterPart.class::isInstance)
-                .map(FooterPart.class::cast)
-                .toList();
+        List<HeaderPart> headers = pkg.getParts()
+                                      .getParts()
+                                      .values()
+                                      .stream()
+                                      .filter(HeaderPart.class::isInstance)
+                                      .map(HeaderPart.class::cast)
+                                      .toList();
+        List<FooterPart> footers = pkg.getParts()
+                                      .getParts()
+                                      .values()
+                                      .stream()
+                                      .filter(FooterPart.class::isInstance)
+                                      .map(FooterPart.class::cast)
+                                      .toList();
 
         assertEquals(1, headers.size(), "Should have 1 header part");
         assertEquals(1, footers.size(), "Should have 1 footer part");
 
-        assertTrue(headers.get(0).getXML().contains("First header"));
-        assertTrue(footers.get(0).getXML().contains("First footer"));
+        var headersFirst = headers.getFirst();
+        var headersFirstXML = headersFirst.getXML();
+        assertTrue(headersFirstXML.contains("First header"));
 
-        SectPr sectPr = pkg.getMainDocumentPart().getJaxbElement().getBody().getSectPr();
-        assertTrue(sectPr.getTitlePg().isVal(), "titlePg should be true");
+        var footersFirst = footers.getFirst();
+        var footersFirstXML = footersFirst.getXML();
+        assertTrue(footersFirstXML.contains("First footer"));
+
+        SectPr sectPr = pkg.getMainDocumentPart()
+                           .getJaxbElement()
+                           .getBody()
+                           .getSectPr();
+        assertTrue(sectPr.getTitlePg()
+                         .isVal(), "titlePg should be true");
     }
 }

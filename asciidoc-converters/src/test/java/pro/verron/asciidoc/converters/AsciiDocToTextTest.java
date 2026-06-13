@@ -7,7 +7,24 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/// Test suite for the [AsciiDocToText] converter, verifying that
+/// AsciiDoc model elements are correctly rendered into plain text output.
+/// Tests cover rendering of:
+///   - Paragraphs
+///   - Headings
+///   - Code blocks
+///   - Image blocks
+///   - Unordered lists
+///   - Blockquotes
+///   - Tables
+///   - Comment skipping
+///   - Macro blocks
+///   - Inline elements (bold, italic, superscript, subscript)
 public class AsciiDocToTextTest {
+
+    /// Default constructor.
+    public AsciiDocToTextTest() {
+    }
 
     // Test case 1: Render a simple paragraph
     @Test
@@ -111,8 +128,10 @@ public class AsciiDocToTextTest {
     // Test case 7: Render a table
     @Test
     void shouldRenderTable() {
-        var cell1 = new Cell(List.of(new Paragraph(List.of(new Text("Cell 1")))));
-        var cell2 = new Cell(List.of(new Paragraph(List.of(new Text("Cell 2")))));
+        var cell1 =
+                new Cell(List.of(new Paragraph(List.of(new Text("Cell 1")))));
+        var cell2 =
+                new Cell(List.of(new Paragraph(List.of(new Text("Cell 2")))));
         var row = new Row(List.of(cell1, cell2));
         var table = new Table(List.of(row));
         var model = AsciiDocModel.of(List.of(table));

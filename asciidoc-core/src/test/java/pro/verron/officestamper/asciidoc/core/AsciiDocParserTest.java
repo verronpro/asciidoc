@@ -9,14 +9,26 @@ import pro.verron.asciidoc.core.core.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-/// Test suite for the `AsciiDocParser` class, which ensures the correct
-/// parsing of AsciiDoc input into an `AsciiDocModel`.
+/// Test suite for the [AsciiDocParser] class, which ensures the correct
+/// parsing of AsciiDoc input into an [AsciiDocModel].
 /// This test class includes parameterized and unit tests to validate that the
 /// parser correctly handles various types of AsciiDoc constructs such as:
-///
 ///   - Empty input or whitespace
 ///   - Paragraphs
+///   - Headings
+///   - Unordered and ordered lists
+///   - Tables
+///   - Inlines (bold, italic, links)
+///   - Blockquotes
+///   - Code blocks
+///   - Image blocks
+///   - Attributes
+///   - Macro blocks
 public class AsciiDocParserTest {
+
+    /// Default constructor.
+    public AsciiDocParserTest() {
+    }
 
     @EmptySource
     @ValueSource(strings = {"   "})

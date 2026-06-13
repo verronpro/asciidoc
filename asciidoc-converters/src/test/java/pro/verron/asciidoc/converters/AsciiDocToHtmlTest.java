@@ -9,7 +9,20 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/// Test suite for the [AsciiDocToHtml] converter, verifying that
+/// AsciiDoc model elements are correctly rendered into HTML output.
+/// Tests cover rendering of:
+///   - Empty models
+///   - Headings
+///   - Paragraphs
+///   - Ordered and unordered lists
+///   - Tables
+///   - Image blocks
 public class AsciiDocToHtmlTest {
+
+    /// Default constructor.
+    public AsciiDocToHtmlTest() {
+    }
 
     @Test
     void apply_shouldRenderEmptyModelCorrectly() {
@@ -107,7 +120,7 @@ public class AsciiDocToHtmlTest {
         var item2 = new Text("Item 2");
         var unorderedList =
                 new UnorderedList(List.of(new ListItem(List.of(item1)),
-                        new ListItem(List.of(item2))));
+                new ListItem(List.of(item2))));
         var model = AsciiDocModel.of(List.of(unorderedList));
         var converter = new AsciiDocToHtml();
 
@@ -135,10 +148,9 @@ public class AsciiDocToHtmlTest {
         var cell2 = new Text("Cell 2");
         var table =
                 new Table(List.of(new Row(List.of(new Cell(List.of(new Paragraph(
-                                List.of(),
-                                List.of(cell1)))),
-                        new Cell(List.of(new Paragraph(List.of(),
-                                List.of(cell2))))))));
+                        List.of(),
+                        List.of(cell1)))),
+                new Cell(List.of(new Paragraph(List.of(), List.of(cell2))))))));
         var model = AsciiDocModel.of(List.of(table));
         var converter = new AsciiDocToHtml();
 
