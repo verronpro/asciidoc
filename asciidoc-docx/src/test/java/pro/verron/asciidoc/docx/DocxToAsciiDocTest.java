@@ -1,16 +1,23 @@
-package pro.verron.officestamper.asciidoc.docx;
+package pro.verron.asciidoc.docx;
 
 import org.junit.jupiter.api.Test;
 import pro.verron.asciidoc.converters.AsciiDocToText;
 import pro.verron.asciidoc.core.core.*;
-import pro.verron.asciidoc.docx.AsciiDocToDocx;
-import pro.verron.asciidoc.docx.DocxToAsciiDoc;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/// Test suite for the [DocxToAsciiDoc] converter, verifying that
+/// DOCX documents are correctly converted back to AsciiDoc models.
+/// Tests cover:
+///   - Nested table round-trip conversion
+///   - Advanced cells with multiple paragraphs
 class DocxToAsciiDocTest {
+
+    /// Default constructor.
+    DocxToAsciiDocTest() {
+    }
 
     @Test
     void shouldRenderNestedTable() {
@@ -23,7 +30,7 @@ class DocxToAsciiDocTest {
         var nestedTable = new Table(List.of(row));
 
         var rootCell = new Cell(List.of(new Paragraph(List.of(new Text(
-                        "Nested:"))),
+                "Nested:"))),
                 nestedTable));
         var otherCell = Cell.ofInlines(List.of(new Text("Other")));
         var rootRow = new Row(List.of(rootCell, otherCell));
@@ -35,7 +42,7 @@ class DocxToAsciiDocTest {
         var pkg = new AsciiDocToDocx().apply(model);
         var result =
                 new AsciiDocToText(false).apply(new DocxToAsciiDoc(pkg).apply(
-                        pkg));
+                pkg));
 
         var expected = """
                 |===
@@ -69,7 +76,7 @@ class DocxToAsciiDocTest {
         var pkg = new AsciiDocToDocx().apply(model);
         var result =
                 new AsciiDocToText(false).apply(new DocxToAsciiDoc(pkg).apply(
-                        pkg));
+                pkg));
 
         var expected = """
                 |===
