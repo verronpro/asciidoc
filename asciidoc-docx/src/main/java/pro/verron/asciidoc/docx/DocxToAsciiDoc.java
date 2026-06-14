@@ -16,13 +16,12 @@ import org.docx4j.openpackaging.parts.WordprocessingML.CommentsPart;
 import org.docx4j.openpackaging.parts.WordprocessingML.FooterPart;
 import org.docx4j.openpackaging.parts.WordprocessingML.HeaderPart;
 import org.docx4j.openpackaging.parts.WordprocessingML.StyleDefinitionsPart;
-import org.docx4j.vml.CTTextbox;
 import org.docx4j.wml.*;
 import org.docx4j.wml.PPrBase.PStyle;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pro.verron.asciidoc.converters.AsciiDocToText;
 import pro.verron.asciidoc.core.*;
 import pro.verron.asciidoc.core.Text;
 
@@ -54,9 +53,9 @@ public final class DocxToAsciiDoc
 
     private final StyleDefinitionsPart styleDefinitionsPart;
     private final CommentRecorder commentRecorder;
+    private final PictRecorder pictRecorder;
     private final BlockRecorder blocks;
     private final WordprocessingMLPackage wordprocessingMLPackage;
-    private final CommentsPart commentsPart;
 
     /// Constructs a new [DocxToAsciiDoc] for the given DOCX package.
     ///
@@ -65,8 +64,9 @@ public final class DocxToAsciiDoc
         this.wordprocessingMLPackage = pkg;
         var mdp = wordprocessingMLPackage.getMainDocumentPart();
         this.styleDefinitionsPart = mdp.getStyleDefinitionsPart(true);
-        this.commentsPart = mdp.getCommentsPart();
+        CommentsPart commentsPart = mdp.getCommentsPart();
         this.commentRecorder = new CommentRecorder(commentsPart);
+        this.pictRecorder = new PictRecorder();
         this.blocks = new BlockRecorder();
     }
 
@@ -247,7 +247,8 @@ public final class DocxToAsciiDoc
         return toInlines(accessor, new BreakRecorder());
     }
 
-    private List<pro.verron.asciidoc.core.Inline> extractInlines(ContentAccessor r,
+    private List<pro.verron.asciidoc.core.Inline> extractInlines(
+            ContentAccessor r,
             BreakRecorder brecorder
     ) {
         var inlines = new ArrayList<pro.verron.asciidoc.core.Inline>();
@@ -275,25 +276,8 @@ public final class DocxToAsciiDoc
                         blocks.size(),
                         inlines.size());
                 case Pict pict -> {
-                    if (!sb.isEmpty()) {
-                        inlines.add(new Text(sb.toString()));
-                        sb = new StringBuilder();
-                    }
-                    StringBuilder sb1 = new StringBuilder();
-                    for (Object pO : pict.getAnyAndAny()) {
-                        Object pV = unwrap(pO);
-                        if (pV instanceof CTTextbox t) {
-                            var txbxContent = t.getTxbxContent();
-                            var toAsciiDoc = new DocxToAsciiDoc(
-                                    wordprocessingMLPackage);
-                            var docModel = toAsciiDoc.apply(txbxContent);
-                            var compileToText = new AsciiDocToText(true).apply(
-                                    docModel);
-                            var trimmed = compileToText.trim();
-                            sb1.append(trimmed);
-                        }
-                    }
-                    sb.append(sb1);
+                    sb.append("pict:%s[]".formatted(pict.getAnchorId()));
+                    pictRecorder.add(pict);
                 }
                 case Drawing drawing -> {
                     if (!sb.isEmpty()) {
@@ -322,7 +306,7 @@ public final class DocxToAsciiDoc
         return inlines;
     }
 
-    private AsciiDocModel apply(ContentAccessor accessor) {
+    AsciiDocModel apply(ContentAccessor accessor) {
         readBlocks(accessor);
         return of(blocks.blocks);
     }
@@ -615,11 +599,9 @@ public final class DocxToAsciiDoc
 
     @Override
     public AsciiDocModel apply(WordprocessingMLPackage pkg) {
-        getHeaderParts(pkg).map(this::toHeaderBlock)
-                           .flatMap(Optional::stream)
-                           .forEach(blocks::add);
-        var mdp = pkg.getMainDocumentPart();
+        blocks.addAll(extractHeaderBlocks(pkg).toList());
 
+        var mdp = pkg.getMainDocumentPart();
         {
             Document contents;
             try {
@@ -655,7 +637,14 @@ public final class DocxToAsciiDoc
         var list = new ArrayList<Block>();
         list.addAll(commentRecorder.all());
         list.addAll(blocks.all());
+        list.addAll(pictRecorder.all());
         return of(list);
+    }
+
+    private @NonNull Stream<Block> extractHeaderBlocks(WordprocessingMLPackage pkg) {
+        return DocxToAsciiDoc.getHeaderParts(pkg)
+                             .map(this::toHeaderBlock)
+                             .flatMap(Optional::stream);
     }
 
     private Optional<Block> toFooterBlock(FooterPart footerPart) {
@@ -827,6 +816,13 @@ public final class DocxToAsciiDoc
 
         public List<Block> all() {
             return blocks;
+        }
+
+        public void addAll(Collection<Block> blocks) {
+            this.blocks.addAll(blocks);
+            size += blocks.stream()
+                          .mapToInt(Block::size)
+                          .sum();
         }
     }
 

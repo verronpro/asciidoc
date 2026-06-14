@@ -41,7 +41,7 @@ public final class AsciiDocToText
                         "^%s^".formatted(renderInlines(children));
                 case Sub(List<Inline> children) ->
                         "~%s~".formatted(renderInlines(children));
-                case Tab _ -> sb.append("\t");
+                case Tab _ -> "\t";
                 case Link(String url, String text) ->
                         "%s[%s]".formatted(url, text);
                 case ImageInline(String path, Map<String, String> map) ->
