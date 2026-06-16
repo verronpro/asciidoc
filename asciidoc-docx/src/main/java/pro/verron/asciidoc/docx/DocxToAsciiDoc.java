@@ -8,6 +8,7 @@ import org.docx4j.dml.Graphic;
 import org.docx4j.dml.picture.Pic;
 import org.docx4j.dml.wordprocessingDrawing.Anchor;
 import org.docx4j.dml.wordprocessingDrawing.Inline;
+import org.docx4j.mce.AlternateContent;
 import org.docx4j.model.structure.HeaderFooterPolicy;
 import org.docx4j.model.structure.SectionWrapper;
 import org.docx4j.openpackaging.exceptions.Docx4JException;
@@ -56,6 +57,7 @@ public final class DocxToAsciiDoc
     private final PictRecorder pictRecorder;
     private final BlockRecorder blocks;
     private final WordprocessingMLPackage wordprocessingMLPackage;
+    private final AltContentRecorder altContentRecorder;
 
     /// Constructs a new [DocxToAsciiDoc] for the given DOCX package.
     ///
@@ -67,12 +69,13 @@ public final class DocxToAsciiDoc
         CommentsPart commentsPart = mdp.getCommentsPart();
         this.commentRecorder = new CommentRecorder(commentsPart);
         this.pictRecorder = new PictRecorder();
+        this.altContentRecorder = new AltContentRecorder();
         this.blocks = new BlockRecorder();
     }
 
     private static Stream<HeaderPart> getHeaderParts(WordprocessingMLPackage document) {
-        var sections = document.getDocumentModel()
-                               .getSections();
+        var model = document.getDocumentModel();
+        var sections = model.getSections();
 
         var set = new LinkedHashSet<HeaderPart>();
         for (SectionWrapper section : sections) {
@@ -296,6 +299,10 @@ public final class DocxToAsciiDoc
                             default -> { /* DO NOTHING */ }
                         }
                     }
+                }
+                case AlternateContent ac -> {
+                    var recordId = altContentRecorder.add(ac);
+                    sb.append("alternateContent:%d[]".formatted(recordId));
                 }
                 default -> { /* DO NOTHING */ }
             }
@@ -638,6 +645,7 @@ public final class DocxToAsciiDoc
         list.addAll(commentRecorder.all());
         list.addAll(blocks.all());
         list.addAll(pictRecorder.all());
+        list.addAll(altContentRecorder.all());
         return of(list);
     }
 
@@ -739,8 +747,8 @@ public final class DocxToAsciiDoc
             var lastCommentId = lastComment.getId();
             var msg =
                     "Closing comment %s but last comment open is %s".formatted(
-                    id,
-                    lastCommentId);
+                            id,
+                            lastCommentId);
             assertThat(lastCommentId.equals(id), msg);
             lastComment.setBlockEnd(blockEnd);
             lastComment.setLineEnd(lineEnd);
