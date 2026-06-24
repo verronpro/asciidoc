@@ -9,8 +9,7 @@
     <artifactId>asciidoc</artifactId>
     <version>3.9-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <description>This module contains the asciidoc related utilities for the
-        office-stamper project.
+    <description>This module contains the AsciiDoc related utilities for the office-stamper project.
     </description>
     <url>https://asciidoc.verron.pro</url>
     <inceptionYear>2025</inceptionYear>
