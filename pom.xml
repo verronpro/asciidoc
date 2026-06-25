@@ -7,7 +7,7 @@
     <name>Verron.pro AsciiDoc Tools</name>
     <groupId>pro.verron.asciidoc</groupId>
     <artifactId>asciidoc</artifactId>
-    <version>3.9-SNAPSHOT</version>
+    <version>3.9</version>
     <packaging>pom</packaging>
     <description>This module contains the AsciiDoc related utilities for the office-stamper project.
     </description>
