@@ -18,11 +18,12 @@ It is designed to be used as a set of libraries to integrate AsciiDoc processing
 
 == Key Features
 
-* **Bidirectional DOCX Conversion**: Convert AsciiDoc to DOCX and vice versa.
+* **Bidirectional DOCX Conversion**: Convert AsciiDoc to DOCX and vice versa (with support for `AlternateContent` and `pict` elements).
 * **Lightweight Rendering**: Render AsciiDoc to HTML, SVG, and Text without needing a full Asciidoctor installation.
 * **Compiler API**: High-level API for complex conversion tasks and PNG export.
 * **Documentation Previews**: AsciidoctorJ extension for embedding previews in your own documentation.
-* **Modular Architecture**: Use only the components you need.
+* **Modular Architecture**: Use only the components you need (requires Java 25).
+* **Rich Iconography**: Built-in support for SVG icons.
 
 == Modules
 

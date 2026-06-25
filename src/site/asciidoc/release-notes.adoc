@@ -1,0 +1,34 @@
+= Release Notes
+:gh: https://github.com/verronpro/asciidoc
+:proj: https://github.com/verronpro/asciidoc/releases/tag
+
+== {proj}/v3.8[v3.8]
+
+=== New Features
+
+* **AlternateContent Support**: Added `AltContentRecorder` to handle `AlternateContent` elements in DOCX files, improving placeholder processing within these blocks.
+* **Pict Element Support**: Introduced `PictRecorder` for better processing of DOCX `pict` elements.
+* **SVG Icons**: Added a set of SVG icons and an `Icon` enum for predefined identifiers.
+* **Architecture Decision Records**: Migrated ADR 001 to AsciiDoc and integrated it into the documentation site.
+
+=== Improvements and Fixes
+
+* **Documentation Structure**: Relocated ADRs and examples to `src/site/asciidoc` for better alignment with Maven site standards.
+* **Java 25**: Updated the project to require Java 25.
+* **Refactoring**: Simplified `DocxToAsciiDoc` logic and consolidated package structures (merged `core.core` into `core`).
+* **CI/CD**: Added initial Renovate configuration and updated various GitHub Actions.
+
+=== Dependencies
+
+* **maven-skin**: Updated to v1.0.9.
+* **docx4j**: Updated to v11.5.14.
+* **jsoup**: Updated to v1.22.2.
+* **Maven Plugins**: Updated `maven-site-plugin` to v3.22.0, `jacoco-maven-plugin` to v0.8.15, and `pitest-maven` to v1.25.5.
+
+== {proj}/v3.7[v3.7]
+
+=== New Features
+
+* **Initial Docx-to-AsciiDoc Conversion**: Core functionality for converting DOCX documents to AsciiDoc format.
+* **Lightweight Converters**: Support for rendering AsciiDoc to HTML, SVG, and Text.
+* **AsciiDoc Preview**: AsciidoctorJ extension for embedding document previews.
