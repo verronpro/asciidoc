@@ -374,7 +374,7 @@
             </plugin>
         </plugins>
     </reporting>
-
+         
     <profiles>
         <profile>
             <id>gpg</id>
