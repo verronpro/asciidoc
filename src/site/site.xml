@@ -9,7 +9,11 @@
   </skin>
 
   <body>
-
+    <links>
+      <item name="Blog" href="https://verron.pro/"/>
+      <item name="GitHub" href="https://github.com/verronpro/asciidoc"/>
+    </links>
+        
     <menu name="Documentation">
       <item name="Home" href="index.html"/>
       <item name="Release Notes" href="release-notes.html"/>
