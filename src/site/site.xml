@@ -12,6 +12,12 @@
 
     <menu name="Documentation">
       <item name="Home" href="index.html"/>
+      <item name="ADR-001"  href="adr/001-asciidoc-preview-schema.html"/>
+    </menu>
+
+    <menu name="Examples">
+      <item name="Basic Word" href="examples/basic-word.html"/>
+      <item name="Basic GDocs" href="examples/google-docs.html"/>
     </menu>
 
     <menu ref="modules"/>
