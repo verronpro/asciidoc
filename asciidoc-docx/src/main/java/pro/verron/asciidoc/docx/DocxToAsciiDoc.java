@@ -464,99 +464,65 @@ public final class DocxToAsciiDoc
         var map = new TreeMap<String, Object>();
         ofNullable(sectPr.getDocGrid()).ifPresent(d -> {
             var dgmap = new TreeMap<String, Object>();
-            ofNullable(d.getLinePitch()).ifPresent(l -> dgmap.put("linePitch",
-                    l));
-            ofNullable(d.getCharSpace()).ifPresent(c -> dgmap.put("charSpace",
-                    c));
-            ofNullable(d.getType()).ifPresent(t -> dgmap.put("type",
-                    t.value()));
+            ofNullable(d.getLinePitch()).ifPresent(l -> dgmap.put("linePitch", l));
+            ofNullable(d.getCharSpace()).ifPresent(c -> dgmap.put("charSpace", c));
+            ofNullable(d.getType()).ifPresent(t -> dgmap.put("type", t.value()));
             map.put("docGrid", dgmap);
         });
         ofNullable(sectPr.getPgMar()).ifPresent(p -> {
             var pmmap = new TreeMap<String, Object>();
-            ofNullable(p.getTop()).filter(t -> !BigInteger.ZERO.equals(t))
-                                  .ifPresent(t -> pmmap.put("top", t));
-            ofNullable(p.getBottom()).filter(t -> !BigInteger.ZERO.equals(t))
-                                     .ifPresent(b -> pmmap.put("bottom", b));
-            ofNullable(p.getLeft()).filter(t -> !BigInteger.ZERO.equals(t))
-                                   .ifPresent(l -> pmmap.put("left", l));
-            ofNullable(p.getRight()).filter(t -> !BigInteger.ZERO.equals(t))
-                                    .ifPresent(r -> pmmap.put("right", r));
-            ofNullable(p.getHeader()).filter(t -> !BigInteger.ZERO.equals(t))
-                                     .ifPresent(h -> pmmap.put("header", h));
-            ofNullable(p.getFooter()).filter(t -> !BigInteger.ZERO.equals(t))
-                                     .ifPresent(f -> pmmap.put("footer", f));
-            ofNullable(p.getGutter()).filter(t -> !BigInteger.ZERO.equals(t))
-                                     .ifPresent(g -> pmmap.put("gutter", g));
+            ofNullable(p.getTop()).filter(t -> !BigInteger.ZERO.equals(t)).ifPresent(t -> pmmap.put("top", t));
+            ofNullable(p.getBottom()).filter(t -> !BigInteger.ZERO.equals(t)).ifPresent(b -> pmmap.put("bottom", b));
+            ofNullable(p.getLeft()).filter(t -> !BigInteger.ZERO.equals(t)).ifPresent(l -> pmmap.put("left", l));
+            ofNullable(p.getRight()).filter(t -> !BigInteger.ZERO.equals(t)).ifPresent(r -> pmmap.put("right", r));
+            ofNullable(p.getHeader()).filter(t -> !BigInteger.ZERO.equals(t)).ifPresent(h -> pmmap.put("header", h));
+            ofNullable(p.getFooter()).filter(t -> !BigInteger.ZERO.equals(t)).ifPresent(f -> pmmap.put("footer", f));
+            ofNullable(p.getGutter()).filter(t -> !BigInteger.ZERO.equals(t)).ifPresent(g -> pmmap.put("gutter", g));
             map.put("pgMar", pmmap);
         });
         ofNullable(sectPr.getPgSz()).ifPresent(p -> {
             var psmap = new TreeMap<String, Object>();
-            ofNullable(p.getW()).filter(t -> !BigInteger.ZERO.equals(t))
-                                .ifPresent(w -> psmap.put("w", w));
-            ofNullable(p.getH()).filter(t -> !BigInteger.ZERO.equals(t))
-                                .ifPresent(h -> psmap.put("h", h));
-            ofNullable(p.getOrient()).ifPresent(o -> psmap.put("orient",
-                    o.value()));
-            ofNullable(p.getCode()).filter(t -> !BigInteger.ZERO.equals(t))
-                                   .ifPresent(c -> psmap.put("code", c));
+            ofNullable(p.getW()).filter(t -> !BigInteger.ZERO.equals(t)).ifPresent(w -> psmap.put("w", w));
+            ofNullable(p.getH()).filter(t -> !BigInteger.ZERO.equals(t)).ifPresent(h -> psmap.put("h", h));
+            ofNullable(p.getOrient()).ifPresent(o -> psmap.put("orient", o.value()));
+            ofNullable(p.getCode()).filter(t -> !BigInteger.ZERO.equals(t)).ifPresent(c -> psmap.put("code", c));
             map.put("pgSz", psmap);
         });
-        ofNullable(sectPr.getPgBorders()).ifPresent(p -> map.put("pgBorders",
-                p));
+        ofNullable(sectPr.getPgBorders()).ifPresent(p -> map.put("pgBorders", p));
         ofNullable(sectPr.getBidi()).ifPresent(b -> map.put("bidi", b.isVal()));
         ofNullable(sectPr.getCols()).ifPresent(c -> {
             var colMap = new TreeMap<String, Object>();
-            ofNullable(c.getNum()).filter(t -> !BigInteger.ZERO.equals(t))
-                                  .ifPresent(n -> map.put("num", n));
-            ofNullable(c.getSpace()).filter(t -> !BigInteger.ZERO.equals(t))
-                                    .ifPresent(s -> map.put("space", s));
+            ofNullable(c.getNum()).filter(t -> !BigInteger.ZERO.equals(t)).ifPresent(n -> map.put("num", n));
+            ofNullable(c.getSpace()).filter(t -> !BigInteger.ZERO.equals(t)).ifPresent(s -> map.put("space", s));
             ofNullable(c.getCol()).ifPresent(c1 -> {
-                var list = c1.stream()
-                             .map(coli -> {
-                                 var colim = new TreeMap<String, Object>();
-                                 ofNullable(coli.getSpace()).ifPresent(s -> colim.put(
-                                         "space",
-                                         s));
-                                 ofNullable(coli.getW()).ifPresent(w -> colim.put(
-                                         "w",
-                                         w));
-                                 return colim;
-                             })
-                             .toList();
+                var list = c1.stream().map(coli -> {
+                    var colim = new TreeMap<String, Object>();
+                    ofNullable(coli.getSpace()).ifPresent(s -> colim.put("space", s));
+                    ofNullable(coli.getW()).ifPresent(w -> colim.put("w", w));
+                    return colim;
+                }).toList();
                 if (!list.isEmpty()) colMap.put("col", list);
             });
             if (!colMap.isEmpty()) map.put("cols", colMap);
         });
         ofNullable(sectPr.getType()).ifPresent(t -> map.put("type", t));
-        return map.isEmpty()
-                ? Optional.empty()
-                : Optional.of("section %s".formatted(map));
+        return map.isEmpty() ? Optional.empty() : Optional.of("section %s".formatted(map));
     }
 
     private Optional<String> style(P p) {
-        return ofNullable(p.getPPr()).map(PPr::getPStyle)
-                                     .map(PStyle::getVal)
-                                     .map(styleDefinitionsPart::getNameForStyleID);
+        return ofNullable(p.getPPr()).map(PPr::getPStyle).map(PStyle::getVal).map(styleDefinitionsPart::getNameForStyleID);
     }
 
     private Optional<Integer> getHeaderLevel(P p) {
-        if (p.getPPr() == null || p.getPPr()
-                                   .getPStyle() == null)
-            return Optional.empty();
-        var styleId = p.getPPr()
-                       .getPStyle()
-                       .getVal();
+        if (p.getPPr() == null || p.getPPr().getPStyle() == null) return Optional.empty();
+        var styleId = p.getPPr().getPStyle().getVal();
         var styleName = styleDefinitionsPart.getNameForStyleID(styleId);
         if (styleName == null) styleName = styleId;
 
-        if (styleName.equalsIgnoreCase("Title") || styleName.equalsIgnoreCase(
-                "Titre")) {
+        if (styleName.equalsIgnoreCase("Title") || styleName.equalsIgnoreCase("Titre")) {
             return Optional.of(1);
         }
-        if (styleName.toLowerCase()
-                     .startsWith("heading") || styleName.toLowerCase()
-                                                        .startsWith("titre")) {
+        if (styleName.toLowerCase().startsWith("heading") || styleName.toLowerCase().startsWith("titre")) {
             String levelStr = styleName.replaceAll("\\D", "");
             if (!levelStr.isEmpty()) {
                 return Optional.of(Integer.parseInt(levelStr) + 1);
@@ -573,35 +539,36 @@ public final class DocxToAsciiDoc
             List<Cell> cells = new ArrayList<>();
             for (Object tcO : tr.getContent()) {
                 Object tcV = unwrap(tcO);
-                if (!(tcV instanceof Tc tc)) continue;
-                var toAsciiDoc = new DocxToAsciiDoc(wordprocessingMLPackage);
-                List<Block> cellBlocks = toAsciiDoc.apply(tc)
-                                                   .getBlocks();
-                String ccnfStyle = null;
-                if (tc.getTcPr() != null && tc.getTcPr()
-                                              .getCnfStyle() != null) {
-                    ccnfStyle = "style=" + Long.parseLong(tc.getTcPr()
-                                                            .getCnfStyle()
-                                                            .getVal(), 2);
-
+                switch (tcV) {
+                    case Tc tc -> cells.add(extractCellModel(tc));
+                    case CTSdtCell ctc -> cells.add(extractCellModel(ctc.getSdtContent().getContent().stream().map(DocxToAsciiDoc::unwrap).filter(Tc.class::isInstance).map(Tc.class::cast).findFirst().orElseThrow()));
+                    case null, default -> log.warn("Unknown table cell type: {}", tcV);
                 }
-                cells.add(new Cell(cellBlocks, ccnfStyle));
             }
             List<String> header = new ArrayList<>();
-            if (tr.getTrPr() instanceof TrPr trpr
-                && trpr.getCnfStyleOrDivIdOrGridBefore() instanceof List<JAXBElement<?>> elements) {
-                elements.stream()
-                        .map(DocxToAsciiDoc::unwrap)
-                        .filter(CTCnf.class::isInstance)
-                        .map(CTCnf.class::cast)
-                        .findFirst()
-                        .map(s -> "rowStyle=" + Long.parseLong(s.getVal(), 2))
-                        .ifPresent(header::add);
+            if (tr.getTrPr() instanceof TrPr trpr && trpr.getCnfStyleOrDivIdOrGridBefore() instanceof List<JAXBElement<?>> elements) {
+                elements.stream().map(DocxToAsciiDoc::unwrap).filter(CTCnf.class::isInstance).map(CTCnf.class::cast).findFirst().map(s -> "rowStyle=" + Long.parseLong(s.getVal(), 2)).ifPresent(header::add);
 
             }
             rows.add(new Row(header, cells));
         }
         return new Table(rows);
+    }
+
+    private @NonNull Cell extractCellModel(Tc tc) {
+        var toAsciiDoc = new DocxToAsciiDoc(wordprocessingMLPackage);
+        var cellModel = toAsciiDoc.apply(tc);
+        var cellBlocks = cellModel.getBlocks();
+        String ctCnfVal;
+        if (!(tc.getTcPr() instanceof TcPr tcPr)) {
+            ctCnfVal = null;
+        } else if (!(tcPr.getCnfStyle() instanceof CTCnf ctCnf)) {
+            ctCnfVal = null;
+        } else {
+            ctCnfVal = "style=" + Long.parseLong(ctCnf.getVal(), 2);
+        }
+        var cellElement = new Cell(cellBlocks, ctCnfVal);
+        return cellElement;
     }
 
     @Override
@@ -638,9 +605,7 @@ public final class DocxToAsciiDoc
         } catch (Docx4JException e) {
             throw new RuntimeException(e);
         }
-        getFooterParts(pkg).map(this::toFooterBlock)
-                           .flatMap(Optional::stream)
-                           .forEach(blocks::add);
+        getFooterParts(pkg).map(this::toFooterBlock).flatMap(Optional::stream).forEach(blocks::add);
         var list = new ArrayList<Block>();
         list.addAll(commentRecorder.all());
         list.addAll(blocks.all());
@@ -650,48 +615,34 @@ public final class DocxToAsciiDoc
     }
 
     private @NonNull Stream<Block> extractHeaderBlocks(WordprocessingMLPackage pkg) {
-        return DocxToAsciiDoc.getHeaderParts(pkg)
-                             .map(this::toHeaderBlock)
-                             .flatMap(Optional::stream);
+        return DocxToAsciiDoc.getHeaderParts(pkg).map(this::toHeaderBlock).flatMap(Optional::stream);
     }
 
     private Optional<Block> toFooterBlock(FooterPart footerPart) {
         var toAsciiDoc = new DocxToAsciiDoc(wordprocessingMLPackage);
-        var extractedBlocks = toAsciiDoc.apply(footerPart)
-                                        .getBlocks();
-        return extractedBlocks.isEmpty()
-                ? Optional.empty()
-                : Optional.of(new OpenBlock(List.of("footer"),
-                        extractedBlocks));
+        var extractedBlocks = toAsciiDoc.apply(footerPart).getBlocks();
+        return extractedBlocks.isEmpty() ? Optional.empty() : Optional.of(new OpenBlock(List.of("footer"), extractedBlocks));
 
     }
 
     private Optional<Block> toHeaderBlock(HeaderPart headerPart) {
         var toAsciiDoc = new DocxToAsciiDoc(wordprocessingMLPackage);
-        var extractedBlocks = toAsciiDoc.apply(headerPart)
-                                        .getBlocks();
-        return extractedBlocks.isEmpty()
-                ? Optional.empty()
-                : Optional.of(new OpenBlock(List.of("header"),
-                        extractedBlocks));
+        var extractedBlocks = toAsciiDoc.apply(headerPart).getBlocks();
+        return extractedBlocks.isEmpty() ? Optional.empty() : Optional.of(new OpenBlock(List.of("header"), extractedBlocks));
     }
 
     private Optional<Block> toNoteBlock(String role, List<CTFtnEdn> notes) {
         var content = new ArrayList<Block>();
         for (CTFtnEdn note : notes) {
             var noteType = note.getType();
-            if (noteType != null && List.of(STFtnEdn.SEPARATOR,
-                                                STFtnEdn.CONTINUATION_SEPARATOR)
-                                        .contains(noteType)) continue;
+            if (noteType != null && List.of(STFtnEdn.SEPARATOR, STFtnEdn.CONTINUATION_SEPARATOR).contains(noteType))
+                continue;
             var toAsciiDoc = new DocxToAsciiDoc(wordprocessingMLPackage);
-            var extractedBlocks = toAsciiDoc.apply(note::getContent)
-                                            .getBlocks();
+            var extractedBlocks = toAsciiDoc.apply(note::getContent).getBlocks();
             content.add(new Paragraph(List.of(new Text("%s::".formatted(note.getId())))));
             content.addAll(extractedBlocks);
         }
-        return content.isEmpty()
-                ? Optional.empty()
-                : Optional.of(new OpenBlock(List.of(role), content));
+        return content.isEmpty() ? Optional.empty() : Optional.of(new OpenBlock(List.of(role), content));
     }
 
     private static class BreakRecorder {
@@ -745,10 +696,7 @@ public final class DocxToAsciiDoc
         public void close(BigInteger id, int blockEnd, int lineEnd) {
             var lastComment = comments.removeLast();
             var lastCommentId = lastComment.getId();
-            var msg =
-                    "Closing comment %s but last comment open is %s".formatted(
-                            id,
-                            lastCommentId);
+            var msg = "Closing comment %s but last comment open is %s".formatted(id, lastCommentId);
             assertThat(lastCommentId.equals(id), msg);
             lastComment.setBlockEnd(blockEnd);
             lastComment.setLineEnd(lineEnd);
@@ -764,10 +712,7 @@ public final class DocxToAsciiDoc
         ///
         /// @return the comment macro blocks
         public Collection<MacroBlock> all() {
-            return ids.stream()
-                      .map(map::get)
-                      .map(this::asBlock)
-                      .toList();
+            return ids.stream().map(map::get).map(this::asBlock).toList();
         }
 
         private MacroBlock asBlock(Comment comment) {
@@ -787,14 +732,7 @@ public final class DocxToAsciiDoc
 
         private String extractComment(BigInteger id) {
             try {
-                return this.commentsPart.getContents()
-                                        .getComment()
-                                        .stream()
-                                        .filter(c -> Objects.equals(c.getId(),
-                                                id))
-                                        .findFirst()
-                                        .map(this::str)
-                                        .orElseThrow();
+                return this.commentsPart.getContents().getComment().stream().filter(c -> Objects.equals(c.getId(), id)).findFirst().map(this::str).orElseThrow();
             } catch (Docx4JException e) {
                 throw new RuntimeException(e);
             }
@@ -802,8 +740,7 @@ public final class DocxToAsciiDoc
 
         private String str(Comments.Comment comment) {
 
-            var first = (P) comment.getContent()
-                                   .getFirst();
+            var first = (P) comment.getContent().getFirst();
             return TextUtils.getText(first);
         }
 
@@ -828,9 +765,7 @@ public final class DocxToAsciiDoc
 
         public void addAll(Collection<Block> blocks) {
             this.blocks.addAll(blocks);
-            size += blocks.stream()
-                          .mapToInt(Block::size)
-                          .sum();
+            size += blocks.stream().mapToInt(Block::size).sum();
         }
     }
 
