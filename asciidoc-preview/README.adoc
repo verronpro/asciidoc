@@ -1,9 +1,9 @@
 // suppress inspection "AsciiDocLinkResolve" for whole file
 :ghos: https://github.com/verronpro/asciidoc
-:docs: https://asciidoc.verron.pro
+:docs: https://asciidoc.verron.pro/asciidoc-preview
 :blog: https://verron.pro
 
-= Office-stamper AsciiDoc Preview Extension
+= AsciiDoc Preview Extension
 
 The `asciidoc-preview` module provides an AsciidoctorJ block macro extension to embed editor-simulated previews of AsciiDoc templates into documentation.
 
@@ -26,7 +26,7 @@ preview::my-template.adoc[theme=word, dpi=300]
 [source,xml]
 ----
 <dependency>
-    <groupId>pro.verron.office-stamper</groupId>
+    <groupId>pro.verron.asciidoc</groupId>
     <artifactId>asciidoc-preview</artifactId>
     <version>${project.version}</version>
 </dependency>

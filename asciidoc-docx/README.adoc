@@ -1,9 +1,9 @@
 // suppress inspection "AsciiDocLinkResolve" for whole file
 :ghos: https://github.com/verronpro/asciidoc
-:docs: https://asciidoc.verron.pro
+:docs: https://asciidoc.verron.pro/asciidoc-docx
 :blog: https://verron.pro
 
-= Office-stamper AsciiDoc DOCX
+= AsciiDoc DOCX
 
 The `asciidoc-docx` module provides bidirectional integration between AsciiDoc and Microsoft Word (DOCX) formats.
 It leverages Docx4J to map AsciiDoc structures to WordprocessingML and vice versa.
@@ -28,7 +28,7 @@ List<Object> runs = converter.convert(model);
 [source,xml]
 ----
 <dependency>
-    <groupId>pro.verron.office-stamper</groupId>
+    <groupId>pro.verron.asciidoc</groupId>
     <artifactId>asciidoc-docx</artifactId>
     <version>${project.version}</version>
 </dependency>

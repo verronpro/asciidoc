@@ -1,11 +1,11 @@
 // suppress inspection "AsciiDocLinkResolve" for whole file
 :ghos: https://github.com/verronpro/asciidoc
-:docs: https://asciidoc.verron.pro
+:docs: https://asciidoc.verron.pro/asciidoc-core
 :blog: https://verron.pro
 
-= Office-stamper AsciiDoc Core
+= AsciiDoc Core
 
-The `asciidoc-core` module provides the foundational data model and parsing logic for AsciiDoc integration in Office-stamper.
+The `asciidoc-core` module provides the foundational data model and parsing logic for AsciiDoc integration.
 It is designed to be lightweight and efficient, focusing on the core structures needed for bidirectional conversion.
 
 == Key Features
@@ -27,7 +27,7 @@ AsciiDocModel model = parser.parse("Some *bold* text");
 [source,xml]
 ----
 <dependency>
-    <groupId>pro.verron.office-stamper</groupId>
+    <groupId>pro.verron.asciidoc</groupId>
     <artifactId>asciidoc-core</artifactId>
     <version>${project.version}</version>
 </dependency>

@@ -1,20 +1,38 @@
 // suppress inspection "AsciiDocLinkResolve" for whole file
 :ghos: https://github.com/verronpro/asciidoc
+:wrkf: {ghos}/actions/workflows
 :docs: https://asciidoc.verron.pro
 :blog: https://verron.pro
 
-= Office-stamper AsciiDoc Modules
+= AsciiDoc Modules for Office-stamper
+
+image:{wrkf}/integrate-os.yml/badge.svg[Build Status,link={wrkf}/integrate-os.yml]
+image:{wrkf}/pages.yml/badge.svg[Build Status,link={wrkf}/pages.yml]
+
+== Introduction
 
 This project provides a suite of modules for handling AsciiDoc content within the Office-stamper ecosystem.
 It enables bidirectional conversion between AsciiDoc and DOCX, as well as high-quality rendering to HTML, SVG, and PNG.
 
+It is designed to be used as a set of libraries to integrate AsciiDoc processing into Java applications, especially those using Office-stamper for document generation.
+
+== Key Features
+
+* **Bidirectional DOCX Conversion**: Convert AsciiDoc to DOCX and vice versa.
+* **Lightweight Rendering**: Render AsciiDoc to HTML, SVG, and Text without needing a full Asciidoctor installation.
+* **Compiler API**: High-level API for complex conversion tasks and PNG export.
+* **Documentation Previews**: AsciidoctorJ extension for embedding previews in your own documentation.
+* **Modular Architecture**: Use only the components you need.
+
 == Modules
 
-* link:asciidoc-core/README.adoc[asciidoc-core]: Foundation data model and parsing logic.
-* link:asciidoc-converters/README.adoc[asciidoc-converters]: Lightweight rendering to HTML, SVG, and Text.
-* link:asciidoc-docx/README.adoc[asciidoc-docx]: Conversion between AsciiDoc and Microsoft Word (DOCX).
-* link:asciidoc-compiler/README.adoc[asciidoc-compiler]: High-level API and PNG export utilities.
-* link:asciidoc-preview/README.adoc[asciidoc-preview]: AsciidoctorJ extension for embedding previews in documentation.
+This repository is structured into several modules:
+
+* {docs}/asciidoc-core[Core] – Foundation data model and parsing logic.
+* {docs}/asciidoc-converters[Converters] – Lightweight rendering to HTML, SVG, and Text.
+* {docs}/asciidoc-docx[DOCX] – Conversion between AsciiDoc and Microsoft Word (DOCX).
+* {docs}/asciidoc-compiler[Compiler] – High-level API and PNG export utilities.
+* {docs}/asciidoc-preview[Preview] – AsciidoctorJ extension for embedding previews.
 
 == Architecture
 
@@ -36,6 +54,10 @@ graph TD
     comp --> docx
     ext --> comp
 ----
+
+== Documentation
+
+A comprehensive documentation is available at {docs}[{docs}].
 
 == Author
 

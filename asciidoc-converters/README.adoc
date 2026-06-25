@@ -1,9 +1,9 @@
 // suppress inspection "AsciiDocLinkResolve" for whole file
 :ghos: https://github.com/verronpro/asciidoc
-:docs: https://asciidoc.verron.pro
+:docs: https://asciidoc.verron.pro/asciidoc-converters
 :blog: https://verron.pro
 
-= Office-stamper AsciiDoc Converters
+= AsciiDoc Converters
 
 The `asciidoc-converters` module provides lightweight converters from the `AsciiDocModel` to various text-based and vector formats.
 
@@ -27,7 +27,7 @@ String html = converter.convert(model);
 [source,xml]
 ----
 <dependency>
-    <groupId>pro.verron.office-stamper</groupId>
+    <groupId>pro.verron.asciidoc</groupId>
     <artifactId>asciidoc-converters</artifactId>
     <version>${project.version}</version>
 </dependency>

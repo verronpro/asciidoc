@@ -1,9 +1,9 @@
 // suppress inspection "AsciiDocLinkResolve" for whole file
 :ghos: https://github.com/verronpro/asciidoc
-:docs: https://asciidoc.verron.pro
+:docs: https://asciidoc.verron.pro/asciidoc-compiler
 :blog: https://verron.pro
 
-= Office-stamper AsciiDoc Compiler
+= AsciiDoc Compiler
 
 The `asciidoc-compiler` module provides a high-level facade for all AsciiDoc operations.
 It includes PNG export utilities powered by Apache Batik, allowing for easy conversion of AsciiDoc content to image formats.
@@ -28,7 +28,7 @@ Path pngPath = compiler.compileToPng("source.adoc", "output.png", 300, Theme.WOR
 [source,xml]
 ----
 <dependency>
-    <groupId>pro.verron.office-stamper</groupId>
+    <groupId>pro.verron.asciidoc</groupId>
     <artifactId>asciidoc-compiler</artifactId>
     <version>${project.version}</version>
 </dependency>
