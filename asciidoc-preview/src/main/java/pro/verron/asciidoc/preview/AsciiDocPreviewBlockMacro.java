@@ -1,5 +1,8 @@
 package pro.verron.asciidoc.preview;
 
+import org.apache.batik.transcoder.TranscodingHints;
+import org.apache.batik.transcoder.image.PNGTranscoder;
+import org.asciidoctor.ast.Document;
 import org.asciidoctor.ast.StructuralNode;
 import org.asciidoctor.extension.BlockMacroProcessor;
 import org.asciidoctor.extension.Name;
@@ -14,6 +17,8 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.nio.file.Files.exists;
+import static java.nio.file.Files.getLastModifiedTime;
 import static java.util.Collections.emptyList;
 
 /// Block macro that embeds a visual preview of an external AsciiDoc template
@@ -30,8 +35,7 @@ import static java.util.Collections.emptyList;
 ///
 /// @see AsciiDocPreviewExtensionRegistry
 @Name("preview")
-public class AsciiDocPreviewBlockMacro
-        extends BlockMacroProcessor {
+public class AsciiDocPreviewBlockMacro extends BlockMacroProcessor {
 
     /// Constructs a new macro processor with the default macro name.
     public AsciiDocPreviewBlockMacro() {
@@ -44,69 +48,73 @@ public class AsciiDocPreviewBlockMacro
         super(macroName);
     }
 
-    @Override
-    public StructuralNode process(StructuralNode parent, String target, Map<String, Object> attributes) {
-        String docDirAttr = (String) parent.getDocument()
-                                           .getAttribute("docdir");
-        if (docDirAttr == null) docDirAttr = ".";
-        Path docDir = Paths.get(docDirAttr);
-        Path adocPath = docDir.resolve(target);
+    private static Path getImagesOutDir(Document document, Path docDir) {
+        var imagesOutDirAttr = (String) document.getAttribute("imagesoutdir");
+        if (imagesOutDirAttr != null) return Paths.get(imagesOutDirAttr);
 
-        if (!Files.exists(adocPath)) {
-            return createBlock(parent, "paragraph", "Preview file not found: " + adocPath.toAbsolutePath());
+        var outDirAttr = (String) document.getAttribute("outdir");
+        if (outDirAttr != null) return Paths.get(outDirAttr);
+
+        return docDir;
+    }
+
+    private static boolean isModifiedLaterThan(Path outputPath, Path adocPath) throws IOException {
+        return getLastModifiedTime(outputPath).compareTo(getLastModifiedTime(adocPath)) > 0;
+    }
+
+    private static Path getDocDir(Document document) {
+        var docDirAttr = (String) document.getAttribute("docdir");
+        return docDirAttr == null ? Paths.get(".") : Paths.get(docDirAttr);
+
+    }
+
+    @Override
+    public StructuralNode process(StructuralNode parent, String target, Map<String, Object> attr) {
+        var attributes = new Attributes(attr);
+
+        var document = parent.getDocument();
+        var docDir = getDocDir(document);
+        var adocPath = docDir.resolve(target);
+
+        if (!exists(adocPath)) {
+            var errorMessage = "Preview file not found: %s".formatted(adocPath.toAbsolutePath());
+            return createBlock(parent, "paragraph", errorMessage);
         }
 
-        String theme = (String) attributes.getOrDefault("theme", "word");
-        String format = (String) attributes.getOrDefault("format", "png");
-        int dpi = Integer.parseInt((String) attributes.getOrDefault("dpi", "96"));
+        var theme = attributes.get("theme", "word");
+        var format = attributes.get("format", "png");
+        var dpi = attributes.get("dpi", 96, Integer::parseInt);
+
+        var hints = new TranscodingHints();
+        var mmPerInch = 25.4f;
+        hints.put(PNGTranscoder.KEY_BACKGROUND_COLOR, Color.WHITE);
+        hints.put(PNGTranscoder.KEY_PIXEL_UNIT_TO_MILLIMETER, mmPerInch / dpi);
 
         try {
-            String content = Files.readString(adocPath);
-            AsciiDocModel model = AsciiDocCompiler.toModel(content);
+            var content = Files.readString(adocPath);
+            var model = AsciiDocCompiler.toModel(content);
 
             // Re-create model with overridden theme
-            Map<String, String> newAttributes = new HashMap<>(model.getAttributes());
+            var newAttributes = new HashMap<>(model.getAttributes());
             newAttributes.put("theme", theme);
             model = AsciiDocModel.of(newAttributes, model.getBlocks());
 
-            String baseName = target.contains(".") ? target.substring(0, target.lastIndexOf('.')) : target;
-            String fileName = baseName + "-" + theme + "-" + dpi + "." + format;
+            var baseName = target.contains(".") ? target.substring(0, target.lastIndexOf('.')) : target;
+            var fileName = "%s-%s-%d.%s".formatted(baseName, theme, dpi, format);
 
-            String imagesOutDirAttr = (String) parent.getDocument()
-                                                     .getAttribute("imagesoutdir");
-            Path imagesOutDir;
-            if (imagesOutDirAttr != null) {
-                imagesOutDir = Paths.get(imagesOutDirAttr);
-            }
-            else {
-                String outDirAttr = (String) parent.getDocument()
-                                                   .getAttribute("outdir");
-                if (outDirAttr != null) {
-                    imagesOutDir = Paths.get(outDirAttr);
-                }
-                else {
-                    imagesOutDir = docDir;
-                }
-            }
+            var imagesOutDir = getImagesOutDir(document, docDir);
 
-            Path outputPath = imagesOutDir.resolve(fileName);
+            var outputPath = imagesOutDir.resolve(fileName);
             Files.createDirectories(imagesOutDir);
 
             // Caching: check if output exists and is newer than source
-            if (!Files.exists(outputPath) || Files.getLastModifiedTime(outputPath)
-                                                  .toMillis() < Files.getLastModifiedTime(adocPath)
-                                                                     .toMillis()) {
-                if ("svg".equalsIgnoreCase(format)) {
-                    String svg = AsciiDocCompiler.toSvg(model);
-                    Files.writeString(outputPath, svg);
-                }
-                else {
-                    String svg = AsciiDocCompiler.toSvg(model);
-                    AsciiDocCompiler.saveSvgAsImage(svg, outputPath, dpi, Color.WHITE);
-                }
+            if (!exists(outputPath) || isModifiedLaterThan(outputPath, adocPath)) {
+                var svg = AsciiDocCompiler.toSvg(model);
+                if ("svg".equalsIgnoreCase(format)) Files.writeString(outputPath, svg);
+                else AsciiDocCompiler.saveSvgAsImage(svg, outputPath, hints);
             }
 
-            Map<String, Object> imageAttributes = new HashMap<>();
+            var imageAttributes = new HashMap<String, Object>();
             imageAttributes.put("target", fileName);
             imageAttributes.put("alt", "Preview of " + target);
 

@@ -3,6 +3,7 @@ package pro.verron.asciidoc.compiler;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
+import org.apache.batik.transcoder.TranscodingHints;
 import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 import pro.verron.asciidoc.converters.AsciiDocToHtml;
@@ -93,7 +94,7 @@ public final class AsciiDocCompiler {
 
     /// Converts the given WordprocessingMLPackage into its textual AsciiDoc representation.
     ///
-    /// @param pkg a Word document package
+    /// @param pkg          a Word document package
     /// @param skipComments whether to omit comments from the output
     /// @return the textual AsciiDoc representation of the Word document package
     public static String toAsciidoc(WordprocessingMLPackage pkg, boolean skipComments) {
@@ -112,7 +113,7 @@ public final class AsciiDocCompiler {
 
     /// Converts the given AsciiDoc model into its textual AsciiDoc representation.
     ///
-    /// @param model the parsed AsciiDoc model to be converted
+    /// @param model        the parsed AsciiDoc model to be converted
     /// @param skipComments whether to omit comments from the output
     /// @return the textual AsciiDoc representation of the model
     public static String toAsciidoc(AsciiDocModel model, boolean skipComments) {
@@ -151,31 +152,32 @@ public final class AsciiDocCompiler {
     /// Saves the AsciiDoc source text directly to a PNG image file.
     ///
     /// @param asciidoc source text
-    /// @param path path to save the image
+    /// @param path     path to save the image
     public static void toImage(String asciidoc, Path path) {
         saveSvgAsImage(toSvg(asciidoc), path);
     }
 
     /// Saves the given SVG document as a PNG image file.
     ///
-    /// @param svg SVG source
+    /// @param svg  SVG source
     /// @param path path to save the image
     public static void saveSvgAsImage(String svg, Path path) {
-        saveSvgAsImage(svg, path, 96, Color.WHITE);
+        var dpi = 96;
+        var mmPerInch = 25.4f;
+        var hints = new TranscodingHints();
+        hints.put(PNGTranscoder.KEY_BACKGROUND_COLOR, Color.WHITE);
+        hints.put(PNGTranscoder.KEY_PIXEL_UNIT_TO_MILLIMETER, mmPerInch / dpi);
+        saveSvgAsImage(svg, path, hints);
     }
 
     /// Saves the given SVG document as a PNG image file with specific DPI and background color.
     ///
-    /// @param svg SVG source
-    /// @param path path to save the image
-    /// @param dpi dots per inch
-    /// @param background background color (null for transparent)
-    public static void saveSvgAsImage(String svg, Path path, int dpi, Color background) {
-        final var mmPerInch = 25.4f;
-
+    /// @param svg   SVG source
+    /// @param path  path to save the image
+    /// @param hints batik transcoding hints
+    public static void saveSvgAsImage(String svg, Path path, TranscodingHints hints) {
         var transcoder = new PNGTranscoder();
-        if (background != null) transcoder.addTranscodingHint(PNGTranscoder.KEY_BACKGROUND_COLOR, background);
-        transcoder.addTranscodingHint(PNGTranscoder.KEY_PIXEL_UNIT_TO_MILLIMETER, mmPerInch / dpi);
+        transcoder.setTranscodingHints(hints);
 
         var input = new StringReader(svg);
         var transcoderInput = new TranscoderInput(input);
