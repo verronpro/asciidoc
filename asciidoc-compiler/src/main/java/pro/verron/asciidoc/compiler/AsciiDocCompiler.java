@@ -177,7 +177,8 @@ public final class AsciiDocCompiler {
     /// @param hints batik transcoding hints
     public static void saveSvgAsImage(String svg, Path path, TranscodingHints hints) {
         var transcoder = new PNGTranscoder();
-        transcoder.setTranscodingHints(hints);
+        var transcodingHints = transcoder.getTranscodingHints();
+        transcodingHints.putAll(hints);
 
         var input = new StringReader(svg);
         var transcoderInput = new TranscoderInput(input);
