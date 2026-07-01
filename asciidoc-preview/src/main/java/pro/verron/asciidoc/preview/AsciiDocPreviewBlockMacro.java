@@ -59,7 +59,7 @@ public class AsciiDocPreviewBlockMacro extends BlockMacroProcessor {
     }
 
     private static boolean isModifiedLaterThan(Path outputPath, Path adocPath) throws IOException {
-        return getLastModifiedTime(outputPath).compareTo(getLastModifiedTime(adocPath)) > 0;
+        return getLastModifiedTime(outputPath).compareTo(getLastModifiedTime(adocPath)) < 0;
     }
 
     private static Path getDocDir(Document document) {
