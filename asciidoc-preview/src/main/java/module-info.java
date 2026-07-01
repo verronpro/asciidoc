@@ -22,6 +22,7 @@ module pro.verron.asciidoc.preview {
     requires java.desktop;
     requires org.asciidoctor.asciidoctorj.api;
     requires org.jspecify;
+    requires org.apache.xmlgraphics.batik.transcoder;
 
     exports pro.verron.asciidoc.preview;
 }
