@@ -8,10 +8,7 @@ package pro.verron.asciidoc.converters.svg;
 /// @param width  rectangle width
 /// @param height rectangle height
 /// @param opts   additional SVG attributes
-public record SvgRect(
-        String x, String y, String width, String height, SvgAttributes opts
-)
-        implements SvgElement {
+public record SvgRect(String x, String y, String width, String height, SvgAttributes opts) implements SvgElement {
 
     /// Constructs an [SvgRect] element with variable attributes.
     ///
@@ -20,13 +17,7 @@ public record SvgRect(
     /// @param width  rectangle width
     /// @param height rectangle height
     /// @param opts   additional SVG attributes
-    public SvgRect(
-            String x,
-            String y,
-            String width,
-            String height,
-            SvgAttribute... opts
-    ) {
+    public SvgRect(String x, String y, String width, String height, SvgAttribute... opts) {
         this(x, y, width, height, new SvgAttributes(opts));
     }
 

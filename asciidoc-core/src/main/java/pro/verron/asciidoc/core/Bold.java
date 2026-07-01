@@ -7,8 +7,7 @@ import static java.util.stream.Collectors.joining;
 /// Bold inline that can contain nested inlines.
 ///
 /// @param children nested inline fragments
-public record Bold(List<Inline> children)
-        implements Inline {
+public record Bold(List<Inline> children) implements Inline {
     /// Constructs a [Bold] with the given nested inlines.
     ///
     /// @param children nested inline fragments
@@ -18,8 +17,6 @@ public record Bold(List<Inline> children)
 
     @Override
     public String text() {
-        return children.stream()
-                       .map(Inline::text)
-                       .collect(joining());
+        return children.stream().map(Inline::text).collect(joining());
     }
 }

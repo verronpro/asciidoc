@@ -1,7 +1,5 @@
 package pro.verron.asciidoc.core;
 
-import org.jspecify.annotations.NonNull;
-
 import java.util.*;
 import java.util.function.Function;
 
@@ -20,364 +18,21 @@ import java.util.function.Function;
 /// ## Internal Behavior
 ///   - [#parseInlines(String)]: A private static helper method to parse inline
 /// elements from a given text input.
-public final class AsciiDocParser
-        implements Function<String, AsciiDocModel> {
+public final class AsciiDocParser implements Function<String, AsciiDocModel> {
 
     /// Constructs an [AsciiDocParser].
-    public AsciiDocParser() {}
+    public AsciiDocParser() {
+    }
 
     /// Parses the given AsciiDoc string and produces an [AsciiDocModel].
     ///
     /// @param asciidoc the AsciiDoc content to parse
-    ///
     /// @return an [AsciiDocModel] representing the parsed structure
     public static AsciiDocModel parse(String asciidoc) {
         return new AsciiDocParser().apply(asciidoc);
     }
 
-    /// Processes an AsciiDoc-formatted string and converts it into an
-    /// [AsciiDocModel].
-    ///
-    /// The resulting model contains structured blocks such as paragraphs,
-    /// headings,
-    /// lists, tables, images, code blocks, and blockquotes.
-    ///
-    /// @param asciidoc the AsciiDoc-formatted input string
-    ///
-    /// @return an [AsciiDocModel] representing the parsed blocks; empty model
-    /// if input is blank
-    public AsciiDocModel apply(String asciidoc) {
-        if (asciidoc.isBlank()) return AsciiDocModel.of(new ArrayList<>());
-
-        var lines = asciidoc.split("\r?\n");
-        var attributes = new HashMap<String, String>();
-        var lineIndex = 0;
-        while (lineIndex < lines.length) {
-            var line = lines[lineIndex].trim();
-            if (line.startsWith(":") && line.contains(":")) {
-                var secondColon = line.indexOf(':', 1);
-                if (secondColon != -1) {
-                    var key = line.substring(1, secondColon);
-                    var value = line.substring(secondColon + 1)
-                                    .trim();
-                    attributes.put(key, value);
-                    lineIndex++;
-                }
-                else break;
-            }
-            else if (line.isEmpty()) lineIndex++;
-            else break;
-        }
-
-        var currentParagraph = new StringBuilder();
-        var inTable = false;
-        var inBlockquote = false;
-        var inCodeBlock = false;
-        var currentTableRows = new ArrayList<Row>();
-        var currentBlockContent = new StringBuilder();
-        var nextBlockHeader = new ArrayList<String>();
-        var inOpenBlock = false;
-        var openBlockBlocks = new ArrayList<Block>();
-        var openBlockHeader = new ArrayList<String>();
-
-        var blocks = new ArrayList<Block>();
-        var currentContainer = blocks;
-
-        for (int i = lineIndex; i < lines.length; i++) {
-            var line = lines[i];
-            var trimmed = line.trim();
-
-            if (trimmed.startsWith("[") && trimmed.endsWith("]") && !inCodeBlock
-                && !inBlockquote && !inTable) {
-                nextBlockHeader.addAll(Arrays.asList(trimmed.substring(1,
-                                                                    trimmed.length() - 1)
-                                                            .split(",")));
-                continue;
-            }
-
-            if (trimmed.equals("--") && !inCodeBlock && !inBlockquote
-                && !inTable) {
-                if (!currentParagraph.isEmpty()) {
-                    currentContainer.add(createParagraph(nextBlockHeader,
-                            currentParagraph.toString()));
-                    nextBlockHeader.clear();
-                    currentParagraph.setLength(0);
-                }
-
-                if (inOpenBlock) {
-                    blocks.add(new OpenBlock(new ArrayList<>(openBlockHeader),
-                            new ArrayList<>(openBlockBlocks)));
-                    openBlockBlocks.clear();
-                    openBlockHeader.clear();
-                    inOpenBlock = false;
-                    currentContainer = blocks;
-                }
-                else {
-                    inOpenBlock = true;
-                    openBlockHeader = new ArrayList<>(nextBlockHeader);
-                    nextBlockHeader.clear();
-                    currentContainer = openBlockBlocks;
-                }
-                continue;
-            }
-
-            if (trimmed.equals("____")) {
-                if (inBlockquote) {
-                    var currentBlockContentString =
-                            currentBlockContent.toString();
-                    currentContainer.add(new QuoteBlock(parseInlines(
-                            currentBlockContentString.trim())));
-                    currentBlockContent.setLength(0);
-                    inBlockquote = false;
-                }
-                else {
-                    if (!currentParagraph.isEmpty()) {
-                        currentContainer.add(createParagraph(nextBlockHeader,
-                                currentParagraph.toString()));
-                        nextBlockHeader.clear();
-                        currentParagraph.setLength(0);
-                    }
-
-                    inBlockquote = true;
-                }
-                continue;
-            }
-
-            if (inBlockquote) {
-                if (!currentBlockContent.isEmpty()) {
-                    currentBlockContent.append(" ");
-                }
-                currentBlockContent.append(trimmed);
-                continue;
-            }
-
-            if (trimmed.equals("----")) {
-                if (inCodeBlock) {
-                    var currentBlockContentString =
-                            currentBlockContent.toString();
-                    var language = (nextBlockHeader.size() > 1)
-                            ? nextBlockHeader.get(1)
-                            : "";
-                    currentContainer.add(new CodeBlock(language,
-                            currentBlockContentString.trim()));
-                    currentBlockContent.setLength(0);
-                    nextBlockHeader.clear();
-                    inCodeBlock = false;
-                }
-                else {
-                    if (!currentParagraph.isEmpty()) {
-                        currentContainer.add(createParagraph(nextBlockHeader,
-                                currentParagraph.toString()));
-                        nextBlockHeader.clear();
-                        currentParagraph.setLength(0);
-                    }
-
-                    inCodeBlock = true;
-                }
-                continue;
-            }
-
-            if (inCodeBlock) {
-                if (!currentBlockContent.isEmpty()) {
-                    currentBlockContent.append("\n");
-                }
-                currentBlockContent.append(line); // Preserve indentation in
-                // code blocks
-                continue;
-            }
-
-            if (trimmed.startsWith("image::")) {
-                if (!currentParagraph.isEmpty()) {
-                    currentContainer.add(createParagraph(nextBlockHeader,
-                            currentParagraph.toString()));
-                    nextBlockHeader.clear();
-                    currentParagraph.setLength(0);
-                }
-
-                int endUrl = trimmed.indexOf('[', 7);
-                if (endUrl != -1) {
-                    int endText = trimmed.indexOf(']', endUrl);
-                    if (endText != -1) {
-                        String url = trimmed.substring(7, endUrl);
-                        String altText = trimmed.substring(endUrl + 1, endText);
-                        currentContainer.add(new ImageBlock(url, altText));
-                        continue;
-                    }
-                }
-            }
-
-            if (trimmed.contains("::[")) {
-                int macroNameEnd = trimmed.indexOf("::[");
-                String macroName = trimmed.substring(0, macroNameEnd);
-                int endBracket = trimmed.indexOf(']', macroNameEnd + 3);
-                if (endBracket != -1) {
-                    if (!currentParagraph.isEmpty()) {
-                        currentContainer.add(createParagraph(nextBlockHeader,
-                                currentParagraph.toString()));
-                        nextBlockHeader.clear();
-                        currentParagraph.setLength(0);
-                    }
-
-                    String content = trimmed.substring(macroNameEnd + 3,
-                            endBracket);
-                    // Simple attribute parser for id="value", key="value"
-                    var attrs = new ArrayList<String>();
-                    String id = "";
-                    String[] parts = content.split(",\\s*");
-                    for (String part : parts) {
-                        if (part.startsWith("id=\"")
-                            || part.startsWith("id=")) {
-                            id = part.substring(part.indexOf('=') + 1)
-                                     .replace("\"", "");
-                        }
-                        else {
-                            attrs.add(part.trim());
-                        }
-                    }
-                    var macroBlock = new MacroBlock(attrs, macroName, id);
-                    currentContainer.add(macroBlock);
-                    continue;
-                }
-            }
-
-            if (trimmed.equals("|===")) {
-                if (inTable) {
-                    currentContainer.add(new Table(currentTableRows));
-                    currentTableRows = new ArrayList<>();
-                    inTable = false;
-                }
-                else {
-                    if (!currentParagraph.isEmpty()) {
-                        currentContainer.add(createParagraph(nextBlockHeader,
-                                currentParagraph.toString()));
-                        nextBlockHeader.clear();
-                        currentParagraph.setLength(0);
-                    }
-
-                    inTable = true;
-                }
-                continue;
-            }
-
-            if (inTable) {
-                if (trimmed.startsWith("|")) {
-                    String[] cellTexts = trimmed.substring(1)
-                                                .split("\\|");
-                    List<Cell> cells = new ArrayList<>();
-                    for (String cellText : cellTexts) {
-                        cells.add(Cell.ofInlines(parseInlines(cellText.trim())));
-                    }
-                    currentTableRows.add(new Row(cells));
-                }
-                continue;
-            }
-
-            if (trimmed.isBlank()) {
-                if (!currentParagraph.isEmpty()) {
-                    currentContainer.add(createParagraph(nextBlockHeader,
-                            currentParagraph.toString()));
-                    nextBlockHeader.clear();
-                    currentParagraph.setLength(0);
-                }
-
-                continue;
-            }
-
-            // Check for Headings
-            if (trimmed.startsWith("=")) {
-                int level = 0;
-                while (level < trimmed.length()
-                       && trimmed.charAt(level) == '=') {
-                    level++;
-                }
-                if (level > 0 && level <= 6 && level < trimmed.length()
-                    && Character.isWhitespace(trimmed.charAt(level))) {
-                    if (!currentParagraph.isEmpty()) {
-                        currentContainer.add(createParagraph(nextBlockHeader,
-                                currentParagraph.toString()));
-                        nextBlockHeader.clear();
-                        currentParagraph.setLength(0);
-                    }
-
-                    var title = trimmed.substring(level);
-                    title = title.trim();
-                    currentContainer.add(new Heading(new ArrayList<>(
-                            nextBlockHeader), level, parseInlines(title)));
-                    nextBlockHeader.clear();
-                    continue;
-                }
-            }
-
-            // Check for Unordered List Item
-            if (trimmed.startsWith("* ")) {
-                if (!currentParagraph.isEmpty()) {
-                    currentContainer.add(createParagraph(nextBlockHeader,
-                            currentParagraph.toString()));
-                    nextBlockHeader.clear();
-                    currentParagraph.setLength(0);
-                }
-
-                var itemText = trimmed.substring(2);
-                itemText = itemText.trim();
-                var item = new ListItem(parseInlines(itemText));
-                if (!currentContainer.isEmpty()
-                    && currentContainer.getLast() instanceof UnorderedList(
-                        List<ListItem> items1
-                )) {
-                    List<ListItem> items = new ArrayList<>(items1);
-                    items.add(item);
-                    currentContainer.set(currentContainer.size() - 1,
-                            new UnorderedList(items));
-                }
-                else currentContainer.add(new UnorderedList(List.of(item)));
-                continue;
-            }
-
-            // Check for Ordered List Item
-            if (trimmed.startsWith(". ")) {
-                if (!currentParagraph.isEmpty()) {
-                    currentContainer.add(createParagraph(nextBlockHeader,
-                            currentParagraph.toString()));
-                    nextBlockHeader.clear();
-                    currentParagraph.setLength(0);
-                }
-
-                String itemText = trimmed.substring(2)
-                                         .trim();
-                var item = new ListItem(parseInlines(itemText));
-                if (!currentContainer.isEmpty()
-                    && currentContainer.getLast() instanceof OrderedList(
-                        List<ListItem> items1
-                )) {
-                    List<ListItem> items = new ArrayList<>(items1);
-                    items.add(item);
-                    currentContainer.set(currentContainer.size() - 1,
-                            new OrderedList(items));
-                }
-                else currentContainer.add(new OrderedList(List.of(item)));
-                continue;
-            }
-
-            // Otherwise, it's a paragraph part
-            if (!currentParagraph.isEmpty()) {
-                currentParagraph.append("\n");
-            }
-            currentParagraph.append(trimmed);
-        }
-
-        if (!currentParagraph.isEmpty()) {
-            var currentParagraphString = currentParagraph.toString();
-            var inlines = parseInlines(currentParagraphString.trim());
-            currentContainer.add(createParagraph(nextBlockHeader, inlines));
-        }
-
-        return AsciiDocModel.of(attributes, blocks);
-    }
-
-    private static @NonNull Paragraph createParagraph(
-            ArrayList<String> nextBlockHeader,
-            String string
-    ) {
+    private static Paragraph createParagraph(ArrayList<String> nextBlockHeader, String string) {
         return createParagraph(nextBlockHeader, parseInlines(string.trim()));
     }
 
@@ -416,22 +71,16 @@ public final class AsciiDocParser
                 if (top.type == type) {
                     // Close current frame
                     top.flushTextToChildren();
-                    Inline node = (type == FrameType.BOLD)
-                            ? new Bold(top.children)
-                            : new Italic(top.children);
+                    Inline node = (type == FrameType.BOLD) ? new Bold(top.children) : new Italic(top.children);
                     stack.removeLast();
                     Frame parent = stack.getLast();
                     parent.children.add(node);
-                }
-                else if (top.type == FrameType.BOLD
-                         || top.type == FrameType.ITALIC
-                         || top.type == FrameType.ROOT) {
+                } else if (top.type == FrameType.BOLD || top.type == FrameType.ITALIC || top.type == FrameType.ROOT) {
                     // Open new frame
                     top.flushTextToChildren();
                     Frame f = new Frame(type);
                     stack.add(f);
-                }
-                else {
+                } else {
                     // Should not happen
                     stack.getLast().text.append(c);
                 }
@@ -439,12 +88,10 @@ public final class AsciiDocParser
             }
 
             // Detect literal |TAB| token -> emit a Tab inline
-            if (c == '|' && i + 4 < text.length() && text.charAt(i + 1) == 'T'
-                && text.charAt(i + 2) == 'A' && text.charAt(i + 3) == 'B'
-                && text.charAt(i + 4) == '|') {
+            if (c == '|' && i + 4 < text.length() && text.charAt(i + 1) == 'T' && text.charAt(i + 2) == 'A' && text.charAt(
+                    i + 3) == 'B' && text.charAt(i + 4) == '|') {
                 // Flush any pending text
-                stack.getLast()
-                     .flushTextToChildren();
+                stack.getLast().flushTextToChildren();
                 stack.getLast().children.add(new Tab());
                 i += 4;
                 continue;
@@ -456,8 +103,7 @@ public final class AsciiDocParser
                 if (endUrl != -1) {
                     int endText = text.indexOf(']', endUrl);
                     if (endText != -1) {
-                        stack.getLast()
-                             .flushTextToChildren();
+                        stack.getLast().flushTextToChildren();
                         String url = text.substring(i, endUrl);
                         String linkText = text.substring(endUrl + 1, endText);
                         stack.getLast().children.add(new Link(url, linkText));
@@ -473,12 +119,10 @@ public final class AsciiDocParser
                 if (endUrl != -1) {
                     int endText = text.indexOf(']', endUrl);
                     if (endText != -1) {
-                        stack.getLast()
-                             .flushTextToChildren();
+                        stack.getLast().flushTextToChildren();
                         String url = text.substring(i + 6, endUrl);
                         String title = text.substring(endUrl + 1, endText);
-                        stack.getLast().children.add(new ImageInline(url,
-                                Map.of("title", title)));
+                        stack.getLast().children.add(new ImageInline(url, Map.of("title", title)));
                         i = endText;
                         continue;
                     }
@@ -510,17 +154,307 @@ public final class AsciiDocParser
         return root.children;
     }
 
-    private static @NonNull Paragraph createParagraph(
-            ArrayList<String> nextBlockHeader,
-            List<Inline> string
-    ) {
+    private static Paragraph createParagraph(ArrayList<String> nextBlockHeader, List<Inline> string) {
         return new Paragraph(new ArrayList<>(nextBlockHeader), string);
     }
 
+    /// Processes an AsciiDoc-formatted string and converts it into an
+    /// [AsciiDocModel].
+    ///
+    /// The resulting model contains structured blocks such as paragraphs,
+    /// headings,
+    /// lists, tables, images, code blocks, and blockquotes.
+    ///
+    /// @param asciidoc the AsciiDoc-formatted input string
+    /// @return an [AsciiDocModel] representing the parsed blocks; empty model
+    /// if input is blank
+    public AsciiDocModel apply(String asciidoc) {
+        if (asciidoc.isBlank()) return AsciiDocModel.of(new ArrayList<>());
+
+        var lines = asciidoc.split("\r?\n");
+        var attributes = new HashMap<String, String>();
+        var lineIndex = 0;
+        while (lineIndex < lines.length) {
+            var line = lines[lineIndex].trim();
+            if (line.startsWith(":") && line.contains(":")) {
+                var secondColon = line.indexOf(':', 1);
+                if (secondColon != -1) {
+                    var key = line.substring(1, secondColon);
+                    var value = line.substring(secondColon + 1).trim();
+                    attributes.put(key, value);
+                    lineIndex++;
+                } else break;
+            } else if (line.isEmpty()) lineIndex++;
+            else break;
+        }
+
+        var currentParagraph = new StringBuilder();
+        var inTable = false;
+        var inBlockquote = false;
+        var inCodeBlock = false;
+        var currentTableRows = new ArrayList<Row>();
+        var currentBlockContent = new StringBuilder();
+        var nextBlockHeader = new ArrayList<String>();
+        var inOpenBlock = false;
+        var openBlockBlocks = new ArrayList<Block>();
+        var openBlockHeader = new ArrayList<String>();
+
+        var blocks = new ArrayList<Block>();
+        var currentContainer = blocks;
+
+        for (int i = lineIndex; i < lines.length; i++) {
+            var line = lines[i];
+            var trimmed = line.trim();
+
+            if (trimmed.startsWith("[") && trimmed.endsWith("]") && !inCodeBlock && !inBlockquote && !inTable) {
+                nextBlockHeader.addAll(Arrays.asList(trimmed.substring(1, trimmed.length() - 1).split(",")));
+                continue;
+            }
+
+            if (trimmed.equals("--") && !inCodeBlock && !inBlockquote && !inTable) {
+                if (!currentParagraph.isEmpty()) {
+                    currentContainer.add(createParagraph(nextBlockHeader, currentParagraph.toString()));
+                    nextBlockHeader.clear();
+                    currentParagraph.setLength(0);
+                }
+
+                if (inOpenBlock) {
+                    blocks.add(new OpenBlock(new ArrayList<>(openBlockHeader), new ArrayList<>(openBlockBlocks)));
+                    openBlockBlocks.clear();
+                    openBlockHeader.clear();
+                    inOpenBlock = false;
+                    currentContainer = blocks;
+                } else {
+                    inOpenBlock = true;
+                    openBlockHeader = new ArrayList<>(nextBlockHeader);
+                    nextBlockHeader.clear();
+                    currentContainer = openBlockBlocks;
+                }
+                continue;
+            }
+
+            if (trimmed.equals("____")) {
+                if (inBlockquote) {
+                    var currentBlockContentString = currentBlockContent.toString();
+                    currentContainer.add(new QuoteBlock(parseInlines(currentBlockContentString.trim())));
+                    currentBlockContent.setLength(0);
+                    inBlockquote = false;
+                } else {
+                    if (!currentParagraph.isEmpty()) {
+                        currentContainer.add(createParagraph(nextBlockHeader, currentParagraph.toString()));
+                        nextBlockHeader.clear();
+                        currentParagraph.setLength(0);
+                    }
+
+                    inBlockquote = true;
+                }
+                continue;
+            }
+
+            if (inBlockquote) {
+                if (!currentBlockContent.isEmpty()) {
+                    currentBlockContent.append(" ");
+                }
+                currentBlockContent.append(trimmed);
+                continue;
+            }
+
+            if (trimmed.equals("----")) {
+                if (inCodeBlock) {
+                    var currentBlockContentString = currentBlockContent.toString();
+                    var language = (nextBlockHeader.size() > 1) ? nextBlockHeader.get(1) : "";
+                    currentContainer.add(new CodeBlock(language, currentBlockContentString.trim()));
+                    currentBlockContent.setLength(0);
+                    nextBlockHeader.clear();
+                    inCodeBlock = false;
+                } else {
+                    if (!currentParagraph.isEmpty()) {
+                        currentContainer.add(createParagraph(nextBlockHeader, currentParagraph.toString()));
+                        nextBlockHeader.clear();
+                        currentParagraph.setLength(0);
+                    }
+
+                    inCodeBlock = true;
+                }
+                continue;
+            }
+
+            if (inCodeBlock) {
+                if (!currentBlockContent.isEmpty()) {
+                    currentBlockContent.append("\n");
+                }
+                currentBlockContent.append(line); // Preserve indentation in
+                // code blocks
+                continue;
+            }
+
+            if (trimmed.startsWith("image::")) {
+                if (!currentParagraph.isEmpty()) {
+                    currentContainer.add(createParagraph(nextBlockHeader, currentParagraph.toString()));
+                    nextBlockHeader.clear();
+                    currentParagraph.setLength(0);
+                }
+
+                int endUrl = trimmed.indexOf('[', 7);
+                if (endUrl != -1) {
+                    int endText = trimmed.indexOf(']', endUrl);
+                    if (endText != -1) {
+                        String url = trimmed.substring(7, endUrl);
+                        String altText = trimmed.substring(endUrl + 1, endText);
+                        currentContainer.add(new ImageBlock(url, altText));
+                        continue;
+                    }
+                }
+            }
+
+            if (trimmed.contains("::[")) {
+                int macroNameEnd = trimmed.indexOf("::[");
+                String macroName = trimmed.substring(0, macroNameEnd);
+                int endBracket = trimmed.indexOf(']', macroNameEnd + 3);
+                if (endBracket != -1) {
+                    if (!currentParagraph.isEmpty()) {
+                        currentContainer.add(createParagraph(nextBlockHeader, currentParagraph.toString()));
+                        nextBlockHeader.clear();
+                        currentParagraph.setLength(0);
+                    }
+
+                    String content = trimmed.substring(macroNameEnd + 3, endBracket);
+                    // Simple attribute parser for id="value", key="value"
+                    var attrs = new ArrayList<String>();
+                    String id = "";
+                    String[] parts = content.split(",\\s*");
+                    for (String part : parts) {
+                        if (part.startsWith("id=\"") || part.startsWith("id=")) {
+                            id = part.substring(part.indexOf('=') + 1).replace("\"", "");
+                        } else {
+                            attrs.add(part.trim());
+                        }
+                    }
+                    var macroBlock = new MacroBlock(attrs, macroName, id);
+                    currentContainer.add(macroBlock);
+                    continue;
+                }
+            }
+
+            if (trimmed.equals("|===")) {
+                if (inTable) {
+                    currentContainer.add(new Table(currentTableRows));
+                    currentTableRows = new ArrayList<>();
+                    inTable = false;
+                } else {
+                    if (!currentParagraph.isEmpty()) {
+                        currentContainer.add(createParagraph(nextBlockHeader, currentParagraph.toString()));
+                        nextBlockHeader.clear();
+                        currentParagraph.setLength(0);
+                    }
+
+                    inTable = true;
+                }
+                continue;
+            }
+
+            if (inTable) {
+                if (trimmed.startsWith("|")) {
+                    String[] cellTexts = trimmed.substring(1).split("\\|");
+                    List<Cell> cells = new ArrayList<>();
+                    for (String cellText : cellTexts) {
+                        cells.add(Cell.ofInlines(parseInlines(cellText.trim())));
+                    }
+                    currentTableRows.add(new Row(cells));
+                }
+                continue;
+            }
+
+            if (trimmed.isBlank()) {
+                if (!currentParagraph.isEmpty()) {
+                    currentContainer.add(createParagraph(nextBlockHeader, currentParagraph.toString()));
+                    nextBlockHeader.clear();
+                    currentParagraph.setLength(0);
+                }
+
+                continue;
+            }
+
+            // Check for Headings
+            if (trimmed.startsWith("=")) {
+                int level = 0;
+                while (level < trimmed.length() && trimmed.charAt(level) == '=') {
+                    level++;
+                }
+                if (level > 0 && level <= 6 && level < trimmed.length() && Character.isWhitespace(trimmed.charAt(level))) {
+                    if (!currentParagraph.isEmpty()) {
+                        currentContainer.add(createParagraph(nextBlockHeader, currentParagraph.toString()));
+                        nextBlockHeader.clear();
+                        currentParagraph.setLength(0);
+                    }
+
+                    var title = trimmed.substring(level);
+                    title = title.trim();
+                    currentContainer.add(new Heading(new ArrayList<>(nextBlockHeader), level, parseInlines(title)));
+                    nextBlockHeader.clear();
+                    continue;
+                }
+            }
+
+            // Check for Unordered List Item
+            if (trimmed.startsWith("* ")) {
+                if (!currentParagraph.isEmpty()) {
+                    currentContainer.add(createParagraph(nextBlockHeader, currentParagraph.toString()));
+                    nextBlockHeader.clear();
+                    currentParagraph.setLength(0);
+                }
+
+                var itemText = trimmed.substring(2);
+                itemText = itemText.trim();
+                var item = new ListItem(parseInlines(itemText));
+                if (!currentContainer.isEmpty() && currentContainer.getLast() instanceof UnorderedList(
+                        List<ListItem> items1
+                )) {
+                    List<ListItem> items = new ArrayList<>(items1);
+                    items.add(item);
+                    currentContainer.set(currentContainer.size() - 1, new UnorderedList(items));
+                } else currentContainer.add(new UnorderedList(List.of(item)));
+                continue;
+            }
+
+            // Check for Ordered List Item
+            if (trimmed.startsWith(". ")) {
+                if (!currentParagraph.isEmpty()) {
+                    currentContainer.add(createParagraph(nextBlockHeader, currentParagraph.toString()));
+                    nextBlockHeader.clear();
+                    currentParagraph.setLength(0);
+                }
+
+                String itemText = trimmed.substring(2).trim();
+                var item = new ListItem(parseInlines(itemText));
+                if (!currentContainer.isEmpty() && currentContainer.getLast() instanceof OrderedList(
+                        List<ListItem> items1
+                )) {
+                    List<ListItem> items = new ArrayList<>(items1);
+                    items.add(item);
+                    currentContainer.set(currentContainer.size() - 1, new OrderedList(items));
+                } else currentContainer.add(new OrderedList(List.of(item)));
+                continue;
+            }
+
+            // Otherwise, it's a paragraph part
+            if (!currentParagraph.isEmpty()) {
+                currentParagraph.append("\n");
+            }
+            currentParagraph.append(trimmed);
+        }
+
+        if (!currentParagraph.isEmpty()) {
+            var currentParagraphString = currentParagraph.toString();
+            var inlines = parseInlines(currentParagraphString.trim());
+            currentContainer.add(createParagraph(nextBlockHeader, inlines));
+        }
+
+        return AsciiDocModel.of(attributes, blocks);
+    }
+
     private enum FrameType {
-        ROOT,
-        BOLD,
-        ITALIC
+        ROOT, BOLD, ITALIC
     }
 
     private static final class Frame {
@@ -528,7 +462,9 @@ public final class AsciiDocParser
         final List<Inline> children = new ArrayList<>();
         final StringBuilder text = new StringBuilder();
 
-        Frame(FrameType type) {this.type = type;}
+        Frame(FrameType type) {
+            this.type = type;
+        }
 
         void flushTextToChildren() {
             if (!text.isEmpty()) {

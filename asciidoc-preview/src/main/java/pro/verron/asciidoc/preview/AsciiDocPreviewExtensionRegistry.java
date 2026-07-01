@@ -8,8 +8,7 @@ import org.asciidoctor.jruby.extension.spi.ExtensionRegistry;
 /// AsciiDoc templates within a document.
 ///
 /// @see AsciiDocPreviewBlockMacro
-public class AsciiDocPreviewExtensionRegistry
-        implements ExtensionRegistry {
+public class AsciiDocPreviewExtensionRegistry implements ExtensionRegistry {
 
     private final String macroName;
 

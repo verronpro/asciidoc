@@ -9,12 +9,9 @@ import java.util.List;
 /// @param header  metadata or informational content about the block
 /// @param content blocks grouped by this open block
 /// @see Block
-public record OpenBlock(List<String> header, List<? extends Block> content)
-        implements Block {
+public record OpenBlock(List<String> header, List<? extends Block> content) implements Block {
     @Override
     public int size() {
-        return content.stream()
-                      .mapToInt(Block::size)
-                      .sum();
+        return content.stream().mapToInt(Block::size).sum();
     }
 }

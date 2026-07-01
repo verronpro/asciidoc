@@ -100,6 +100,7 @@ public enum Icon {
 
     /// Returns the resource name for this icon (relative to the package).
     String resourceName() {
-        return "icons/" + name().toLowerCase() + ".svg";
+        var lowerCase = name().toLowerCase();
+        return "icons/%s.svg".formatted(lowerCase);
     }
 }

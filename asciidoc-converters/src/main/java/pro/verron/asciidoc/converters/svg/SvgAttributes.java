@@ -1,7 +1,5 @@
 package pro.verron.asciidoc.converters.svg;
 
-import org.jspecify.annotations.NonNull;
-
 import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -33,7 +31,7 @@ public class SvgAttributes
     }
 
     @Override
-    public @NonNull Iterator<SvgAttribute> iterator() {
+    public Iterator<SvgAttribute> iterator() {
         return set.iterator();
     }
 

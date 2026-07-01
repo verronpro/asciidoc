@@ -6,8 +6,7 @@ import java.util.List;
 /// Simple table block: list of rows; each row is a list of cells; each cell contains inline content.
 ///
 /// @param rows table rows
-public record Table(List<Row> rows)
-        implements Block {
+public record Table(List<Row> rows) implements Block {
     /// Constructs a [Table] with the given rows.
     ///
     /// @param rows table rows
@@ -18,11 +17,11 @@ public record Table(List<Row> rows)
     @Override
     public int size() {
         return rows.stream()
-                   .map(Row::cells)
-                   .flatMap(Collection::stream)
-                   .map(Cell::blocks)
-                   .flatMap(Collection::stream)
-                   .mapToInt(Block::size)
-                   .sum();
+                .map(Row::cells)
+                .flatMap(Collection::stream)
+                .map(Cell::blocks)
+                .flatMap(Collection::stream)
+                .mapToInt(Block::size)
+                .sum();
     }
 }

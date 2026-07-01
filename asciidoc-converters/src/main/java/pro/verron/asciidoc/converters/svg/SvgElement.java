@@ -8,9 +8,7 @@ import static java.lang.String.format;
 
 /// Sealed interface for SVG element model objects.
 /// Each subtype represents a specific SVG element type.
-sealed public interface SvgElement
-        permits SvgCircle, SvgContent, SvgDocument, SvgGroup, SvgImage,
-        SvgLine, SvgPath, SvgRect, SvgText {
+sealed public interface SvgElement permits SvgCircle, SvgContent, SvgDocument, SvgGroup, SvgImage, SvgLine, SvgPath, SvgRect, SvgText {
 
     /// Serializes this element and its children into an SVG markup string.
     ///

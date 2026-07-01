@@ -11,4 +11,7 @@
 ///
 /// @see pro.verron.asciidoc.docx.AsciiDocToDocx
 /// @see pro.verron.asciidoc.docx.DocxToAsciiDoc
+@NullMarked
 package pro.verron.asciidoc.docx;
+
+import org.jspecify.annotations.NullMarked;

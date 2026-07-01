@@ -21,6 +21,7 @@ module pro.verron.asciidoc.preview {
     requires static org.asciidoctor.asciidoctorj;
     requires java.desktop;
     requires org.asciidoctor.asciidoctorj.api;
+    requires org.jspecify;
 
     exports pro.verron.asciidoc.preview;
 }

@@ -8,8 +8,7 @@ import static java.util.Collections.emptyList;
 ///
 /// @param header  AsciiDoc block headers containing optional information
 /// @param inlines inline fragments
-public record Paragraph(List<String> header, List<Inline> inlines)
-        implements Block {
+public record Paragraph(List<String> header, List<Inline> inlines) implements Block {
 
     /// Constructs a [Paragraph] without block headers.
     ///

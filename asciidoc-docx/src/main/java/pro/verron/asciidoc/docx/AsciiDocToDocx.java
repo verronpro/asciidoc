@@ -25,13 +25,13 @@ import java.util.function.Function;
 /// counterparts.
 ///
 /// @see DocxToAsciiDoc
-public final class AsciiDocToDocx
-        implements Function<AsciiDocModel, WordprocessingMLPackage> {
+public final class AsciiDocToDocx implements Function<AsciiDocModel, WordprocessingMLPackage> {
     private int headerCount = 1;
     private int footerCount = 1;
 
     /// Constructs a new [AsciiDocToDocx] converter.
-    public AsciiDocToDocx() {}
+    public AsciiDocToDocx() {
+    }
 
     private static P createHeading(ObjectFactory factory, Heading heading) {
         P p = factory.createP();
@@ -60,21 +60,13 @@ public final class AsciiDocToDocx
         return p;
     }
 
-    private static P createParagraph(
-            ObjectFactory factory,
-            Paragraph paragraph
-    ) {
+    private static P createParagraph(ObjectFactory factory, Paragraph paragraph) {
         P p = factory.createP();
         addInlines(factory, p, paragraph.inlines(), null);
         return p;
     }
 
-    private static void addInlines(
-            ObjectFactory factory,
-            P p,
-            List<Inline> inlines,
-            @Nullable RPr base
-    ) {
+    private static void addInlines(ObjectFactory factory, P p, List<Inline> inlines, @Nullable RPr base) {
         for (Inline inline : inlines) {
             emitInline(factory, p, inline, base);
         }
@@ -90,21 +82,14 @@ public final class AsciiDocToDocx
                 for (Block block : cell.blocks()) {
                     addBlock(factory, tc.getContent(), block);
                 }
-                tr.getContent()
-                  .add(tc);
+                tr.getContent().add(tc);
             }
-            tbl.getContent()
-               .add(tr);
+            tbl.getContent().add(tr);
         }
         return tbl;
     }
 
-    private static void addBlock(
-            ObjectFactory factory,
-            List<Object> content,
-            Block block
-    )
-            throws UnsupportedOperationException {
+    private static void addBlock(ObjectFactory factory, List<Object> content, Block block) throws UnsupportedOperationException {
         switch (block) {
             case Heading h -> content.add(createHeading(factory, h));
             case Paragraph p -> content.add(createParagraph(factory, p));
@@ -123,42 +108,29 @@ public final class AsciiDocToDocx
             case QuoteBlock b -> content.add(createBlockquote(factory, b));
             case CodeBlock cb -> content.add(createCodeBlock(factory, cb));
             case ImageBlock ib -> content.add(createImageBlock(factory, ib));
-            case Break _ -> throw new java.lang.UnsupportedOperationException(
-                    "Breaks are not supported");
-            case CommentBlock _ -> throw new UnsupportedOperationException(
-                    "Comments are not supported");
+            case Break _ -> throw new java.lang.UnsupportedOperationException("Breaks are not supported");
+            case CommentBlock _ -> throw new UnsupportedOperationException("Comments are not supported");
             case OpenBlock ob -> {
                 for (Block subBlock : ob.content()) {
                     addBlock(factory, content, subBlock);
                 }
             }
-            case MacroBlock macroBlock ->
-                    throw new UnsupportedOperationException(
-                            "Macro blocks are not supported");
+            case MacroBlock _ -> throw new UnsupportedOperationException("Macro blocks are not supported");
         }
     }
 
-    private static P createListItem(
-            ObjectFactory factory,
-            ListItem item,
-            String prefix
-    ) {
+    private static P createListItem(ObjectFactory factory, ListItem item, String prefix) {
         P p = factory.createP();
         R r = factory.createR();
         org.docx4j.wml.Text t = factory.createText();
         t.setValue(prefix);
-        r.getContent()
-         .add(t);
-        p.getContent()
-         .add(r);
+        r.getContent().add(t);
+        p.getContent().add(r);
         addInlines(factory, p, item.inlines(), null);
         return p;
     }
 
-    private static P createBlockquote(
-            ObjectFactory factory,
-            QuoteBlock quoteBlock
-    ) {
+    private static P createBlockquote(ObjectFactory factory, QuoteBlock quoteBlock) {
         P p = factory.createP();
         PPr ppr = factory.createPPr();
         PPrBase.Ind ind = factory.createPPrBaseInd();
@@ -169,10 +141,7 @@ public final class AsciiDocToDocx
         return p;
     }
 
-    private static P createCodeBlock(
-            ObjectFactory factory,
-            CodeBlock codeBlock
-    ) {
+    private static P createCodeBlock(ObjectFactory factory, CodeBlock codeBlock) {
         P p = factory.createP();
         RPr rpr = factory.createRPr();
         RFonts fonts = factory.createRFonts();
@@ -180,53 +149,36 @@ public final class AsciiDocToDocx
         fonts.setHAnsi("Courier New");
         rpr.setRFonts(fonts);
 
-        String[] lines = codeBlock.content()
-                                  .split("\n");
+        String[] lines = codeBlock.content().split("\n");
         for (int i = 0; i < lines.length; i++) {
             R r = factory.createR();
             r.setRPr(rpr);
             org.docx4j.wml.Text t = factory.createText();
             t.setValue(lines[i]);
             t.setSpace("preserve");
-            r.getContent()
-             .add(t);
+            r.getContent().add(t);
             if (i < lines.length - 1) {
-                r.getContent()
-                 .add(factory.createBr());
+                r.getContent().add(factory.createBr());
             }
-            p.getContent()
-             .add(r);
+            p.getContent().add(r);
         }
         return p;
     }
 
-    private static P createImageBlock(
-            ObjectFactory factory,
-            ImageBlock imageBlock
-    ) {
+    private static P createImageBlock(ObjectFactory factory, ImageBlock imageBlock) {
         P p = factory.createP();
         R r = factory.createR();
         org.docx4j.wml.Text t = factory.createText();
-        t.setValue("[Image: " + imageBlock.url() + " - " + imageBlock.altText()
-                   + "]");
-        r.getContent()
-         .add(t);
-        p.getContent()
-         .add(r);
+        t.setValue("[Image: " + imageBlock.url() + " - " + imageBlock.altText() + "]");
+        r.getContent().add(t);
+        p.getContent().add(r);
         return p;
     }
 
-    private static void emitInline(
-            ObjectFactory factory,
-            P p,
-            Inline inline,
-            @Nullable RPr base
-    ) {
+    private static void emitInline(ObjectFactory factory, P p, Inline inline, @Nullable RPr base) {
         switch (inline) {
             case Text(String text) -> {
-                RPr rpr = base != null
-                        ? deepCopy(factory, base)
-                        : factory.createRPr();
+                RPr rpr = base != null ? deepCopy(factory, base) : factory.createRPr();
                 String[] lines = text.split("\n", -1);
                 for (int i = 0; i < lines.length; i++) {
                     if (!lines[i].isEmpty()) {
@@ -235,26 +187,20 @@ public final class AsciiDocToDocx
                         org.docx4j.wml.Text tx = factory.createText();
                         tx.setValue(lines[i]);
                         tx.setSpace("preserve");
-                        r.getContent()
-                         .add(tx);
-                        p.getContent()
-                         .add(r);
+                        r.getContent().add(tx);
+                        p.getContent().add(r);
                     }
                     if (i < lines.length - 1) {
                         R r = factory.createR();
                         r.setRPr(rpr);
-                        r.getContent()
-                         .add(factory.createBr());
-                        p.getContent()
-                         .add(r);
+                        r.getContent().add(factory.createBr());
+                        p.getContent().add(r);
                     }
                 }
                 return;
             }
             case Bold(List<Inline> children) -> {
-                RPr next = base != null
-                        ? deepCopy(factory, base)
-                        : factory.createRPr();
+                RPr next = base != null ? deepCopy(factory, base) : factory.createRPr();
                 next.setB(new BooleanDefaultTrue());
                 for (Inline child : children) {
                     emitInline(factory, p, child, next);
@@ -262,9 +208,7 @@ public final class AsciiDocToDocx
                 return;
             }
             case Italic(List<Inline> children) -> {
-                RPr next = base != null
-                        ? deepCopy(factory, base)
-                        : factory.createRPr();
+                RPr next = base != null ? deepCopy(factory, base) : factory.createRPr();
                 next.setI(new BooleanDefaultTrue());
                 for (Inline child : children) {
                     emitInline(factory, p, child, next);
@@ -274,19 +218,15 @@ public final class AsciiDocToDocx
             case Tab _ -> {
                 R r = factory.createR();
                 R.Tab tab = factory.createRTab();
-                r.getContent()
-                 .add(tab);
-                p.getContent()
-                 .add(r);
+                r.getContent().add(tab);
+                p.getContent().add(r);
             }
             default -> { /* DO NOTHING */ }
         }
 
         if (inline instanceof Link link) {
             R r = factory.createR();
-            RPr rpr = base != null
-                    ? deepCopy(factory, base)
-                    : factory.createRPr();
+            RPr rpr = base != null ? deepCopy(factory, base) : factory.createRPr();
             Color color = factory.createColor();
             color.setVal("0000FF");
             rpr.setColor(color);
@@ -296,20 +236,16 @@ public final class AsciiDocToDocx
             r.setRPr(rpr);
             org.docx4j.wml.Text t = factory.createText();
             t.setValue(link.text());
-            r.getContent()
-             .add(t);
-            p.getContent()
-             .add(r);
+            r.getContent().add(t);
+            p.getContent().add(r);
         }
 
         if (inline instanceof ImageInline ii) {
             R r = factory.createR();
             org.docx4j.wml.Text t = factory.createText();
             t.setValue("[Image: " + ii.path() + "]");
-            r.getContent()
-             .add(t);
-            p.getContent()
-             .add(r);
+            r.getContent().add(t);
+            p.getContent().add(r);
         }
     }
 
@@ -327,41 +263,24 @@ public final class AsciiDocToDocx
         }
         if (src.getSz() != null) {
             HpsMeasure sz = factory.createHpsMeasure();
-            sz.setVal(src.getSz()
-                         .getVal());
+            sz.setVal(src.getSz().getVal());
             c.setSz(sz);
             HpsMeasure szCs = factory.createHpsMeasure();
-            szCs.setVal(src.getSz()
-                           .getVal());
+            szCs.setVal(src.getSz().getVal());
             c.setSzCs(szCs);
         }
         return c;
     }
 
     private static boolean isHeaderOrFooter(OpenBlock ob) {
-        return ob.header()
-                 .stream()
-                 .anyMatch(h -> h.startsWith("header")
-                                || h.startsWith("footer"));
+        return ob.header().stream().anyMatch(h -> h.startsWith("header") || h.startsWith("footer"));
     }
 
-    private static void addReference(
-            WordprocessingMLPackage pkg,
-            ObjectFactory factory,
-            String relId,
-            String role,
-            boolean isHeader
-    ) {
-        SectPr sectPr = pkg.getMainDocumentPart()
-                           .getJaxbElement()
-                           .getBody()
-                           .getSectPr();
+    private static void addReference(WordprocessingMLPackage pkg, ObjectFactory factory, String relId, String role, boolean isHeader) {
+        SectPr sectPr = pkg.getMainDocumentPart().getJaxbElement().getBody().getSectPr();
         if (sectPr == null) {
             sectPr = factory.createSectPr();
-            pkg.getMainDocumentPart()
-               .getJaxbElement()
-               .getBody()
-               .setSectPr(sectPr);
+            pkg.getMainDocumentPart().getJaxbElement().getBody().setSectPr(sectPr);
         }
 
         HdrFtrRef type = switch (role) {
@@ -380,33 +299,24 @@ public final class AsciiDocToDocx
             HeaderReference ref = factory.createHeaderReference();
             ref.setId(relId);
             ref.setType(type);
-            sectPr.getEGHdrFtrReferences()
-                  .add(ref);
-        }
-        else {
+            sectPr.getEGHdrFtrReferences().add(ref);
+        } else {
             FooterReference ref = factory.createFooterReference();
             ref.setId(relId);
             ref.setType(type);
-            sectPr.getEGHdrFtrReferences()
-                  .add(ref);
+            sectPr.getEGHdrFtrReferences().add(ref);
         }
     }
 
-    private static void enableEvenOddHeaders(
-            WordprocessingMLPackage pkg,
-            ObjectFactory factory
-    ) {
+    private static void enableEvenOddHeaders(WordprocessingMLPackage pkg, ObjectFactory factory) {
         try {
-            DocumentSettingsPart dsp = pkg.getMainDocumentPart()
-                                          .getDocumentSettingsPart();
+            DocumentSettingsPart dsp = pkg.getMainDocumentPart().getDocumentSettingsPart();
             if (dsp == null) {
                 dsp = new DocumentSettingsPart();
-                pkg.getMainDocumentPart()
-                   .addTargetPart(dsp);
+                pkg.getMainDocumentPart().addTargetPart(dsp);
                 dsp.setJaxbElement(factory.createCTSettings());
             }
-            dsp.getContents()
-               .setEvenAndOddHeaders(new BooleanDefaultTrue());
+            dsp.getContents().setEvenAndOddHeaders(new BooleanDefaultTrue());
         } catch (Docx4JException e) {
             throw new RuntimeException(e);
         }
@@ -416,7 +326,6 @@ public final class AsciiDocToDocx
     /// model.
     ///
     /// @param model parsed AsciiDoc model
-    ///
     /// @return package containing the rendered document
     @Override
     public WordprocessingMLPackage apply(AsciiDocModel model) {
@@ -425,54 +334,40 @@ public final class AsciiDocToDocx
         try {
             var pkg = WordprocessingMLPackage.createPackage();
             var factory = Context.getWmlObjectFactory();
-            var mainContent = pkg.getMainDocumentPart()
-                                 .getContent();
+            var mainContent = pkg.getMainDocumentPart().getContent();
             mainContent.clear();
 
             for (Block block : model.getBlocks()) {
                 if (block instanceof OpenBlock ob && isHeaderOrFooter(ob)) {
                     processHeaderOrFooter(pkg, factory, ob);
-                }
-                else {
+                } else {
                     addBlock(factory, mainContent, block);
                 }
             }
             return pkg;
         } catch (Docx4JException e) {
-            throw new IllegalStateException(
-                    "Unable to create WordprocessingMLPackage",
-                    e);
+            throw new IllegalStateException("Unable to create WordprocessingMLPackage", e);
         }
     }
 
-    private void processHeaderOrFooter(
-            WordprocessingMLPackage pkg,
-            ObjectFactory factory,
-            OpenBlock ob
-    ) {
-        String role = ob.header()
-                        .get(0);
+    private void processHeaderOrFooter(WordprocessingMLPackage pkg, ObjectFactory factory, OpenBlock ob) {
+        String role = ob.header().getFirst();
         try {
             if (role.startsWith("header")) {
-                HeaderPart hp = new HeaderPart(new PartName(
-                        "/word/header" + (headerCount++) + ".xml"));
+                HeaderPart hp = new HeaderPart(new PartName("/word/header" + (headerCount++) + ".xml"));
                 hp.setJaxbElement(factory.createHdr());
                 for (Block subBlock : ob.content()) {
                     addBlock(factory, hp.getContent(), subBlock);
                 }
-                Relationship rel = pkg.getMainDocumentPart()
-                                      .addTargetPart(hp);
+                Relationship rel = pkg.getMainDocumentPart().addTargetPart(hp);
                 addReference(pkg, factory, rel.getId(), role, true);
-            }
-            else if (role.startsWith("footer")) {
-                FooterPart fp = new FooterPart(new PartName(
-                        "/word/footer" + (footerCount++) + ".xml"));
+            } else if (role.startsWith("footer")) {
+                FooterPart fp = new FooterPart(new PartName("/word/footer" + (footerCount++) + ".xml"));
                 fp.setJaxbElement(factory.createFtr());
                 for (Block subBlock : ob.content()) {
                     addBlock(factory, fp.getContent(), subBlock);
                 }
-                Relationship rel = pkg.getMainDocumentPart()
-                                      .addTargetPart(fp);
+                Relationship rel = pkg.getMainDocumentPart().addTargetPart(fp);
                 addReference(pkg, factory, rel.getId(), role, false);
             }
         } catch (Docx4JException e) {

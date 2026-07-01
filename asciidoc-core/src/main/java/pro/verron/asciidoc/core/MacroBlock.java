@@ -10,8 +10,7 @@ import java.util.TreeMap;
 /// @param header an ordered list of strings associated with the macro
 /// @param name   the macro name
 /// @param id     the unique identifier for the macro
-public record MacroBlock(List<String> header, String name, String id)
-        implements Block {
+public record MacroBlock(List<String> header, String name, String id) implements Block {
 
     @Override
     public int size() {
@@ -21,7 +20,6 @@ public record MacroBlock(List<String> header, String name, String id)
     /// Returns the value of the named attribute from the header.
     ///
     /// @param name attribute name
-    ///
     /// @return attribute value, or `null` if absent
     public Optional<String> attribute(String name) {
         return Optional.ofNullable(attributes().get(name));

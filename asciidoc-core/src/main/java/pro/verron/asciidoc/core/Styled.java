@@ -8,12 +8,9 @@ import static java.util.stream.Collectors.joining;
 ///
 /// @param role     the style role
 /// @param children the styled content
-public record Styled(String role, List<Inline> children)
-        implements Inline {
+public record Styled(String role, List<Inline> children) implements Inline {
     @Override
     public String text() {
-        return children.stream()
-                       .map(Inline::text)
-                       .collect(joining());
+        return children.stream().map(Inline::text).collect(joining());
     }
 }

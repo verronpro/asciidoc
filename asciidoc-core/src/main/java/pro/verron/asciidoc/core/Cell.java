@@ -10,7 +10,7 @@ public class Cell {
     private final @Nullable String style;
     private final List<Block> blocks;
 
-    /// Constructs a [Cell] without a style.
+    /// Constructs [Cell] without a style.
     ///
     /// @param blocks cell content blocks
     public Cell(List<Block> blocks) {

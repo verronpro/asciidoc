@@ -8,9 +8,7 @@ import static java.util.Collections.emptyList;
 ///
 /// @param header AsciiDoc block headers containing optional information
 /// @param cells  table cells
-public record Row(
-        List<String> header, List<Cell> cells
-) {
+public record Row(List<String> header, List<Cell> cells) {
     /// Constructs a [Row] without block headers.
     ///
     /// @param cells table cells

@@ -56,8 +56,7 @@ public class AltContentRecorder {
         return new Paragraph(switch (obj) {
             case Fallback fb -> asContent(fb);
             case Choice c -> asContent(c);
-            case Object objobj -> throw new IllegalArgumentException(
-                    "Unsupported object: " + objobj);
+            case Object objobj -> throw new IllegalArgumentException("Unsupported object: " + objobj);
         });
     }
 
@@ -119,8 +118,7 @@ public class AltContentRecorder {
             inlines.add(new Tab());
         }
         inlines.add(new Text("textbox\n"));
-        inlines.addAll(asContent(tbi.getTxbxContent()
-                                    .getContent(), depth + 1));
+        inlines.addAll(asContent(tbi.getTxbxContent().getContent(), depth + 1));
         return inlines;
     }
 
@@ -130,8 +128,7 @@ public class AltContentRecorder {
             inlines.add(new Tab());
         }
         inlines.add(new Text("textbox\n"));
-        inlines.addAll(asContent(tb.getTxbxContent()
-                                   .getContent(), depth + 1));
+        inlines.addAll(asContent(tb.getTxbxContent().getContent(), depth + 1));
         return inlines;
     }
 
@@ -198,8 +195,7 @@ public class AltContentRecorder {
             case Graphic g -> asContent(g, depth);
             case Drawing d -> asContent(d, depth);
             case CTRoundRect rr -> asContent(rr, depth);
-            case Object oo -> throw new RuntimeException(oo.getClass()
-                                                           .getName());
+            case Object oo -> throw new RuntimeException(oo.getClass().getName());
         });
         return inlines;
     }

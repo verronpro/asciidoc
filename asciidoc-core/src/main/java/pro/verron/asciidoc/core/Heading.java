@@ -9,8 +9,7 @@ import static java.util.Collections.emptyList;
 /// @param header  AsciiDoc block headers containing optional information
 /// @param level   heading level (1..6)
 /// @param inlines inline fragments
-public record Heading(List<String> header, int level, List<Inline> inlines)
-        implements Block {
+public record Heading(List<String> header, int level, List<Inline> inlines) implements Block {
 
     /// Constructs a [Heading] without block headers.
     ///
@@ -28,8 +27,7 @@ public record Heading(List<String> header, int level, List<Inline> inlines)
     /// @param inlines the inline fragments representing the heading content
     /// @throws IllegalArgumentException if the heading level is outside the range 1..6
     public Heading(List<String> header, int level, List<Inline> inlines) {
-        if (level < 1 || level > 6) throw new IllegalArgumentException(
-                "Heading level must be between 1 and 6");
+        if (level < 1 || level > 6) throw new IllegalArgumentException("Heading level must be between 1 and 6");
         this.header = List.copyOf(header);
         this.level = level;
         this.inlines = List.copyOf(inlines);

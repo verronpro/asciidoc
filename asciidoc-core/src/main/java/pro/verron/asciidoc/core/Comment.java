@@ -9,11 +9,5 @@ import java.math.BigInteger;
 /// @param lineStart  starting line position
 /// @param blockEnd   ending block position
 /// @param lineEnd    ending line position
-public record Comment(
-        BigInteger id,
-        int blockStart,
-        int lineStart,
-        int blockEnd,
-        int lineEnd
-) {
+public record Comment(BigInteger id, int blockStart, int lineStart, int blockEnd, int lineEnd) {
 }

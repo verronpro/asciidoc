@@ -7,9 +7,8 @@ import java.util.TreeMap;
 /// Inline image.
 ///
 /// @param path image path
-/// @param map alternative text
-public record ImageInline(String path, Map<String, String> map)
-        implements Inline {
+/// @param map  alternative text
+public record ImageInline(String path, Map<String, String> map) implements Inline {
 
     /// Constructs an [ImageInline] with the specified path and attributes.
     ///

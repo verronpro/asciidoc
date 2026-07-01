@@ -10,15 +10,8 @@ import java.util.List;
 /// @param fill     fill color
 /// @param content  text content
 /// @param opts     additional SVG attributes
-public record SvgText(
-        String x,
-        String y,
-        String fontSize,
-        String fill,
-        String content,
-        SvgAttributes opts
-)
-        implements SvgElement {
+public record SvgText(String x, String y, String fontSize, String fill, String content,
+                      SvgAttributes opts) implements SvgElement {
 
     /// Constructs an [SvgText] element with variable attributes.
     ///
@@ -28,14 +21,7 @@ public record SvgText(
     /// @param fill     fill color
     /// @param content  text content
     /// @param opts     additional SVG attributes
-    public SvgText(
-            String x,
-            String y,
-            String fontSize,
-            String fill,
-            String content,
-            SvgAttribute... opts
-    ) {
+    public SvgText(String x, String y, String fontSize, String fill, String content, SvgAttribute... opts) {
         this(x, y, fontSize, fill, content, new SvgAttributes(opts));
     }
 

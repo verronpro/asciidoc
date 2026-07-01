@@ -7,8 +7,7 @@ import static java.util.stream.Collectors.joining;
 /// Subscript inline element.
 ///
 /// @param children inline fragments within this subscript element
-public record Sub(List<Inline> children)
-        implements Inline {
+public record Sub(List<Inline> children) implements Inline {
 
     /// Constructs a [Sub] with the given nested inlines.
     ///
@@ -19,8 +18,6 @@ public record Sub(List<Inline> children)
 
     @Override
     public String text() {
-        return children.stream()
-                       .map(Inline::text)
-                       .collect(joining());
+        return children.stream().map(Inline::text).collect(joining());
     }
 }

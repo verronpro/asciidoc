@@ -8,6 +8,8 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static java.util.Collections.emptyList;
+
 /// Provides SVG paths for icons used in simulated editor interfaces.
 /// Icons are sourced from Bootstrap Icons (MIT License).
 ///
@@ -15,8 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /// in the {@code icons/} package directory and cached on first access.
 public final class AsciiDocIcon {
 
-    private static final ConcurrentHashMap<Icon, List<String>> CACHE =
-            new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Icon, List<String>> CACHE = new ConcurrentHashMap<>();
 
     private AsciiDocIcon() {
         throw new UnsupportedOperationException("Utility class");
@@ -31,34 +32,24 @@ public final class AsciiDocIcon {
     /// @param y     y coordinate
     /// @param size  icon size (width and height)
     /// @param color icon color
-    ///
     /// @return an [Optional] containing the [SvgGroup] for the icon,
     ///         or empty if the resource could not be found
-    public static Optional<SvgGroup> findIcon(
-            Icon icon,
-            int x,
-            int y,
-            int size,
-            String color
-    ) {
+    public static Optional<SvgGroup> findIcon(Icon icon, int x, int y, int size, String color) {
         var paths = CACHE.computeIfAbsent(icon, AsciiDocIcon::loadPaths);
-        if (paths == null || paths.isEmpty()) return Optional.empty();
-        var transform = String.format(Locale.ROOT,
-                "translate(%d, %d) scale(%f)", x, y, size / 16.0);
-        var elements = paths.stream()
-                .map(d -> (SvgElement) new SvgPath(d, color))
-                .toList();
+        if (paths.isEmpty()) return Optional.empty();
+
+        var transform = String.format(Locale.ROOT, "translate(%d, %d) scale(%f)", x, y, size / 16.0);
+        var elements = paths.stream().map(d -> new SvgPath(d, color)).map(SvgElement.class::cast).toList();
         return Optional.of(new SvgGroup(transform, elements));
     }
 
     private static List<String> loadPaths(Icon icon) {
         var resource = AsciiDocIcon.class.getResource(icon.resourceName());
-        if (resource == null) return null;
+        if (resource == null) return emptyList();
         try (var in = resource.openStream()) {
             return extractAllPathData(new String(in.readAllBytes()));
         } catch (IOException e) {
-            throw new UncheckedIOException(
-                    "Failed to read icon resource: " + icon, e);
+            throw new UncheckedIOException("Failed to read icon resource: " + icon, e);
         }
     }
 
@@ -73,9 +64,7 @@ public final class AsciiDocIcon {
             var valueStart = dStart + 3;
             var valueEnd = svg.indexOf('"', valueStart);
             if (valueEnd < 0) break;
-            paths.add(svg.substring(valueStart, valueEnd)
-                    .replaceAll("\\s+", " ")
-                    .trim());
+            paths.add(svg.substring(valueStart, valueEnd).replaceAll("\\s+", " ").trim());
             from = valueEnd + 1;
         }
         return paths;

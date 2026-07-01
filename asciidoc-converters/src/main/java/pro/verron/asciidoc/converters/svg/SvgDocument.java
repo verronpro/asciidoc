@@ -20,10 +20,10 @@ public record SvgDocument(int width, int height, List<SvgElement> children)
 
     @Override
     public SvgAttributes attributes() {
-        var viewbox = String.format(Locale.ROOT, "0 0 %d %d", width, height);
+        var viewBox = String.format(Locale.ROOT, "0 0 %d %d", width, height);
         return new SvgAttributes(attr("xmlns", "http://www.w3.org/2000/svg"),
                 attr("width", String.valueOf(width)),
                 attr("height", String.valueOf(height)),
-                attr("viewBox", viewbox));
+                attr("viewBox", viewBox));
     }
 }

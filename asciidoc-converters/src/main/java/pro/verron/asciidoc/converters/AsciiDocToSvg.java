@@ -30,17 +30,16 @@ public final class AsciiDocToSvg {
     private static final int LINE_HEIGHT = 20;
 
     /// Constructs a new [AsciiDocToSvg] converter.
-    public AsciiDocToSvg() {}
+    public AsciiDocToSvg() {
+    }
 
     /// Converts the given AsciiDoc model into an SVG document simulating an
     /// editor interface.
     ///
     /// @param model the parsed AsciiDoc model
-    ///
     /// @return the SVG document as an XML string
     public String apply(AsciiDocModel model) {
-        var themeStr = model.getAttribute("theme")
-                            .orElse("word");
+        var themeStr = model.getAttribute("theme").orElse("word");
         var theme = Theme.valueOf(themeStr.toUpperCase());
 
         var comments = extractComments(model);
@@ -55,17 +54,12 @@ public final class AsciiDocToSvg {
         var modelBlocks = model.getBlocks();
         for (int i = 0; i < modelBlocks.size(); i++) {
             var block = modelBlocks.get(i);
-            if (block instanceof MacroBlock m && "comment".equals(m.name()))
-                continue;
+            if (block instanceof MacroBlock m && "comment".equals(m.name())) continue;
 
             int startY = currentY;
             boolean isCommented = blockToComments.containsKey(i);
 
-            var result = renderBlock(block,
-                    PAGE_LEFT + PAGE_PADDING,
-                    currentY,
-                    isCommented,
-                    theme);
+            var result = renderBlock(block, PAGE_LEFT + PAGE_PADDING, currentY, isCommented, theme);
             currentY = result.nextY();
             bodyElements.addAll(result.elements());
             blockPositions.add(new BlockPosition(i, startY, currentY - 8));
@@ -87,8 +81,7 @@ public final class AsciiDocToSvg {
         children.add(bg);
 
         // Editor Banner
-        var title = model.getAttribute("title")
-                         .orElse("Document.docx");
+        var title = model.getAttribute("title").orElse("Document.docx");
         children.addAll(theme.renderBanner(title, BANNER_HEIGHT));
 
         // Page Shadow
@@ -98,7 +91,8 @@ public final class AsciiDocToSvg {
                 String.valueOf(pageHeight),
                 attr("fill", "#000"),
                 attr("fill-opacity", "0.1"),
-                attr("rx", "2")));
+                attr("rx", "2")
+        ));
         // Page
         children.add(new SvgRect(String.valueOf(PAGE_LEFT),
                 String.valueOf(pageY),
@@ -106,7 +100,8 @@ public final class AsciiDocToSvg {
                 String.valueOf(pageHeight),
                 attr("fill", "white"),
                 attr("stroke", "#ccc"),
-                attr("stroke-width", "1")));
+                attr("stroke-width", "1")
+        ));
 
         // Body content
         children.addAll(bodyElements);
@@ -128,35 +123,20 @@ public final class AsciiDocToSvg {
             var start = macro.attribute("start");
             var author = macro.attribute("author");
             var value = macro.attribute("value");
-            var commentInfo = new CommentInfo(macro.id(),
-                    start.orElse(""),
-                    author.orElse(""),
-                    value.orElse(""));
+            var commentInfo = new CommentInfo(macro.id(), start.orElse(""), author.orElse(""), value.orElse(""));
             comments.add(commentInfo);
         }
         return comments;
     }
 
-    private BlockRenderResult renderBlock(
-            Block block,
-            int x,
-            int y,
-            boolean highlight,
-            Theme theme
-    ) {
+    private BlockRenderResult renderBlock(Block block, int x, int y, boolean highlight, Theme theme) {
         var elements = new ArrayList<SvgElement>();
         var nextY = y;
         var maxWidth = PAGE_WIDTH - 2 * PAGE_PADDING;
         switch (block) {
             case Heading(_, int level, List<Inline> inlines) -> {
                 var fontSize = Math.max(18, 34 - (level * 3));
-                var result = appendWrappedText(renderInlines(inlines),
-                        x,
-                        y + fontSize,
-                        fontSize,
-                        700,
-                        theme,
-                        maxWidth);
+                var result = appendWrappedText(renderInlines(inlines), x, y + fontSize, fontSize, 700, theme, maxWidth);
                 elements.addAll(result.elements());
                 nextY = result.nextY() + 10;
             }
@@ -167,20 +147,21 @@ public final class AsciiDocToSvg {
                         BODY_FONT_SIZE,
                         400,
                         theme,
-                        maxWidth);
+                        maxWidth
+                );
                 elements.addAll(result.elements());
                 nextY = result.nextY() + 8;
             }
             case UnorderedList(List<ListItem> items) -> {
                 for (ListItem item : items) {
-                    var result = appendWrappedText(
-                            "• " + renderInlines(item.inlines()),
+                    var result = appendWrappedText("• " + renderInlines(item.inlines()),
                             x,
                             nextY + BODY_FONT_SIZE,
                             BODY_FONT_SIZE,
                             400,
                             theme,
-                            maxWidth);
+                            maxWidth
+                    );
                     elements.addAll(result.elements());
                     nextY = result.nextY();
                 }
@@ -189,14 +170,14 @@ public final class AsciiDocToSvg {
             case OrderedList(List<ListItem> items) -> {
                 int index = 1;
                 for (ListItem item : items) {
-                    var result = appendWrappedText(
-                            index + ". " + renderInlines(item.inlines()),
+                    var result = appendWrappedText(index + ". " + renderInlines(item.inlines()),
                             x,
                             nextY + BODY_FONT_SIZE,
                             BODY_FONT_SIZE,
                             400,
                             theme,
-                            maxWidth);
+                            maxWidth
+                    );
                     elements.addAll(result.elements());
                     nextY = result.nextY();
                     index++;
@@ -212,7 +193,8 @@ public final class AsciiDocToSvg {
                         BODY_FONT_SIZE,
                         400,
                         theme,
-                        maxWidth - 10);
+                        maxWidth - 10
+                );
                 elements.addAll(result.elements());
                 nextY = result.nextY();
                 elements.add(new SvgLine(String.valueOf(x),
@@ -220,37 +202,25 @@ public final class AsciiDocToSvg {
                         String.valueOf(x),
                         String.valueOf(nextY - 4),
                         "#888",
-                        attr("stroke-width", 3)));
+                        attr("stroke-width", 3)
+                ));
             }
             case CodeBlock(String language, String content) -> {
                 nextY += 8;
-                int blockHeight = Math.max(LINE_HEIGHT * 2,
-                        (content.lines()
-                                .toList()
-                                .size() + 1) * LINE_HEIGHT);
+                int blockHeight = Math.max(LINE_HEIGHT * 2, (content.lines().toList().size() + 1) * LINE_HEIGHT);
                 elements.add(new SvgRect(String.valueOf(x),
                         String.valueOf(nextY),
                         String.valueOf(PAGE_WIDTH - (PAGE_PADDING * 2)),
                         String.valueOf(blockHeight),
                         attr("fill", "#f6f8fa"),
                         attr("stroke", "#d0d7de"),
-                        attr("rx", "6")));
-                var textResult = appendTextLine("[" + language + "]",
-                        x + 10,
-                        nextY + BODY_FONT_SIZE,
-                        12,
-                        600,
-                        theme);
+                        attr("rx", "6")
+                ));
+                var textResult = appendTextLine("[" + language + "]", x + 10, nextY + BODY_FONT_SIZE, 12, 600, theme);
                 elements.add(textResult.element());
                 nextY = textResult.nextY();
-                for (String line : content.lines()
-                                          .toList()) {
-                    var lineResult = appendTextLine(line,
-                            x + 10,
-                            nextY + 12,
-                            13,
-                            400,
-                            theme);
+                for (String line : content.lines().toList()) {
+                    var lineResult = appendTextLine(line, x + 10, nextY + 12, 13, 400, theme);
                     elements.add(lineResult.element());
                     nextY = lineResult.nextY();
                 }
@@ -258,12 +228,7 @@ public final class AsciiDocToSvg {
             }
             case ImageBlock(String url, String _) -> {
                 nextY += 8;
-                elements.add(new SvgImage(String.valueOf(x),
-                        String.valueOf(nextY),
-                        "320",
-                        "120",
-                        url,
-                        attr("rx", 4)));
+                elements.add(new SvgImage(String.valueOf(x), String.valueOf(nextY), "320", "120", url, attr("rx", 4)));
                 nextY += 114 + LINE_HEIGHT;
             }
             case Table tbl -> {
@@ -278,24 +243,27 @@ public final class AsciiDocToSvg {
                         String.valueOf(tblWidth),
                         String.valueOf(tblHeight),
                         attr("stroke", "black"),
-                        attr("fill", "white")));
+                        attr("fill", "white")
+                ));
                 for (var row : rows) {
                     elements.add(new SvgRect(String.valueOf(x),
                             String.valueOf(nextY),
                             String.valueOf(tblWidth),
                             String.valueOf(rowHeight),
                             attr("stroke", "black"),
-                            attr("fill", "white")));
+                            attr("fill", "white")
+                    ));
                     var nextX = x;
                     var cells = row.cells();
                     var cellWidth = tblWidth / cells.size();
-                    for (var cell : cells) {
+                    for (var _ : cells) {
                         elements.add(new SvgRect(String.valueOf(nextX),
                                 String.valueOf(nextY),
                                 String.valueOf(cellWidth),
                                 String.valueOf(rowHeight),
                                 attr("stroke", "black"),
-                                attr("fill", "white")));
+                                attr("fill", "white")
+                        ));
                         nextX += cellWidth;
                     }
                     nextY += rowHeight;
@@ -305,14 +273,13 @@ public final class AsciiDocToSvg {
         }
 
         if (highlight) {
-            var attrFill = theme.getHighlightColor()
-                                .map(c -> attr("fill", c))
-                                .orElse(SvgAttribute.NONE);
+            var attrFill = theme.getHighlightColor().map(c -> attr("fill", c)).orElse(SvgAttribute.NONE);
             var highlightRect = new SvgRect(String.valueOf(x - 5),
                     String.valueOf(y - 2),
                     String.valueOf(PAGE_WIDTH - 2 * PAGE_PADDING + 10),
                     String.valueOf(nextY - y),
-                    attrFill);
+                    attrFill
+            );
             elements.addFirst(highlightRect);
         }
 
@@ -320,11 +287,7 @@ public final class AsciiDocToSvg {
     }
 
 
-    private List<SvgElement> renderComments(
-            Map<Integer, List<CommentInfo>> blockToComments,
-            List<BlockPosition> blockPositions,
-            Theme theme
-    ) {
+    private List<SvgElement> renderComments(Map<Integer, List<CommentInfo>> blockToComments, List<BlockPosition> blockPositions, Theme theme) {
         var elements = new ArrayList<SvgElement>();
         var commentY = BANNER_HEIGHT + PAGE_MARGIN_TOP + PAGE_PADDING;
         var strokeColor = theme.getStrokeColor();
@@ -334,12 +297,10 @@ public final class AsciiDocToSvg {
             for (var c : comments) {
                 var commentPadding = 10;
                 var textWidth = COMMENT_WIDTH - 2 * commentPadding;
-                var authorFont = getAwtFont(theme, 11, 700);
                 var valueFont = getAwtFont(theme, 11, 400);
                 var valueLines = wrapText(c.value, valueFont, textWidth);
                 var rectHeight = 30 + (valueLines.size() * 15);
-                var attrStroke = strokeColor.map(sc -> attr("stroke", sc))
-                                            .orElse(SvgAttribute.NONE);
+                var attrStroke = strokeColor.map(sc -> attr("stroke", sc)).orElse(SvgAttribute.NONE);
                 elements.add(new SvgRect(String.valueOf(COMMENTS_LEFT),
                         String.valueOf(commentY),
                         String.valueOf(COMMENT_WIDTH),
@@ -347,25 +308,24 @@ public final class AsciiDocToSvg {
                         attr("fill", "#f9f9f9"),
                         attr("stroke-width", "1"),
                         attr("rx", "4"),
-                        attrStroke));
+                        attrStroke
+                ));
                 if (theme == Theme.GDOCS) {
-                    elements.add(new SvgCircle(String.valueOf(
-                            COMMENTS_LEFT + 15),
+                    elements.add(new SvgCircle(String.valueOf(COMMENTS_LEFT + 15),
                             String.valueOf(commentY + 20),
                             "5",
-                            "#4285f4"));
+                            "#4285f4"
+                    ));
                 }
-                var attrFF = theme.getFontFamily()
-                                  .map(ff -> attr("font-family", ff))
-                                  .orElse(SvgAttribute.NONE);
-                elements.add(new SvgText(String.valueOf(
-                        COMMENTS_LEFT + (theme == Theme.GDOCS ? 25 : 10)),
+                var attrFF = theme.getFontFamily().map(ff -> attr("font-family", ff)).orElse(SvgAttribute.NONE);
+                elements.add(new SvgText(String.valueOf(COMMENTS_LEFT + (theme == Theme.GDOCS ? 25 : 10)),
                         String.valueOf(commentY + 20),
                         "11",
                         "#333",
                         c.author,
                         attr("font-weight", "bold"),
-                        attrFF));
+                        attrFF
+                ));
 
                 var lineY = commentY + 35;
                 for (var line : valueLines) {
@@ -374,7 +334,8 @@ public final class AsciiDocToSvg {
                             "11",
                             "#666",
                             line,
-                            attrFF));
+                            attrFF
+                    ));
                     lineY += 15;
                 }
 
@@ -388,7 +349,8 @@ public final class AsciiDocToSvg {
                         String.valueOf(endY),
                         strokeColor.orElse(""),
                         attr("stroke-width", 1),
-                        attr("stroke-dasharray", 4)));
+                        attr("stroke-dasharray", 4)
+                ));
 
                 commentY += rectHeight + 10;
             }
@@ -401,53 +363,32 @@ public final class AsciiDocToSvg {
         for (CommentInfo c : comments) {
             try {
                 int blockIndex = Integer.parseInt(c.start.split(",")[0]);
-                map.computeIfAbsent(blockIndex, k -> new ArrayList<>())
-                   .add(c);
-            } catch (Exception ignored) {}
+                map.computeIfAbsent(blockIndex, _ -> new ArrayList<>()).add(c);
+            } catch (Exception ignored) {
+            }
         }
         return map;
     }
 
-    private TextLineResult appendTextLine(
-            String line,
-            int x,
-            int y,
-            int fontSize,
-            int weight,
-            Theme theme
-    ) {
+    private TextLineResult appendTextLine(String line, int x, int y, int fontSize, int weight, Theme theme) {
         var text = new SvgText(String.valueOf(x),
                 String.valueOf(y),
                 String.valueOf(fontSize),
                 "#111",
                 line,
                 attr("font-weight", weight),
-                theme.getFontFamily()
-                     .map(ff -> attr("font-family", ff))
-                     .orElse(SvgAttribute.NONE));
+                theme.getFontFamily().map(ff -> attr("font-family", ff)).orElse(SvgAttribute.NONE)
+        );
         return new TextLineResult(text, y + LINE_HEIGHT);
     }
 
-    private WrappedTextResult appendWrappedText(
-            String text,
-            int x,
-            int y,
-            int fontSize,
-            int weight,
-            Theme theme,
-            int maxWidth
-    ) {
+    private WrappedTextResult appendWrappedText(String text, int x, int y, int fontSize, int weight, Theme theme, int maxWidth) {
         var font = getAwtFont(theme, fontSize, weight);
         var lines = wrapText(text, font, maxWidth);
         var elements = new ArrayList<SvgElement>();
         var currentY = y;
         for (var line : lines) {
-            var result = appendTextLine(line,
-                    x,
-                    currentY,
-                    fontSize,
-                    weight,
-                    theme);
+            var result = appendTextLine(line, x, currentY, fontSize, weight, theme);
             elements.add(result.element());
             currentY = result.nextY();
         }
@@ -461,11 +402,9 @@ public final class AsciiDocToSvg {
                 case Text(String value) -> value;
                 case Bold(List<Inline> children) -> renderInlines(children);
                 case Italic(List<Inline> children) -> renderInlines(children);
-                case Link(String url, String label) ->
-                        label.isBlank() ? url : label;
+                case Link(String url, String label) -> label.isBlank() ? url : label;
                 case ImageInline(String url, Map<String, String> attributes) ->
-                        "[%s: %s]".formatted(attributes.getOrDefault("title",
-                                "image"), url);
+                        "[%s: %s]".formatted(attributes.getOrDefault("title", "image"), url);
                 case Tab _ -> "    ";
                 default -> inline.text();
             };
@@ -474,15 +413,18 @@ public final class AsciiDocToSvg {
         return text.toString();
     }
 
-    private record CommentInfo(
-            String id, String start, String author, String value
-    ) {}
+    private record CommentInfo(String id, String start, String author, String value) {
+    }
 
-    private record BlockPosition(int index, int startY, int endY) {}
+    private record BlockPosition(int index, int startY, int endY) {
+    }
 
-    private record BlockRenderResult(int nextY, List<SvgElement> elements) {}
+    private record BlockRenderResult(int nextY, List<SvgElement> elements) {
+    }
 
-    private record TextLineResult(SvgText element, int nextY) {}
+    private record TextLineResult(SvgText element, int nextY) {
+    }
 
-    private record WrappedTextResult(int nextY, List<SvgElement> elements) {}
+    private record WrappedTextResult(int nextY, List<SvgElement> elements) {
+    }
 }

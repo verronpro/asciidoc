@@ -15,4 +15,7 @@
 /// @see pro.verron.asciidoc.converters.AsciiDocToHtml
 /// @see pro.verron.asciidoc.converters.AsciiDocToText
 /// @see pro.verron.asciidoc.converters.AsciiDocToSvg
+@NullMarked
 package pro.verron.asciidoc.converters;
+
+import org.jspecify.annotations.NullMarked;

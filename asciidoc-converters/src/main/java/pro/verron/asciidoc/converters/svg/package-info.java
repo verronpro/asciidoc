@@ -10,4 +10,7 @@
 ///
 /// @see pro.verron.asciidoc.converters.AsciiDocToSvg AsciiDocToSvg
 /// @see pro.verron.asciidoc.converters.svg.Theme
+@NullMarked
 package pro.verron.asciidoc.converters.svg;
+
+import org.jspecify.annotations.NullMarked;

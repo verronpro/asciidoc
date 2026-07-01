@@ -5,8 +5,7 @@ import java.util.List;
 /// Italic inline that can contain nested inlines.
 ///
 /// @param children nested inline fragments
-public record Italic(List<Inline> children)
-        implements Inline {
+public record Italic(List<Inline> children) implements Inline {
     /// Constructs an [Italic] with the given nested inlines.
     ///
     /// @param children nested inline fragments

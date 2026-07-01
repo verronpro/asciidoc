@@ -4,8 +4,7 @@ package pro.verron.asciidoc.core;
 ///
 /// @param url     image URL
 /// @param altText alternative text
-public record ImageBlock(String url, String altText)
-        implements Block {
+public record ImageBlock(String url, String altText) implements Block {
     @Override
     public int size() {
         return 1;

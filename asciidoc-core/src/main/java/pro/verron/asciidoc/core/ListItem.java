@@ -17,7 +17,6 @@ public record ListItem(List<Inline> inlines) {
     ///
     /// @return the text of the leading inline fragment
     public String text() {
-        return inlines().getFirst()
-                        .text();
+        return inlines().getFirst().text();
     }
 }

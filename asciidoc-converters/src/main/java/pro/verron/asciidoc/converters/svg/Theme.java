@@ -65,8 +65,7 @@ public enum Theme {
             case NONE -> Optional.empty();
             case WORD -> Optional.of("Calibri, 'Carlito', 'Arial', sans-serif");
             case GDOCS -> Optional.of("Arial, 'Arimo', sans-serif");
-            case LIBRE -> Optional.of("'Liberation Serif', 'Tinos', 'Times "
-                                      + "New Roman', serif");
+            case LIBRE -> Optional.of("'Liberation Serif', 'Tinos', 'Times " + "New Roman', serif");
         };
     }
 
@@ -84,12 +83,8 @@ public enum Theme {
     ///
     /// @param title        document title displayed in the banner
     /// @param bannerHeight total height of the banner area in pixels
-    ///
     /// @return SVG elements that compose the banner
-    public Collection<? extends SvgElement> renderBanner(
-            String title,
-            double bannerHeight
-    ) {
+    public Collection<? extends SvgElement> renderBanner(String title, double bannerHeight) {
         return switch (this) {
             case NONE -> List.of();
             case WORD -> renderWordBanner(title, bannerHeight);
@@ -98,24 +93,18 @@ public enum Theme {
         };
     }
 
-    private List<SvgElement> renderWordBanner(
-            String title,
-            double bannerHeight
-    ) {
+    private List<SvgElement> renderWordBanner(String title, double bannerHeight) {
         var elements = new ArrayList<SvgElement>();
         // Blue title bar with Quick Access Toolbar
-        elements.add(new SvgRect("0",
-                "0",
-                "100%",
-                "30",
-                attr("fill", "#2b579a")));
+        elements.add(new SvgRect("0", "0", "100%", "30", attr("fill", "#2b579a")));
         elements.add(new SvgText("50%",
                 "20",
                 "12",
                 "white",
                 title + " - Word",
                 attr("font-family", "Segoe UI, Arial"),
-                attr("text-anchor", "middle")));
+                attr("text-anchor", "middle")
+        ));
 
         // Quick Access Toolbar icons
         findIcon(SAVE, 10, 7, 16, "white").ifPresent(elements::add);
@@ -123,17 +112,9 @@ public enum Theme {
         findIcon(REDO, 60, 7, 16, "white").ifPresent(elements::add);
 
         // Ribbon area background
-        elements.add(new SvgRect("0",
-                "30",
-                "100%",
-                String.valueOf(bannerHeight - 30),
-                attr("fill", "#f3f2f1")));
+        elements.add(new SvgRect("0", "30", "100%", String.valueOf(bannerHeight - 30), attr("fill", "#f3f2f1")));
         elements.add(new SvgLine("0", "30", "100%", "30", "#ccc"));
-        elements.add(new SvgLine("0",
-                String.valueOf(bannerHeight),
-                "100%",
-                String.valueOf(bannerHeight),
-                "#ccc"));
+        elements.add(new SvgLine("0", String.valueOf(bannerHeight), "100%", String.valueOf(bannerHeight), "#ccc"));
 
         // Ribbon tab names
         elements.add(new SvgText("20",
@@ -141,7 +122,8 @@ public enum Theme {
                 "11",
                 "#333",
                 "File  Home  Insert  Design  Layout  References  Mailings  Review  View",
-                attr("font-family", "Segoe UI, Arial")));
+                attr("font-family", "Segoe UI, Arial")
+        ));
 
         // Clipboard group
         findIcon(PASTE, 20, 70, 16, "#333").ifPresent(elements::add);
@@ -176,32 +158,21 @@ public enum Theme {
         return elements;
     }
 
-    private List<SvgElement> renderGoogleDocsBanner(
-            String title,
-            double bannerHeight
-    ) {
+    private List<SvgElement> renderGoogleDocsBanner(String title, double bannerHeight) {
         var elements = new ArrayList<SvgElement>();
         // Top bar
-        elements.add(new SvgRect("0",
-                "0",
-                "100%",
-                "60",
-                attr("fill", "white")));
+        elements.add(new SvgRect("0", "0", "100%", "60", attr("fill", "white")));
         elements.add(new SvgCircle("30", "30", "15", "#4285f4"));
         findIcon(TABLE, 22, 22, 16, "white").ifPresent(elements::add);
 
-        elements.add(new SvgText("60",
-                "25",
-                "18",
-                "#3c4043",
-                title,
-                attr("font-family", "Product Sans, Arial")));
+        elements.add(new SvgText("60", "25", "18", "#3c4043", title, attr("font-family", "Product Sans, Arial")));
         elements.add(new SvgText("60",
                 "45",
                 "12",
                 "#5f6368",
                 "File  Edit  View  Insert  Format  Tools  Extensions  Help",
-                attr("font-family", "Arial")));
+                attr("font-family", "Arial")
+        ));
 
         // Star and Share
         findIcon(STAR, 520, 18, 16, "#5f6368").ifPresent(elements::add);
@@ -213,7 +184,8 @@ public enum Theme {
                 "100%",
                 String.valueOf(bannerHeight - 70),
                 attr("fill", "#edf2fa"),
-                attr("rx", "15")));
+                attr("rx", "15")
+        ));
         elements.add(new SvgLine("0", "100", "100%", "100", "#ccc"));
 
         // Undo / Redo / Print
@@ -250,44 +222,30 @@ public enum Theme {
         return elements;
     }
 
-    private List<SvgElement> renderLibreOfficeBanner(
-            String title,
-            double bannerHeight
-    ) {
+    private List<SvgElement> renderLibreOfficeBanner(String title, double bannerHeight) {
         var elements = new ArrayList<SvgElement>();
         // Title bar
-        elements.add(new SvgRect("0",
-                "0",
-                "100%",
-                "30",
-                attr("fill", "#dfdfdf")));
+        elements.add(new SvgRect("0", "0", "100%", "30", attr("fill", "#dfdfdf")));
         elements.add(new SvgText("10",
                 "20",
                 "12",
                 "black",
                 title + " - LibreOffice Writer",
-                attr("font-family", "Arial")));
+                attr("font-family", "Arial")
+        ));
 
         // Menu bar
-        elements.add(new SvgRect("0",
-                "30",
-                "100%",
-                "25",
-                attr("fill", "#eeeeee")));
+        elements.add(new SvgRect("0", "30", "100%", "25", attr("fill", "#eeeeee")));
         elements.add(new SvgText("10",
                 "47",
                 "11",
                 "black",
-                "File  Edit  View  Insert  Format  Styles  Table  Form  Tools"
-                + "  Window  Help",
-                attr("font-family", "Arial")));
+                "File  Edit  View  Insert  Format  Styles  Table  Form  Tools" + "  Window  Help",
+                attr("font-family", "Arial")
+        ));
 
         // Standard toolbar row
-        elements.add(new SvgRect("0",
-                "55",
-                "100%",
-                "22",
-                attr("fill", "#eeeeee")));
+        elements.add(new SvgRect("0", "55", "100%", "22", attr("fill", "#eeeeee")));
         elements.add(new SvgLine("0", "55", "100%", "55", "#ccc"));
 
         // File operations
@@ -317,11 +275,7 @@ public enum Theme {
         findIcon(COMMENT, 430, 58, 14, "#333").ifPresent(elements::add);
 
         // Formatting toolbar row
-        elements.add(new SvgRect("0",
-                "77",
-                "100%",
-                String.valueOf(bannerHeight - 77),
-                attr("fill", "#eeeeee")));
+        elements.add(new SvgRect("0", "77", "100%", String.valueOf(bannerHeight - 77), attr("fill", "#eeeeee")));
         elements.add(new SvgLine("0", "77", "100%", "77", "#ccc"));
         elements.add(new SvgLine("0", "100", "100%", "100", "#ccc"));
 

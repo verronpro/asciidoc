@@ -10,6 +10,7 @@ import static pro.verron.asciidoc.converters.svg.SvgAttribute.attr;
 /// @param children child elements
 public record SvgGroup(String transform, List<SvgElement> children)
         implements SvgElement {
+
     @Override
     public String markup() {
         return "g";

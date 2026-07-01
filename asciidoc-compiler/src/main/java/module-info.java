@@ -21,6 +21,7 @@
 /// Exported packages:
 /// - `pro.verron.asciidoc.compiler`: Contains the core classes and utilities
 /// for document compilation and processing.
+
 module pro.verron.asciidoc.compiler {
     requires pro.verron.asciidoc.core;
     requires pro.verron.asciidoc.converters;
@@ -29,6 +30,7 @@ module pro.verron.asciidoc.compiler {
     requires org.apache.xmlgraphics.batik.codec;
     requires java.desktop;
     requires org.docx4j.core;
+    requires org.jspecify;
 
     exports pro.verron.asciidoc.compiler;
 }

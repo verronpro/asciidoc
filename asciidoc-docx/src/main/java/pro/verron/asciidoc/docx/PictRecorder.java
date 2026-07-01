@@ -27,17 +27,12 @@ public class PictRecorder {
 
     /// @return the comment macro blocks
     public Collection<OpenBlock> all() {
-        return picts.stream()
-                    .map(this::asBlock)
-                    .toList();
+        return picts.stream().map(this::asBlock).toList();
     }
 
     private OpenBlock asBlock(Pict pict) {
         var header = List.of("pict", "anchor=" + pict.getAnchorId());
-        var content = pict.getAnyAndAny()
-                          .stream()
-                          .map(pO -> new Paragraph(asTextContent(pO, 0)))
-                          .toList();
+        var content = pict.getAnyAndAny().stream().map(pO -> new Paragraph(asTextContent(pO, 0))).toList();
         return new OpenBlock(header, content);
     }
 
@@ -48,8 +43,7 @@ public class PictRecorder {
             case P p -> asContent(p, depth);
             case CTShadow s -> asContent(s, depth);
             case CTTextbox tb -> asContent(tb, depth);
-            default -> throw new IllegalArgumentException(
-                    "Unsupported object: " + o);
+            default -> throw new IllegalArgumentException("Unsupported object: " + o);
         };
     }
 
@@ -77,11 +71,7 @@ public class PictRecorder {
             inlines.add(new Tab());
         }
         inlines.add(new Text("textbox\n"));
-        tb.getTxbxContent()
-          .getContent()
-          .stream()
-          .map(ee -> asTextContent(ee, depth + 1))
-          .forEach(inlines::addAll);
+        tb.getTxbxContent().getContent().stream().map(ee -> asTextContent(ee, depth + 1)).forEach(inlines::addAll);
         return inlines;
     }
 
@@ -91,10 +81,7 @@ public class PictRecorder {
             inlines.add(new Tab());
         }
         inlines.add(new Text("roundrect\n"));
-        rr.getEGShapeElements()
-          .stream()
-          .map(o -> asTextContent(o, depth + 1))
-          .forEach(inlines::addAll);
+        rr.getEGShapeElements().stream().map(o -> asTextContent(o, depth + 1)).forEach(inlines::addAll);
         return inlines;
     }
 }

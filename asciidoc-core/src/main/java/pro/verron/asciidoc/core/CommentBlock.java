@@ -6,8 +6,7 @@ package pro.verron.asciidoc.core;
 /// Its size is always zero.
 ///
 /// @param comment the text of the comment line
-public record CommentBlock(String comment)
-        implements Block {
+public record CommentBlock(String comment) implements Block {
     @Override
     public int size() {
         return 0;
