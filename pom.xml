@@ -276,7 +276,7 @@
                 <plugin>
                     <groupId>org.pitest</groupId>
                     <artifactId>pitest-maven</artifactId>
-                    <version>1.25.5</version>
+                    <version>1.25.9</version>
                 </plugin>
                 <plugin>
                     <groupId>org.simplify4u.plugins</groupId>
