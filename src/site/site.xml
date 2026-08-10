@@ -13,7 +13,7 @@
       <item name="Blog" href="https://verron.pro/"/>
       <item name="GitHub" href="https://github.com/verronpro/asciidoc"/>
     </links>
-        
+
     <menu name="Documentation">
       <item name="Home" href="index.html"/>
       <item name="Release Notes" href="release-notes.html"/>
@@ -21,8 +21,8 @@
     </menu>
 
     <menu name="Examples">
-      <item name="Basic Word" href="examples/basic-word.html"/>
-      <item name="Basic GDocs" href="examples/google-docs.html"/>
+      <item name="Basic Word" href="examples/preview-scenes/basic-word.html"/>
+      <item name="Basic GDocs" href="examples/preview-scenes/google-docs.html"/>
     </menu>
 
     <menu ref="modules"/>
