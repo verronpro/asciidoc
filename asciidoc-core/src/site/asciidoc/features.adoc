@@ -1,0 +1,44 @@
+= Features
+
+`asciidoc-core` provides the foundational data model and parsing logic for AsciiDoc
+integration. It is designed to be lightweight and efficient, focusing on the core
+structures needed for bidirectional conversion.
+
+== Data model
+
+`AsciiDocModel` is the structured representation of AsciiDoc content. It captures the
+document as discrete parts — including comments and other document elements — so that
+downstream modules can read or rewrite AsciiDoc without re-parsing raw text.
+
+== Parser
+
+`AsciiDocParser` extracts `AsciiDocModel` components from raw AsciiDoc text using a
+regex-based approach. This keeps the parser fast and dependency-free for the common
+case, at the cost of not implementing the full AsciiDoc grammar.
+
+[source,java]
+----
+AsciiDocParser parser = new AsciiDocParser();
+AsciiDocModel model = parser.parse("Some *bold* text");
+----
+
+== Design goals
+
+* *Lightweight*: minimal dependencies, so the module drops into varied environments
+  (editors, build tools, converters) without bloat.
+* *Bidirectional-friendly*: the model is shaped to support both reading AsciiDoc and
+  regenerating it, which the wider `asciidoc` family relies on.
+* *Predictable*: a small, focused API surface that is easy to embed.
+
+== Limitations
+
+* The parser is intentionally *not* a complete AsciiDoc implementation. Complex
+  constructs (deeply nested blocks, extensions, macros) may not round-trip perfectly.
+* Conversion fidelity depends on the consuming module; `asciidoc-core` only models and
+  extracts, it does not render.
+
+== Related modules
+
+* `asciidoc-compiler` — turn the model into output.
+* `asciidoc-converters` — transform between AsciiDoc and other formats.
+* `asciidoc-preview` / `asciidoc-docx` — higher-level consumers of the model.

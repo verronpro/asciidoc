@@ -1,0 +1,38 @@
+= Features
+
+`asciidoc-converters` provides lightweight converters from the `AsciiDocModel` to
+various text-based and vector formats. It renders without needing a full Asciidoctor
+installation.
+
+== HTML converter
+
+`AsciiDocToHtml` converts the model to basic HTML spans, preserving inline markup.
+
+== Text converter
+
+`AsciiDocToText` converts the model to plain text — useful for indexing or previews
+where markup should be stripped.
+
+== SVG converter
+
+`AsciiDocToSvg` converts the model to SVG, with support for different editor themes:
+
+* `Theme.WORD` — Microsoft Word look.
+* `Theme.GOOGLE_DOCS` — Google Docs look.
+* `Theme.LIBREOFFICE` — LibreOffice Writer look.
+
+== Design goals
+
+* *Lightweight*: pure-Java conversion, no external process.
+* *Focused*: operate on the `AsciiDocModel`, so they pair naturally with `asciidoc-core`
+  and `asciidoc-compiler`.
+
+== Limitations
+
+* These are intentionally basic renderers (spans, text, simple SVG), not a full
+  AsciiDoc-to-HTML publishing pipeline.
+
+== Related modules
+
+* xref:index.adoc[AsciiDoc Core] — the model these converters consume.
+* `asciidoc-compiler` — a high-level facade that uses these converters for image export.

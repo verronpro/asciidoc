@@ -1,0 +1,48 @@
+= Getting Started
+
+This guide gets `asciidoc-converters` working in a project: add the dependency, build
+from source, and run your first conversion.
+
+== Prerequisites
+
+* A JDK matching the project baseline: **Java 25** (set via `maven.compiler.release`).
+* **Apache Maven 3.9+** (or the project's Maven wrapper, if present).
+* An `AsciiDocModel` to convert — usually produced by `asciidoc-core`'s `AsciiDocParser`.
+
+== Add the dependency
+
+[source,xml]
+----
+<dependency>
+    <groupId>pro.verron.asciidoc</groupId>
+    <artifactId>asciidoc-converters</artifactId>
+    <version>${project.version}</version>
+</dependency>
+----
+
+== Build from source
+
+[source,bash]
+----
+git clone https://github.com/verronpro/asciidoc.git
+cd asciidoc/asciidoc-converters
+mvn install
+----
+
+== Convert your first model to HTML
+
+[source,java]
+----
+import pro.verron.asciidoc.core.AsciiDocParser;
+import pro.verron.asciidoc.core.AsciiDocModel;
+import pro.verron.asciidoc.converters.AsciiDocToHtml;
+
+AsciiDocModel model = new AsciiDocParser().parse("Some *bold* text");
+String html = new AsciiDocToHtml().convert(model);
+----
+
+== Where to go next
+
+* xref:features.adoc[Features] — the HTML, Text, and SVG converters in detail.
+* xref:examples.adoc[Examples] — converting with editor themes.
+* xref:index.adoc[Overview] — the module README and links to the full documentation.

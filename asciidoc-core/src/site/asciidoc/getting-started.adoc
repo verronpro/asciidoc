@@ -1,0 +1,52 @@
+= Getting Started
+
+This guide gets `asciidoc-core` working in a project: add the dependency, build from
+source, and run your first parse.
+
+== Prerequisites
+
+* A JDK matching the project baseline: **Java 25** (set via `maven.compiler.release`).
+* **Apache Maven 3.9+** (or the project's Maven wrapper, if present).
+
+== Add the dependency
+
+[source,xml]
+----
+<dependency>
+    <groupId>pro.verron.asciidoc</groupId>
+    <artifactId>asciidoc-core</artifactId>
+    <version>${project.version}</version>
+</dependency>
+----
+
+TIP: Replace `${project.version}` with the released version, or import the
+`asciidoc` BOM if your build uses one.
+
+== Build from source
+
+[source,bash]
+----
+git clone https://github.com/verronpro/asciidoc.git
+cd asciidoc/asciidoc-core
+mvn install
+----
+
+This installs the artifact into your local repository so other modules can depend on it.
+
+== Parse your first document
+
+[source,java]
+----
+import pro.verron.asciidoc.core.AsciiDocParser;
+import pro.verron.asciidoc.core.AsciiDocModel;
+
+AsciiDocParser parser = new AsciiDocParser();
+AsciiDocModel model = parser.parse("Some *bold* text");
+
+// Inspect the structured model: comments, document parts, inline markup, …
+----
+
+== Where to go next
+
+* xref:features.adoc[Features] — the data model and parser capabilities in detail.
+* xref:index.adoc[Overview] — the module README and links to the full documentation.

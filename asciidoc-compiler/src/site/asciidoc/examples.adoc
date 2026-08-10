@@ -1,0 +1,37 @@
+= Examples
+
+Practical snippets for `asciidoc-compiler`. All examples use the `AsciiDocCompiler`
+facade.
+
+== Compile to PNG
+
+[source,java]
+----
+import pro.verron.asciidoc.compiler.AsciiDocCompiler;
+import pro.verron.asciidoc.compiler.Theme;
+
+AsciiDocCompiler compiler = new AsciiDocCompiler();
+Path pngPath = compiler.compileToPng("source.adoc", "output.png", 300, Theme.WORD);
+----
+
+== Compile to SVG
+
+The same facade can emit vector output instead of a raster image:
+
+[source,java]
+----
+Path svgPath = compiler.compileToSvg("source.adoc", "output.svg", Theme.GOOGLE_DOCS);
+----
+
+== Higher DPI for print
+
+[source,java]
+----
+// 600 DPI for print-quality output
+Path printPath = compiler.compileToPng("poster.adoc", "poster.png", 600, Theme.LIBREOFFICE);
+----
+
+== Next steps
+
+* xref:getting-started.adoc[Getting Started] — install and run your first compile.
+* xref:features.adoc[Features] — the unified API, image export, and theming in detail.

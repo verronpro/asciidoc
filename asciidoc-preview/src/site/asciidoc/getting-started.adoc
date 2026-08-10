@@ -1,0 +1,46 @@
+= Getting Started
+
+This guide gets `asciidoc-preview` working: add the dependency, build from source, and
+embed your first preview in AsciiDoc documentation.
+
+== Prerequisites
+
+* A JDK matching the project baseline: **Java 25** (set via `maven.compiler.release`).
+* **Apache Maven 3.9+** (or the project's Maven wrapper, if present).
+* An AsciidoctorJ-based documentation build (the extension registers with AsciidoctorJ).
+
+== Add the dependency
+
+[source,xml]
+----
+<dependency>
+    <groupId>pro.verron.asciidoc</groupId>
+    <artifactId>asciidoc-preview</artifactId>
+    <version>${project.version}</version>
+</dependency>
+----
+
+== Build from source
+
+[source,bash]
+----
+git clone https://github.com/verronpro/asciidoc.git
+cd asciidoc/asciidoc-preview
+mvn install
+----
+
+== Embed your first preview
+
+The extension is discovered automatically via SPI when AsciidoctorJ starts, so you only
+need to use the macro in your AsciiDoc:
+
+[source,asciidoc]
+----
+preview::my-template.adoc[theme=word, dpi=300]
+----
+
+== Where to go next
+
+* xref:features.adoc[Features] — theming, caching, and SPI auto-registration.
+* xref:examples.adoc[Examples] — more attribute combinations.
+* xref:index.adoc[Overview] — the module README and links to the full documentation.

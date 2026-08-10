@@ -1,0 +1,37 @@
+= Features
+
+`asciidoc-docx` provides bidirectional integration between AsciiDoc and Microsoft Word
+(DOCX). It leverages Docx4J to map AsciiDoc structures to WordprocessingML and back.
+
+== AsciiDoc to DOCX
+
+`AsciiDocToDocx` converts the AsciiDoc model to Docx4J `R` (Run) objects, preserving
+inline formatting so the result drops into a Word document.
+
+== DOCX to AsciiDoc
+
+`DocxToAsciiDoc` converts Docx4J objects — or a full document — back to AsciiDoc text,
+so Word content can be edited as AsciiDoc and round-tripped.
+
+== Formatting mapping
+
+Handles the complex mapping of:
+
+* paragraph and character **styles**,
+* inline formatting such as **bold** and *italic*,
+* and other inline formatting between the two formats.
+
+== Design goals
+
+* *Bidirectional*: one module covers both directions, built on Docx4J.
+* *Loss-aware*: aims to preserve formatting through the conversion.
+
+== Limitations
+
+* Not every Word feature maps cleanly to AsciiDoc; very complex documents may lose
+  some structure on the way back.
+
+== Related modules
+
+* xref:index.adoc[AsciiDoc Core] — the model this module converts.
+* `asciidoc-compiler` — a high-level facade that uses this module for Word export.

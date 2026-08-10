@@ -1,0 +1,55 @@
+= Examples
+
+Practical snippets for `asciidoc-core`. All examples use the public entry point
+`AsciiDocParser` and its `parse(String)` method, which returns an `AsciiDocModel`.
+
+== A minimal document
+
+[source,java]
+----
+AsciiDocParser parser = new AsciiDocParser();
+AsciiDocModel model = parser.parse("Some *bold* text");
+----
+
+The model captures the inline markup so a downstream module can preserve or transform
+the `*bold*` span without re-parsing the raw text.
+
+== A document with a comment
+
+[source,java]
+----
+String input = """
+    Some prose.
+    // TODO: clarify this section
+    More prose.
+    """;
+
+AsciiDocModel model = new AsciiDocParser().parse(input);
+// The comment is retained as a distinct model part, not dropped.
+----
+
+Comments survive in the model, which is what lets the `asciidoc` family keep review
+notes through a round-trip conversion.
+
+== Multiple document parts
+
+[source,java]
+----
+String input = """
+    = Title
+
+    Intro paragraph.
+
+    == Section
+
+    Body text.
+    """;
+
+AsciiDocModel model = new AsciiDocParser().parse(input);
+// model exposes the document as separable parts (title, paragraphs, section).
+----
+
+== Next steps
+
+* xref:getting-started.adoc[Getting Started] — install and run your first parse.
+* xref:features.adoc[Features] — the data model and parser capabilities in detail.

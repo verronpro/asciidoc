@@ -1,0 +1,49 @@
+= Getting Started
+
+This guide gets `asciidoc-compiler` working in a project: add the dependency, build
+from source, and run your first compile to an image.
+
+== Prerequisites
+
+* A JDK matching the project baseline: **Java 25** (set via `maven.compiler.release`).
+* **Apache Maven 3.9+** (or the project's Maven wrapper, if present).
+
+== Add the dependency
+
+[source,xml]
+----
+<dependency>
+    <groupId>pro.verron.asciidoc</groupId>
+    <artifactId>asciidoc-compiler</artifactId>
+    <version>${project.version}</version>
+</dependency>
+----
+
+== Build from source
+
+[source,bash]
+----
+git clone https://github.com/verronpro/asciidoc.git
+cd asciidoc/asciidoc-compiler
+mvn install
+----
+
+== Compile your first document to PNG
+
+[source,java]
+----
+import pro.verron.asciidoc.compiler.AsciiDocCompiler;
+import pro.verron.asciidoc.compiler.Theme;
+
+AsciiDocCompiler compiler = new AsciiDocCompiler();
+Path pngPath = compiler.compileToPng("source.adoc", "output.png", 300, Theme.WORD);
+----
+
+This renders `source.adoc` to a 300 DPI PNG styled like Microsoft Word, using Apache
+Batik for the export.
+
+== Where to go next
+
+* xref:features.adoc[Features] — the unified API, image export, and theming in detail.
+* xref:examples.adoc[Examples] — more compile scenarios.
+* xref:index.adoc[Overview] — the module README and links to the full documentation.

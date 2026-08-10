@@ -1,0 +1,50 @@
+= Getting Started
+
+This guide gets `asciidoc-docx` working in a project: add the dependency, build from
+source, and run your first conversion to Word.
+
+== Prerequisites
+
+* A JDK matching the project baseline: **Java 25** (set via `maven.compiler.release`).
+* **Apache Maven 3.9+** (or the project's Maven wrapper, if present).
+* An `AsciiDocModel` to convert — usually produced by `asciidoc-core`'s `AsciiDocParser`.
+
+== Add the dependency
+
+[source,xml]
+----
+<dependency>
+    <groupId>pro.verron.asciidoc</groupId>
+    <artifactId>asciidoc-docx</artifactId>
+    <version>${project.version}</version>
+</dependency>
+----
+
+== Build from source
+
+[source,bash]
+----
+git clone https://github.com/verronpro/asciidoc.git
+cd asciidoc/asciidoc-docx
+mvn install
+----
+
+== Convert your first model to DOCX runs
+
+[source,java]
+----
+import pro.verron.asciidoc.core.AsciiDocParser;
+import pro.verron.asciidoc.core.AsciiDocModel;
+import pro.verron.asciidoc.docx.AsciiDocToDocx;
+
+AsciiDocModel model = new AsciiDocParser().parse("Some *bold* text");
+List<Object> runs = new AsciiDocToDocx().convert(model);
+----
+
+The result is a list of Docx4J `R` (Run) objects you can place into a Word document.
+
+== Where to go next
+
+* xref:features.adoc[Features] — bidirectional conversion and formatting mapping.
+* xref:examples.adoc[Examples] — converting both directions.
+* xref:index.adoc[Overview] — the module README and links to the full documentation.

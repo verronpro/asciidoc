@@ -1,0 +1,25 @@
+= Examples
+
+Practical snippets for `asciidoc-docx`. Both directions are supported.
+
+== AsciiDoc model to DOCX runs
+
+[source,java]
+----
+AsciiDocModel model = new AsciiDocParser().parse("Some *bold* text");
+List<Object> runs = new AsciiDocToDocx().convert(model);
+// runs are Docx4J R objects you can add to a paragraph
+----
+
+== DOCX back to AsciiDoc
+
+[source,java]
+----
+DocxToAsciiDoc toAdoc = new DocxToAsciiDoc();
+String adoc = toAdoc.convert(wordDocument);
+----
+
+== Next steps
+
+* xref:getting-started.adoc[Getting Started] — install and run your first conversion.
+* xref:features.adoc[Features] — bidirectional conversion and formatting mapping.

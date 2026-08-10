@@ -1,0 +1,32 @@
+= Features
+
+`asciidoc-preview` provides an AsciidoctorJ block macro extension to embed
+editor-simulated previews of AsciiDoc templates into documentation.
+
+== `preview::[]` macro
+
+Automatically renders and embeds PNG previews of AsciiDoc files directly in your
+generated docs, so readers see how a template will look in a real word processor.
+
+== Theming
+
+Supports `theme`, `format`, and `dpi` attributes for consistent previews:
+
+* `theme`: target editor look (`word`, `google-docs`, `libreoffice`).
+* `format`: output image format.
+* `dpi`: render resolution.
+
+== Caching
+
+An intelligent caching system only regenerates images when the source file changes, so
+repeated builds stay fast.
+
+== Easy integration
+
+SPI discovery registers the extension automatically with AsciidoctorJ — no manual
+registration code required once the dependency is on the classpath.
+
+== Related modules
+
+* `asciidoc-compiler` — the rendering the preview builds on.
+* xref:index.adoc[AsciiDoc Core] — the model behind the previewed templates.

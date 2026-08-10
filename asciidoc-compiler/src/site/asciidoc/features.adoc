@@ -1,0 +1,38 @@
+= Features
+
+`asciidoc-compiler` provides a high-level facade for all AsciiDoc operations. It wraps
+the lower-level modules behind a single entry point and adds image export powered by
+Apache Batik.
+
+== Unified API
+
+`AsciiDocCompiler` is the single entry point for common operations, so callers do not
+need to wire up `asciidoc-core`, `asciidoc-converters`, and `asciidoc-docx` themselves.
+
+== Image export
+
+* Compiles AsciiDoc directly to **PNG** or **SVG**.
+* Powered by Apache Batik, so no external rendering tool is required.
+
+== Customization
+
+* **DPI**: control output resolution (e.g. `300` for print-quality PNG).
+* **Theme**: choose the target editor look — `Theme.WORD`, and the other editor themes
+  supported across the family.
+
+== Integration
+
+The compiler combines functionality from the `asciidoc-core` (model/parsing),
+`asciidoc-converters` (HTML/SVG/Text), and `asciidoc-docx` (Word) modules, exposing them
+through one facade.
+
+== Limitations
+
+* The compiler reuses the same lightweight parser as `asciidoc-core`; it is not a full
+  AsciiDoc implementation, so very complex documents may not round-trip perfectly.
+
+== Related modules
+
+* xref:index.adoc[AsciiDoc Core] — the data model and parser the compiler builds on.
+* `asciidoc-converters` — the rendering the compiler delegates to.
+* `asciidoc-docx` — the Word integration the compiler delegates to.

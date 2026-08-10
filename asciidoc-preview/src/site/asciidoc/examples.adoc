@@ -1,0 +1,30 @@
+= Examples
+
+Practical snippets for `asciidoc-preview`. All examples are AsciiDoc you write in your
+own documentation; the `preview::[]` macro is provided by the extension.
+
+== A basic Word-themed preview
+
+[source,asciidoc]
+----
+preview::my-template.adoc[theme=word, dpi=300]
+----
+
+== A Google Docs preview at lower DPI
+
+[source,asciidoc]
+----
+preview::my-template.adoc[theme=google-docs, dpi=150]
+----
+
+== A LibreOffice preview
+
+[source,asciidoc]
+----
+preview::my-template.adoc[theme=libreoffice, dpi=300]
+----
+
+== Next steps
+
+* xref:getting-started.adoc[Getting Started] — add the dependency and embed your first preview.
+* xref:features.adoc[Features] — theming, caching, and SPI auto-registration.

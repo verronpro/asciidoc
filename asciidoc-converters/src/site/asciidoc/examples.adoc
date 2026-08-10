@@ -1,0 +1,31 @@
+= Examples
+
+Practical snippets for `asciidoc-converters`. Each converter takes an `AsciiDocModel`
+(produced by `asciidoc-core`) and returns a `String`.
+
+== Convert to HTML
+
+[source,java]
+----
+AsciiDocModel model = new AsciiDocParser().parse("Some *bold* text");
+String html = new AsciiDocToHtml().convert(model);
+----
+
+== Convert to plain text
+
+[source,java]
+----
+String text = new AsciiDocToText().convert(model);
+----
+
+== Convert to SVG with an editor theme
+
+[source,java]
+----
+String svg = new AsciiDocToSvg().convert(model, Theme.WORD);
+----
+
+== Next steps
+
+* xref:getting-started.adoc[Getting Started] — install and run your first conversion.
+* xref:features.adoc[Features] — the HTML, Text, and SVG converters in detail.
