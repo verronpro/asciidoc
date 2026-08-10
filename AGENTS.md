@@ -45,5 +45,6 @@ This project uses **Java 25** and **Maven**.
   consumers when changing the converters/docx modules.
 - The preview output schema is governed by an ADR under `src/site/.../adr/` (e.g.
   `001-asciidoc-preview-schema.adoc`). Consult it before changing preview output.
-- The loose `font-requirements.adoc` and `snapshot-testing.adoc` at this project root are internal
-  references, not published docs; cross-link rather than duplicate them.
+- `font-requirements.adoc` and `snapshot-testing.adoc` are published docs under
+  `src/site/asciidoc/` (reachable from the site nav as "Font Requirements" / "Snapshot Testing");
+  link to them from module docs rather than duplicating their content.
