@@ -170,6 +170,21 @@ public final class AsciiDocCompiler {
         saveSvgAsImage(svg, path, hints);
     }
 
+    /// Saves the given SVG document as a PNG image file with specific DPI and
+    /// background color.
+    ///
+    /// @param svg        SVG source
+    /// @param path       path to save the image
+    /// @param dpi        dots per inch
+    /// @param background background color (null for transparent)
+    public static void saveSvgAsImage(String svg, Path path, int dpi, Color background) {
+        var mmPerInch = 25.4f;
+        var hints = new TranscodingHints();
+        if (background != null) hints.put(PNGTranscoder.KEY_BACKGROUND_COLOR, background);
+        hints.put(PNGTranscoder.KEY_PIXEL_UNIT_TO_MILLIMETER, mmPerInch / dpi);
+        saveSvgAsImage(svg, path, hints);
+    }
+
     /// Saves the given SVG document as a PNG image file with specific DPI and background color.
     ///
     /// @param svg   SVG source
