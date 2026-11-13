@@ -36,11 +36,19 @@ jobs:
 
       - name: Commit, tag and push release version
         run: |
-          git add .
-          git commit -m "chore: release ${{ env.RELEASE_VERSION }}"
-          git tag -a "v${{ env.RELEASE_VERSION }}" -m "Release v${{ env.RELEASE_VERSION }}"
-          git push origin "v${{ env.RELEASE_VERSION }}"
-          git push origin HEAD:main
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "Version already at ${{ env.RELEASE_VERSION }}, nothing to commit"
+          else
+            git add .
+            git commit -m "chore: release ${{ env.RELEASE_VERSION }}"
+            git push origin HEAD:main
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/v${{ env.RELEASE_VERSION }}" > /dev/null 2>&1; then
+            echo "Tag v${{ env.RELEASE_VERSION }} already exists, skipping tag creation"
+          else
+            git tag -a "v${{ env.RELEASE_VERSION }}" -m "Release v${{ env.RELEASE_VERSION }}"
+            git push origin "v${{ env.RELEASE_VERSION }}"
+          fi
 
       - name: Publish to Maven Central
         run: mvn -B -ntp deploy -P gpg,!mut
