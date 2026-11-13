@@ -116,6 +116,8 @@ public final class AsciiDocToDocx implements Function<AsciiDocModel, Wordprocess
                 }
             }
             case MacroBlock _ -> throw new UnsupportedOperationException("Macro blocks are not supported");
+            case SectionBreak _ -> throw new UnsupportedOperationException(
+                    "Section breaks are only supported at the document top level");
         }
     }
 
@@ -340,6 +342,8 @@ public final class AsciiDocToDocx implements Function<AsciiDocModel, Wordprocess
             for (Block block : model.getBlocks()) {
                 if (block instanceof OpenBlock ob && isHeaderOrFooter(ob)) {
                     processHeaderOrFooter(pkg, factory, ob);
+                } else if (block instanceof SectionBreak) {
+                    endSection(pkg, factory, mainContent);
                 } else {
                     addBlock(factory, mainContent, block);
                 }
@@ -348,6 +352,38 @@ public final class AsciiDocToDocx implements Function<AsciiDocModel, Wordprocess
         } catch (Docx4JException e) {
             throw new IllegalStateException("Unable to create WordprocessingMLPackage", e);
         }
+    }
+
+    /// Closes the section that just ended by moving the body-level sectPr
+    /// onto the last paragraph of that section — how Word marks a section
+    /// break — and installing a fresh body-level sectPr for the next one.
+    ///
+    /// Headers and footers declared since the previous break are attached to
+    /// the moved sectPr, while the next section starts with none, so Word
+    /// inherits them from the previous section.
+    private static void endSection(WordprocessingMLPackage pkg, ObjectFactory factory, List<Object> content) {
+        var body = pkg.getMainDocumentPart().getJaxbElement().getBody();
+        var sectionSectPr = body.getSectPr();
+        if (sectionSectPr == null) sectionSectPr = factory.createSectPr();
+        body.setSectPr(factory.createSectPr());
+
+        for (int i = content.size() - 1; i >= 0; i--) {
+            if (content.get(i) instanceof P p) {
+                var pPr = p.getPPr();
+                if (pPr == null) {
+                    pPr = factory.createPPr();
+                    p.setPPr(pPr);
+                }
+                pPr.setSectPr(sectionSectPr);
+                return;
+            }
+        }
+        // The ended section carries no paragraph: emit an empty one to hold its sectPr
+        P p = factory.createP();
+        PPr pPr = factory.createPPr();
+        pPr.setSectPr(sectionSectPr);
+        p.setPPr(pPr);
+        content.add(p);
     }
 
     private void processHeaderOrFooter(WordprocessingMLPackage pkg, ObjectFactory factory, OpenBlock ob) {

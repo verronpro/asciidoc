@@ -131,6 +131,7 @@ public final class AsciiDocToText
             case MacroBlock(List<String> list, String name, String id) ->
                     "%s::%s[%s]".formatted(name, id, String.join(", ", list));
             case Break _ -> "<<<";
+            case SectionBreak _ -> "[section]";
             case CommentBlock(String comment) ->
                     skipComments ? null : ("// %s").formatted(comment);
         };
