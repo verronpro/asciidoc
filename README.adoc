@@ -19,6 +19,7 @@ It is designed to be used as a set of libraries to integrate AsciiDoc processing
 == Key Features
 
 * **Bidirectional DOCX Conversion**: Convert AsciiDoc to DOCX and vice versa (with support for `AlternateContent` and `pict` elements).
+* **Multi-section Documents**: A standalone `[section]` marker ends a document section; headers and footers declared per section inherit the previous section's ones like Word's "Link to Previous".
 * **Lightweight Rendering**: Render AsciiDoc to HTML, SVG, and Text without needing a full Asciidoctor installation.
 * **Compiler API**: High-level API for complex conversion tasks and PNG export.
 * **Documentation Previews**: AsciidoctorJ extension for embedding previews in your own documentation.

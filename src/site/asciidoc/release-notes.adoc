@@ -2,6 +2,18 @@
 :gh: https://github.com/verronpro/asciidoc
 :proj: https://github.com/verronpro/asciidoc/releases/tag
 
+== v3.10 (upcoming)
+
+=== New Features
+
+* **Multi-section Documents**: A standalone `[section]` marker now ends the current document section. Headers and footers declared since the previous marker bind to that section, and a section that declares none inherits the previous section's ones, matching Word's per-reference-kind inheritance semantics ("Link to Previous" for each header/footer part). An **empty** `[header]`/`[footer]` block references a distinct empty part and breaks inheritance.
+* **Text Round-trip**: The Text renderer outputs the `[section]` marker back, so section breaks survive an AsciiDoc→DOCX→AsciiDoc text comparison.
+
+=== Improvements and Fixes
+
+* **API Compatibility**: Restored the `saveSvgAsImage(String, Path, int, Color)` overload of `AsciiDocCompiler`, accidentally dropped by the transcoding-hints refactor in v3.9.
+* **Backward Compatibility**: Documents without any `[section]` marker behave exactly as in v3.9, and the DOCX→AsciiDoc converter output is unchanged.
+
 == {proj}/v3.8[v3.8]
 
 === New Features
