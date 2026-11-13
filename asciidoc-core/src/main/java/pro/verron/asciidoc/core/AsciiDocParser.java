@@ -207,6 +207,16 @@ public final class AsciiDocParser implements Function<String, AsciiDocModel> {
             var trimmed = line.trim();
 
             if (trimmed.startsWith("[") && trimmed.endsWith("]") && !inCodeBlock && !inBlockquote && !inTable) {
+                if (!inOpenBlock && "section".equals(trimmed.substring(1, trimmed.length() - 1).trim())) {
+                    // Standalone [section] line: marks the end of a document section
+                    if (!currentParagraph.isEmpty()) {
+                        currentContainer.add(createParagraph(nextBlockHeader, currentParagraph.toString()));
+                    }
+                    nextBlockHeader.clear();
+                    currentParagraph.setLength(0);
+                    currentContainer.add(new SectionBreak());
+                    continue;
+                }
                 nextBlockHeader.addAll(Arrays.asList(trimmed.substring(1, trimmed.length() - 1).split(",")));
                 continue;
             }
