@@ -2,7 +2,7 @@
 :gh: https://github.com/verronpro/asciidoc
 :proj: https://github.com/verronpro/asciidoc/releases/tag
 
-== v4.0.0 (upcoming)
+== {proj}/v4.0.0[v4.0.0]
 
 === Breaking Changes
 
