@@ -142,11 +142,18 @@ public final class AsciiDocToText
         var sb = new StringBuilder();
         sb.append("[%s]\n".formatted(String.join(", ", openBlock.header())));
         sb.append("--\n");
-        openBlock.content()
-                 .stream()
-                 .map(p -> renderBlock(p, 0))
-                 .forEach(sb::append);
-        sb.append("--\n");
+        // Blocks render with a trailing blank line; trim it so the closing
+        // delimiter hugs the content and delimited blocks round-trip.
+        var inner = openBlock.content()
+                             .stream()
+                             .map(p -> renderBlock(p, 0))
+                             .collect(Collectors.joining())
+                             .stripTrailing();
+        if (!inner.isEmpty()) sb.append(inner)
+                                .append("\n");
+        // No trailing newline: renderBlock adds the separating blank line, so
+        // a delimited block renders exactly like its AsciiDoc source form.
+        sb.append("--");
         return sb.toString();
     }
 

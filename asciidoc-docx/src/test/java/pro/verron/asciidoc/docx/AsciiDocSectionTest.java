@@ -154,6 +154,82 @@ public class AsciiDocSectionTest {
                 "A section without its own [header] should inherit the previous section's header");
     }
 
+    @Test
+    @DisplayName("The [section] marker should survive an AsciiDoc→DOCX→AsciiDoc round-trip")
+    void sectionMarkerRoundTripsThroughDocx() {
+        var source = """
+                First section content
+
+                [section]
+
+                Second section content
+                """;
+        var rendered = toText(toDocx(source));
+        assertEquals(source.stripTrailing(), rendered.stripTrailing(),
+                "The [section] marker should be reconstructed by the DOCX→AsciiDoc converter");
+
+        var stabilized = toText(toDocx(rendered));
+        assertEquals(rendered.stripTrailing(), stabilized.stripTrailing(),
+                "The round-trip should be a fixed point: converting the rendered text again must not change it");
+    }
+
+    @Test
+    @DisplayName("Sections with headers and footers should round-trip through DOCX")
+    void sectionsWithHeaderFooterRoundTripThroughDocx() {
+        var source = """
+                [header]
+                --
+                Section one header
+                --
+
+                [footer]
+                --
+                Section one footer
+                --
+
+                First section content
+
+                [section]
+
+                Second section content
+                """;
+        var rendered = toText(toDocx(source));
+        assertEquals(source.stripTrailing(), rendered.stripTrailing(),
+                "Header/footer blocks and the [section] marker should survive the DOCX round-trip, "
+                        + "with each block bound to the section it came from");
+    }
+
+    @Test
+    @DisplayName("An inheritance-breaking empty [footer] block should round-trip through DOCX")
+    void emptyFooterBlockRoundTripsThroughDocx() {
+        var source = """
+                [footer]
+                --
+                Section one footer
+                --
+
+                First section content
+
+                [section]
+
+                [footer]
+                --
+                --
+
+                Second section content
+                """;
+        var rendered = toText(toDocx(source));
+        assertEquals(source.stripTrailing(), rendered.stripTrailing(),
+                "The empty [footer] block that breaks inheritance should survive the DOCX round-trip");
+    }
+
+    /// Renders a DOCX package back to AsciiDoc text, the way consumers compare
+    /// stamped documents against their templates.
+    private static String toText(WordprocessingMLPackage pkg) {
+        var model = new DocxToAsciiDoc(pkg).apply(pkg);
+        return new pro.verron.asciidoc.converters.AsciiDocToText(true).apply(model);
+    }
+
     private static HeaderPart defaultHeader(SectionWrapper section) {
         var policy = section.getHeaderFooterPolicy();
         assertNotNull(policy);

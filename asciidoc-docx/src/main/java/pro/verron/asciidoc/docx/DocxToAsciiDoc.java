@@ -54,6 +54,8 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
     private final BlockRecorder blocks;
     private final WordprocessingMLPackage wordprocessingMLPackage;
     private final AltContentRecorder altContentRecorder;
+    private List<SectionWrapper> sectionWrappers;
+    private int nextWrapperIndex;
 
     /// Constructs a new [DocxToAsciiDoc] for the given DOCX package.
     ///
@@ -69,35 +71,35 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
         this.blocks = new BlockRecorder();
     }
 
-    private static Stream<HeaderPart> getHeaderParts(WordprocessingMLPackage document) {
-        var model = document.getDocumentModel();
-        var sections = model.getSections();
+    /// Returns the `[header]`/`[footer]` blocks of the section at `index` that
+    /// are not inherited from an earlier section, in Word's model where a
+    /// section shares the previous section's parts by referencing the same
+    /// part object. Inherited parts are skipped so a section declaring none
+    /// emits nothing, and the blocks land in the section's own span.
+    private List<Block> ownHeaderFooterBlocks(List<SectionWrapper> wrappers, int index) {
+        var result = new ArrayList<Block>();
+        var policy = wrappers.get(index)
+                             .getHeaderFooterPolicy();
+        if (policy == null) return result;
 
-        var set = new LinkedHashSet<HeaderPart>();
-        for (SectionWrapper section : sections) {
-            HeaderFooterPolicy hfp = section.getHeaderFooterPolicy();
-            if (hfp != null) {
-                if (hfp.getFirstHeader() != null) set.add(hfp.getFirstHeader());
-                if (hfp.getDefaultHeader() != null) set.add(hfp.getDefaultHeader());
-                if (hfp.getEvenHeader() != null) set.add(hfp.getEvenHeader());
-            }
+        var inherited = new HashSet<>();
+        for (int i = 0; i < index; i++) {
+            var earlier = wrappers.get(i)
+                                  .getHeaderFooterPolicy();
+            if (earlier == null) continue;
+            for (var part : new Object[]{earlier.getFirstHeader(), earlier.getDefaultHeader(),
+                    earlier.getEvenHeader(), earlier.getFirstFooter(), earlier.getDefaultFooter(),
+                    earlier.getEvenFooter()})
+                if (part != null) inherited.add(part);
         }
-        return set.stream();
-    }
 
-    private static Stream<FooterPart> getFooterParts(WordprocessingMLPackage document) {
-        var sections = document.getDocumentModel().getSections();
-
-        var set = new LinkedHashSet<FooterPart>();
-        for (SectionWrapper section : sections) {
-            HeaderFooterPolicy hfp = section.getHeaderFooterPolicy();
-            if (hfp != null) {
-                if (hfp.getFirstFooter() != null) set.add(hfp.getFirstFooter());
-                if (hfp.getDefaultFooter() != null) set.add(hfp.getDefaultFooter());
-                if (hfp.getEvenFooter() != null) set.add(hfp.getEvenFooter());
-            }
-        }
-        return set.stream();
+        for (var part : new HeaderPart[]{policy.getFirstHeader(), policy.getDefaultHeader(),
+                policy.getEvenHeader()})
+            if (part != null && !inherited.contains(part)) toHeaderBlock(part).ifPresent(result::add);
+        for (var part : new FooterPart[]{policy.getFirstFooter(), policy.getDefaultFooter(),
+                policy.getEvenFooter()})
+            if (part != null && !inherited.contains(part)) toFooterBlock(part).ifPresent(result::add);
+        return result;
     }
 
     private static Optional<ImageInline> extractGraphic(Graphic graphic) {
@@ -322,9 +324,18 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
                         blocks.add(new Heading(style, headerLevel.get(), toInlines(p, breakRecorder)));
                     else blocks.add(new Paragraph(style, toInlines(p, breakRecorder)));
 
+                    // A paragraph-level sectPr marks a section break (it holds
+                    // the section's own sectPr); emit the [section] marker so
+                    // AsciiDoc→DOCX→AsciiDoc round-trips it, followed by the
+                    // next section's own header/footer blocks. The body-level
+                    // sectPr below still reports the final section's page setup.
                     ofNullable(p.getPPr()).map(PPr::getSectPr)
-                            .flatMap(this::stringified)
-                            .ifPresent(s -> blocks.add(new CommentBlock(s)));
+                            .ifPresent(_ -> {
+                                blocks.add(new SectionBreak());
+                                if (sectionWrappers != null && nextWrapperIndex < sectionWrappers.size())
+                                    blocks.addAll(ownHeaderFooterBlocks(sectionWrappers,
+                                            nextWrapperIndex++));
+                            });
 
                     if (breakRecorder.isSet()) blocks.add(new Break());
                 }
@@ -498,7 +509,14 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
 
     @Override
     public AsciiDocModel apply(WordprocessingMLPackage pkg) {
-        blocks.addAll(extractHeaderBlocks(pkg).toList());
+        var wrappers = pkg.getDocumentModel()
+                          .getSections();
+        // The first section's own header/footer blocks open the document; the
+        // following sections' ones are emitted right after their [section]
+        // marker, so each block binds back to the section it came from.
+        this.sectionWrappers = wrappers;
+        this.nextWrapperIndex = 1;
+        blocks.addAll(ownHeaderFooterBlocks(wrappers, 0));
 
         var mdp = pkg.getMainDocumentPart();
         {
@@ -530,7 +548,6 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
         } catch (Docx4JException e) {
             throw new RuntimeException(e);
         }
-        getFooterParts(pkg).map(this::toFooterBlock).flatMap(Optional::stream).forEach(blocks::add);
         var list = new ArrayList<Block>();
         list.addAll(commentRecorder.all());
         list.addAll(blocks.all());
@@ -539,25 +556,20 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
         return of(list);
     }
 
-    private Stream<Block> extractHeaderBlocks(WordprocessingMLPackage pkg) {
-        return DocxToAsciiDoc.getHeaderParts(pkg).map(this::toHeaderBlock).flatMap(Optional::stream);
-    }
-
     private Optional<Block> toFooterBlock(FooterPart footerPart) {
         var toAsciiDoc = new DocxToAsciiDoc(wordprocessingMLPackage);
         var extractedBlocks = toAsciiDoc.apply(footerPart).getBlocks();
-        return extractedBlocks.isEmpty() ? Optional.empty() : Optional.of(new OpenBlock(List.of("footer"),
-                extractedBlocks
-        ));
-
+        // An empty part is meaningful: it is the AsciiDoc encoding of an
+        // inheritance-breaking empty [footer] block, so keep it.
+        return Optional.of(new OpenBlock(List.of("footer"), extractedBlocks));
     }
 
     private Optional<Block> toHeaderBlock(HeaderPart headerPart) {
         var toAsciiDoc = new DocxToAsciiDoc(wordprocessingMLPackage);
         var extractedBlocks = toAsciiDoc.apply(headerPart).getBlocks();
-        return extractedBlocks.isEmpty() ? Optional.empty() : Optional.of(new OpenBlock(List.of("header"),
-                extractedBlocks
-        ));
+        // An empty part is meaningful: it is the AsciiDoc encoding of an
+        // inheritance-breaking empty [header] block, so keep it.
+        return Optional.of(new OpenBlock(List.of("header"), extractedBlocks));
     }
 
     private Optional<Block> toNoteBlock(String role, List<CTFtnEdn> notes) {
