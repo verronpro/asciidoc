@@ -27,6 +27,7 @@ import pro.verron.asciidoc.core.Text;
 
 import java.math.BigInteger;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -83,7 +84,7 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
         this.commentRecorder = new CommentRecorder(commentsPart);
         this.pictRecorder = new PictRecorder();
         this.altContentRecorder = new AltContentRecorder();
-        this.blocks = new BlockRecorder();
+        this.blocks = new BlockRecorder(commentRecorder::attach);
     }
 
     /// Returns the `[header]`/`[footer]` blocks of the section at `index` that
@@ -220,8 +221,8 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
             switch (val) {
                 case R r -> inlines.addAll(getInlines(r, breakRecorder));
                 case ProofErr _ -> {/* NOOP */}
-                case CommentRangeStart crs -> commentRecorder.open(crs.getId(), blocks.size(), 0);
-                case CommentRangeEnd cre -> commentRecorder.close(cre.getId(), blocks.size(), 0);
+                case CommentRangeStart crs -> commentRecorder.open(crs.getId(), 0);
+                case CommentRangeEnd cre -> commentRecorder.close(cre.getId(), 0);
                 case SdtRun sdtRun -> {
                     List<String> list = new ArrayList<>();
                     var id = ofNullable(sdtRun.getSdtPr()).map(SdtPr::getId)
@@ -284,8 +285,8 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
                 case Br br when br.getType() == STBrType.PAGE -> brecorder.set();
                 case R.Tab _ -> sb.append("\t");
                 case CTFtnEdnRef n -> sb.append("footnote:%s[]".formatted(n.getId()));
-                case CommentRangeStart crs -> commentRecorder.open(crs.getId(), blocks.size(), inlines.size());
-                case CommentRangeEnd cre -> commentRecorder.close(cre.getId(), blocks.size(), inlines.size());
+                case CommentRangeStart crs -> commentRecorder.open(crs.getId(), inlines.size());
+                case CommentRangeEnd cre -> commentRecorder.close(cre.getId(), inlines.size());
                 case Pict pict -> {
                     sb.append("pict:%s[]".formatted(pict.getAnchorId()));
                     pictRecorder.add(pict);
@@ -360,8 +361,8 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
         for (Object o : accessor.getContent()) {
             Object val = unwrap(o);
             switch (val) {
-                case CommentRangeStart crs -> commentRecorder.open(crs.getId(), blocks.size(), 0);
-                case CommentRangeEnd cre -> commentRecorder.close(cre.getId(), blocks.size(), 0);
+                case CommentRangeStart crs -> commentRecorder.open(crs.getId(), 0);
+                case CommentRangeEnd cre -> commentRecorder.close(cre.getId(), 0);
                 case P p -> {
                     var headerLevel = getHeaderLevel(p);
                     var breakRecorder = new BreakRecorder();
@@ -380,10 +381,14 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
                     // the section's own sectPr); emit its [section-properties]
                     // block (binds to the section it ends), then the [section]
                     // marker, followed by the next section's own header/footer
-                    // blocks.
+                    // blocks. The [section-properties] block is emission
+                    // metadata: it is added to the model without consuming any
+                    // position in the comment coordinate space, so comment
+                    // anchors do not shift with the emitSectionProperties
+                    // option.
                     ofNullable(p.getPPr()).map(PPr::getSectPr)
                             .ifPresent(sectPr -> {
-                                if (emitSectionProperties) blocks.addAll(
+                                if (emitSectionProperties) blocks.addMetadata(
                                         sectionPropertiesBlocks(sectPrMap(sectPr)));
                                 blocks.add(new SectionBreak());
                                 if (sectionWrappers != null && nextWrapperIndex < sectionWrappers.size())
@@ -628,9 +633,10 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
             readBlocks(body);
             // The body-level sectPr holds the LAST section's layout; emit it
             // as a [section-properties] block so the final section's page
-            // setup round-trips too.
+            // setup round-trips too. As above, it consumes no position in the
+            // comment coordinate space.
             if (emitSectionProperties && body.getSectPr() instanceof SectPr sectPr)
-                blocks.addAll(sectionPropertiesBlocks(sectPrMap(sectPr)));
+                blocks.addMetadata(sectionPropertiesBlocks(sectPrMap(sectPr)));
         }
 
         try {
@@ -701,11 +707,25 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
 
     /// Tracks comment ranges in the document and produces [MacroBlock]
     /// representations with start/end positions.
+    /// <p>
+    /// Comment anchors are resolved against the <em>content</em> block
+    /// sequence only: a range endpoint is recorded while walking a block's
+    /// content and is resolved when that block itself is registered via
+    /// [CommentRecorder.attach]. Blocks that are emission metadata rather
+    /// than content — the `[section-properties]` blocks — are never
+    /// registered, so anchor coordinates are independent of emission options
+    /// such as `emitSectionProperties`.
     public static class CommentRecorder {
         private final Deque<CommentBuilder> comments;
         private final List<BigInteger> ids;
-        private final Map<BigInteger, Comment> map;
+        private final Map<BigInteger, CommentBuilder> map;
         private final CommentsPart commentsPart;
+        private int contentWeight = 0;
+        private final List<PendingAnchor> pendingAnchors = new ArrayList<>();
+
+        /// A comment anchor recorded while walking a block's content, waiting
+        /// for the block it belongs to.
+        private record PendingAnchor(CommentBuilder builder, boolean start) {}
 
         CommentRecorder(CommentsPart commentsPart) {
             this.commentsPart = commentsPart;
@@ -714,34 +734,54 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
             map = new HashMap<>();
         }
 
-        /// Opens a comment range at the given position.
+        /// Registers a content block at its position in the comment
+        /// coordinate space (the sum of the sizes of the content blocks
+        /// before it), and resolves the anchors that were recorded while
+        /// walking its content.
         ///
-        /// @param id         the unique identifier for the comment
-        /// @param blockStart the starting block position
-        /// @param lineStart  the starting inline position
-        public void open(BigInteger id, int blockStart, int lineStart) {
+        /// @param block the content block being added to the model
+        public void attach(Block block) {
+            var weight = contentWeight;
+            contentWeight += block.size();
+            for (var anchor : pendingAnchors) {
+                if (anchor.start()) anchor.builder()
+                                          .setBlockStart(weight);
+                else anchor.builder()
+                           .setBlockEnd(weight);
+            }
+            pendingAnchors.clear();
+        }
+
+        /// Opens a comment range, anchored to the block currently being
+        /// walked. The block coordinate is resolved when that block is
+        /// attached.
+        ///
+        /// @param id        the unique identifier for the comment
+        /// @param lineStart the starting inline position
+        public void open(BigInteger id, int lineStart) {
             var builder = new CommentBuilder(id);
-            builder.setBlockStart(blockStart);
             builder.setLineStart(lineStart);
             comments.addLast(builder);
             ids.add(id);
+            pendingAnchors.add(new PendingAnchor(builder, true));
         }
 
-        /// Closes the comment range matching the given ID.
+        /// Closes the comment range matching the given ID, anchored to the
+        /// block currently being walked. The block coordinate is resolved
+        /// when that block is attached.
         ///
-        /// @param id       the unique identifier of the comment
-        /// @param blockEnd the ending block position
-        /// @param lineEnd  the ending inline position
+        /// @param id      the unique identifier of the comment
+        /// @param lineEnd the ending inline position
         /// @throws IllegalStateException if the ID does not match the last
         ///         opened comment
-        public void close(BigInteger id, int blockEnd, int lineEnd) {
+        public void close(BigInteger id, int lineEnd) {
             var lastComment = comments.removeLast();
             var lastCommentId = lastComment.getId();
             var msg = "Closing comment %s but last comment open is %s".formatted(id, lastCommentId);
             assertThat(lastCommentId.equals(id), msg);
-            lastComment.setBlockEnd(blockEnd);
             lastComment.setLineEnd(lineEnd);
-            map.put(id, lastComment.createComment());
+            pendingAnchors.add(new PendingAnchor(lastComment, false));
+            map.put(id, lastComment);
         }
 
         private void assertThat(boolean bool, String msg) {
@@ -753,7 +793,11 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
         ///
         /// @return the comment macro blocks
         public Collection<MacroBlock> all() {
-            return ids.stream().map(map::get).map(this::asBlock).toList();
+            return ids.stream()
+                      .map(map::get)
+                      .map(CommentBuilder::createComment)
+                      .map(this::asBlock)
+                      .toList();
         }
 
         private MacroBlock asBlock(Comment comment) {
@@ -793,17 +837,27 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
 
     }
 
+    /// Collects the blocks of the document in emission order. Content blocks
+    /// are forwarded to the comment recorder so comment anchors resolve
+    /// against the content sequence; emission-metadata blocks ([section-properties])
+    /// are kept in the model but consume no position in that coordinate space.
     private static class BlockRecorder {
         private final List<Block> blocks = new ArrayList<>();
-        private int size = 0;
+        private final Consumer<Block> contentBlockConsumer;
 
-        public int size() {
-            return size;
+        BlockRecorder(Consumer<Block> contentBlockConsumer) {
+            this.contentBlockConsumer = contentBlockConsumer;
         }
 
         public void add(Block block) {
             blocks.add(block);
-            size += block.size();
+            contentBlockConsumer.accept(block);
+        }
+
+        /// Adds emission-metadata blocks to the model: they appear in
+        /// emission order but do not shift the comment coordinate space.
+        public void addMetadata(Collection<Block> metadata) {
+            blocks.addAll(metadata);
         }
 
         public List<Block> all() {
@@ -811,8 +865,7 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
         }
 
         public void addAll(Collection<Block> blocks) {
-            this.blocks.addAll(blocks);
-            size += blocks.stream().mapToInt(Block::size).sum();
+            blocks.forEach(this::add);
         }
     }
 
