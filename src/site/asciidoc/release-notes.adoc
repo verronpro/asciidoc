@@ -2,6 +2,16 @@
 :gh: https://github.com/verronpro/asciidoc
 :proj: https://github.com/verronpro/asciidoc/releases/tag
 
+== v3.11 (upcoming)
+
+=== New Features
+
+* **Section Round-trip**: The DOCX→AsciiDoc converter now reconstructs the standalone `[section]` marker from a document's section breaks, so an AsciiDoc→DOCX→AsciiDoc round-trip is a fixed point. Each section's own `[header]`/`[footer]` blocks are emitted at the start of that section's span — right after its `[section]` marker — instead of collecting all headers at the top and all footers at the document end, which rebound them to the wrong section on re-conversion. Empty header/footer parts are preserved, keeping the empty blocks that break inheritance.
+
+=== Improvements and Fixes
+
+* **Text Rendering**: Delimited blocks (`[header]`, `[footer]`, quotes, etc.) no longer emit a blank line inside their closing delimiter, so rendered text matches its AsciiDoc source form exactly.
+
 == {proj}/v3.10[v3.10]
 
 === New Features
