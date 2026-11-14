@@ -55,7 +55,11 @@ class DocxToAsciiDocTest {
                 |Other
                 |===
                 
-                // section {pgMar={bottom=1440, left=1440, right=1440, top=1440}, pgSz={code=9, h=16839, w=11907}}
+                [section-properties]
+                --
+                pgMar={bottom=1440, left=1440, right=1440, top=1440}
+                pgSz={code=9, h=16839, w=11907}
+                --
                 
                 """;
 
@@ -85,7 +89,11 @@ class DocxToAsciiDocTest {
                 P2
                 |===
                 
-                // section {pgMar={bottom=1440, left=1440, right=1440, top=1440}, pgSz={code=9, h=16839, w=11907}}
+                [section-properties]
+                --
+                pgMar={bottom=1440, left=1440, right=1440, top=1440}
+                pgSz={code=9, h=16839, w=11907}
+                --
                 
                 """;
 

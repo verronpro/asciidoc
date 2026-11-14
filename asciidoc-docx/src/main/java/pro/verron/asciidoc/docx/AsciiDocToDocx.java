@@ -10,11 +10,15 @@ import org.docx4j.openpackaging.parts.WordprocessingML.HeaderPart;
 import org.docx4j.relationships.Relationship;
 import org.docx4j.wml.*;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pro.verron.asciidoc.core.*;
 import pro.verron.asciidoc.core.Text;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Function;
 
 /// Renders an [AsciiDocModel] into a [WordprocessingMLPackage] using Docx4J.
@@ -24,10 +28,18 @@ import java.util.function.Function;
 /// images, and inline elements (bold, italic, links) into their DOCX
 /// counterparts.
 ///
+/// A `[section-properties]` block declares the layout of the section whose
+/// span it appears in — like `[header]`/`[footer]` blocks — and is merged
+/// into that section's `sectPr`.
+///
 /// @see DocxToAsciiDoc
 public final class AsciiDocToDocx implements Function<AsciiDocModel, WordprocessingMLPackage> {
+    private static final Logger log = LoggerFactory.getLogger(AsciiDocToDocx.class);
+    private static final List<String> KNOWN_SECTIONS = List.of("pgSz", "pgMar", "cols", "docGrid", "type",
+            "titlePg");
     private int headerCount = 1;
     private int footerCount = 1;
+    private final Map<String, Object> pendingSectionProperties = new TreeMap<>();
 
     /// Constructs a new [AsciiDocToDocx] converter.
     public AsciiDocToDocx() {
@@ -278,6 +290,170 @@ public final class AsciiDocToDocx implements Function<AsciiDocModel, Wordprocess
         return ob.header().stream().anyMatch(h -> h.startsWith("header") || h.startsWith("footer"));
     }
 
+    private static boolean isSectionProperties(OpenBlock ob) {
+        return ob.header().stream().anyMatch(SectionProperties.role()::equals);
+    }
+
+    /// Collects the property lines of a `[section-properties]` block into the
+    /// pending map; they will be merged into the sectPr of the section whose
+    /// span the block appeared in.
+    private void mergeSectionProperties(OpenBlock ob) {
+        for (Block block : ob.content()) {
+            if (!(block instanceof Paragraph(var header, var inlines)) || !header.isEmpty()) continue;
+            var text = inlines.stream()
+                              .filter(Text.class::isInstance)
+                              .map(inline -> ((Text) inline).text())
+                              .reduce("", (a, b) -> a + b);
+            for (var line : text.split("\n")) {
+                var trimmed = line.trim();
+                if (trimmed.isEmpty() || trimmed.startsWith("#")) continue;
+                var parsed = SectionProperties.parse(List.of(trimmed));
+                deepMerge(parsed);
+            }
+        }
+    }
+
+    private void deepMerge(Map<String, Object> parsed) {
+        parsed.forEach((key, value) -> {
+            if (value instanceof Map<?, ?> newNested && pendingSectionProperties.get(key) instanceof Map<?, ?>) {
+                @SuppressWarnings("unchecked") var existing = (Map<String, Object>) pendingSectionProperties.get(key);
+                @SuppressWarnings("unchecked") var toMerge = (Map<String, Object>) newNested;
+                toMerge.forEach(existing::put);
+            } else pendingSectionProperties.put(key, value);
+        });
+    }
+
+    /// Merges the pending `[section-properties]` values into the current
+    /// body-level sectPr (the one that is demoted at the next `[section]`
+    /// marker, or the final document section).
+    private void applyPendingSectionProperties(WordprocessingMLPackage pkg, ObjectFactory factory) {
+        if (pendingSectionProperties.isEmpty()) return;
+        var body = pkg.getMainDocumentPart()
+                      .getJaxbElement()
+                      .getBody();
+        var sectPr = body.getSectPr();
+        if (sectPr == null) {
+            sectPr = factory.createSectPr();
+            body.setSectPr(sectPr);
+        }
+        applySectionProperties(factory, sectPr, pendingSectionProperties);
+        pendingSectionProperties.clear();
+    }
+
+    private static java.util.Optional<BigInteger> bigInt(Map<?, ?> map, String key) {
+        return java.util.Optional.ofNullable((BigInteger) map.get(key));
+    }
+
+    private static void applySectionProperties(ObjectFactory factory, SectPr sectPr,
+            Map<String, Object> properties) {
+        for (var entry : properties.entrySet()) {
+            var key = entry.getKey();
+            if (!KNOWN_SECTIONS.contains(key)) {
+                log.warn("Ignoring unsupported [section-properties] entry: {}", key);
+                continue;
+            }
+            var value = entry.getValue();
+            switch (key) {
+                case "pgSz" -> {
+                    if (!(value instanceof Map<?, ?> pgSz)) throw new IllegalArgumentException("pgSz must be a map");
+                    var ct = pgSz(factory, sectPr);
+                    bigInt(pgSz, "w").ifPresent(ct::setW);
+                    bigInt(pgSz, "h").ifPresent(ct::setH);
+                    bigInt(pgSz, "code").ifPresent(ct::setCode);
+                    ofNullableMap(pgSz, "orient").map(String::valueOf)
+                            .ifPresent(o -> ct.setOrient(STPageOrientation.fromValue(o)));
+                }
+                case "pgMar" -> {
+                    if (!(value instanceof Map<?, ?> pgMar)) throw new IllegalArgumentException("pgMar must be a map");
+                    var ct = pgMar(factory, sectPr);
+                    bigInt(pgMar, "top").ifPresent(ct::setTop);
+                    bigInt(pgMar, "bottom").ifPresent(ct::setBottom);
+                    bigInt(pgMar, "left").ifPresent(ct::setLeft);
+                    bigInt(pgMar, "right").ifPresent(ct::setRight);
+                    bigInt(pgMar, "header").ifPresent(ct::setHeader);
+                    bigInt(pgMar, "footer").ifPresent(ct::setFooter);
+                    bigInt(pgMar, "gutter").ifPresent(ct::setGutter);
+                }
+                case "cols" -> {
+                    if (!(value instanceof Map<?, ?> cols)) throw new IllegalArgumentException("cols must be a map");
+                    var ct = cols(factory, sectPr);
+                    bigInt(cols, "num").ifPresent(ct::setNum);
+                    bigInt(cols, "space").ifPresent(ct::setSpace);
+                }
+                case "docGrid" -> {
+                    if (!(value instanceof Map<?, ?> docGrid)) throw new IllegalArgumentException(
+                            "docGrid must be a map");
+                    var ct = docGrid(factory, sectPr);
+                    bigInt(docGrid, "linePitch").ifPresent(ct::setLinePitch);
+                    bigInt(docGrid, "charSpace").ifPresent(ct::setCharSpace);
+                    ofNullableMap(docGrid, "type").map(String::valueOf)
+                            .ifPresent(t -> ct.setType(STDocGrid.fromValue(t)));
+                }
+                case "type" -> {
+                    var ct = type(factory, sectPr);
+                    ct.setVal(String.valueOf(value));
+                }
+                case "titlePg" -> {
+                    if (Boolean.TRUE.equals(value)) {
+                        var ct = new BooleanDefaultTrue();
+                        ct.setVal(true);
+                        sectPr.setTitlePg(ct);
+                    }
+                }
+                default -> log.warn("Ignoring unsupported [section-properties] entry: {}", key);
+            }
+        }
+    }
+
+    private static java.util.Optional<Object> ofNullableMap(Map<?, ?> map, String key) {
+        return java.util.Optional.ofNullable(map.get(key));
+    }
+
+    private static SectPr.PgSz pgSz(ObjectFactory factory, SectPr sectPr) {
+        var ct = sectPr.getPgSz();
+        if (ct == null) {
+            ct = factory.createSectPrPgSz();
+            sectPr.setPgSz(ct);
+        }
+        return ct;
+    }
+
+    private static SectPr.PgMar pgMar(ObjectFactory factory, SectPr sectPr) {
+        var ct = sectPr.getPgMar();
+        if (ct == null) {
+            ct = factory.createSectPrPgMar();
+            sectPr.setPgMar(ct);
+        }
+        return ct;
+    }
+
+    private static CTColumns cols(ObjectFactory factory, SectPr sectPr) {
+        var ct = sectPr.getCols();
+        if (ct == null) {
+            ct = factory.createCTColumns();
+            sectPr.setCols(ct);
+        }
+        return ct;
+    }
+
+    private static CTDocGrid docGrid(ObjectFactory factory, SectPr sectPr) {
+        var ct = sectPr.getDocGrid();
+        if (ct == null) {
+            ct = factory.createCTDocGrid();
+            sectPr.setDocGrid(ct);
+        }
+        return ct;
+    }
+
+    private static SectPr.Type type(ObjectFactory factory, SectPr sectPr) {
+        var ct = sectPr.getType();
+        if (ct == null) {
+            ct = factory.createSectPrType();
+            sectPr.setType(ct);
+        }
+        return ct;
+    }
+
     private static void addReference(WordprocessingMLPackage pkg, ObjectFactory factory, String relId, String role, boolean isHeader) {
         SectPr sectPr = pkg.getMainDocumentPart().getJaxbElement().getBody().getSectPr();
         if (sectPr == null) {
@@ -333,6 +509,7 @@ public final class AsciiDocToDocx implements Function<AsciiDocModel, Wordprocess
     public WordprocessingMLPackage apply(AsciiDocModel model) {
         headerCount = 1;
         footerCount = 1;
+        pendingSectionProperties.clear();
         try {
             var pkg = WordprocessingMLPackage.createPackage();
             var factory = Context.getWmlObjectFactory();
@@ -342,12 +519,20 @@ public final class AsciiDocToDocx implements Function<AsciiDocModel, Wordprocess
             for (Block block : model.getBlocks()) {
                 if (block instanceof OpenBlock ob && isHeaderOrFooter(ob)) {
                     processHeaderOrFooter(pkg, factory, ob);
+                } else if (block instanceof OpenBlock ob && isSectionProperties(ob)) {
+                    mergeSectionProperties(ob);
                 } else if (block instanceof SectionBreak) {
+                    // Properties declared in this section's span apply to the
+                    // sectPr that is about to be demoted onto its last paragraph.
+                    applyPendingSectionProperties(pkg, factory);
                     endSection(pkg, factory, mainContent);
                 } else {
                     addBlock(factory, mainContent, block);
                 }
             }
+            // Properties declared in the last section's span (no [section]
+            // marker follows) apply to the document's final, body-level sectPr.
+            applyPendingSectionProperties(pkg, factory);
             return pkg;
         } catch (Docx4JException e) {
             throw new IllegalStateException("Unable to create WordprocessingMLPackage", e);

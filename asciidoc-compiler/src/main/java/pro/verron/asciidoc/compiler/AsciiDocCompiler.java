@@ -98,7 +98,21 @@ public final class AsciiDocCompiler {
     /// @param skipComments whether to omit comments from the output
     /// @return the textual AsciiDoc representation of the Word document package
     public static String toAsciidoc(WordprocessingMLPackage pkg, boolean skipComments) {
-        var model = toModel(pkg);
+        return toAsciidoc(pkg, skipComments, true);
+    }
+
+    /// Converts the given WordprocessingMLPackage into its textual AsciiDoc representation.
+    ///
+    /// @param pkg                    a Word document package
+    /// @param skipComments           whether to omit comments from the output
+    /// @param emitSectionProperties  whether to emit a `[section-properties]`
+    ///                               block for each section's layout; tests
+    ///                               that do not verify those values can pass
+    ///                               {@code false} to keep the output minimal
+    /// @return the textual AsciiDoc representation of the Word document package
+    public static String toAsciidoc(WordprocessingMLPackage pkg, boolean skipComments,
+            boolean emitSectionProperties) {
+        var model = toModel(pkg, emitSectionProperties);
         return toAsciidoc(model, skipComments);
     }
 
@@ -107,7 +121,16 @@ public final class AsciiDocCompiler {
     /// @param pkg a Word document package
     /// @return parsed model
     public static AsciiDocModel toModel(WordprocessingMLPackage pkg) {
-        var compiler = new DocxToAsciiDoc(pkg);
+        return toModel(pkg, true);
+    }
+
+    /// Parses a Word document into an [AsciiDocModel].
+    ///
+    /// @param pkg                   a Word document package
+    /// @param emitSectionProperties whether to emit `[section-properties]` blocks
+    /// @return parsed model
+    public static AsciiDocModel toModel(WordprocessingMLPackage pkg, boolean emitSectionProperties) {
+        var compiler = new DocxToAsciiDoc(pkg, emitSectionProperties);
         return compiler.apply(pkg);
     }
 

@@ -56,11 +56,26 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
     private final AltContentRecorder altContentRecorder;
     private List<SectionWrapper> sectionWrappers;
     private int nextWrapperIndex;
+    private final boolean emitSectionProperties;
 
-    /// Constructs a new [DocxToAsciiDoc] for the given DOCX package.
+    /// Constructs a new [DocxToAsciiDoc] for the given DOCX package, emitting
+    /// `[section-properties]` blocks for every section's page setup.
     ///
     /// @param pkg the WordprocessingMLPackage to convert
     public DocxToAsciiDoc(WordprocessingMLPackage pkg) {
+        this(pkg, true);
+    }
+
+    /// Constructs a new [DocxToAsciiDoc] for the given DOCX package.
+    ///
+    /// @param pkg                    the WordprocessingMLPackage to convert
+    /// @param emitSectionProperties  whether to emit a `[section-properties]`
+    ///                               block for each section's layout (page
+    ///                               size, margins, …). Tests that do not
+    ///                               verify those values can pass `false` to
+    ///                               keep the output minimal.
+    public DocxToAsciiDoc(WordprocessingMLPackage pkg, boolean emitSectionProperties) {
+        this.emitSectionProperties = emitSectionProperties;
         this.wordprocessingMLPackage = pkg;
         var mdp = wordprocessingMLPackage.getMainDocumentPart();
         this.styleDefinitionsPart = mdp.getStyleDefinitionsPart(true);
@@ -325,12 +340,14 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
                     else blocks.add(new Paragraph(style, toInlines(p, breakRecorder)));
 
                     // A paragraph-level sectPr marks a section break (it holds
-                    // the section's own sectPr); emit the [section] marker so
-                    // AsciiDoc→DOCX→AsciiDoc round-trips it, followed by the
-                    // next section's own header/footer blocks. The body-level
-                    // sectPr below still reports the final section's page setup.
+                    // the section's own sectPr); emit its [section-properties]
+                    // block (binds to the section it ends), then the [section]
+                    // marker, followed by the next section's own header/footer
+                    // blocks.
                     ofNullable(p.getPPr()).map(PPr::getSectPr)
-                            .ifPresent(_ -> {
+                            .ifPresent(sectPr -> {
+                                if (emitSectionProperties) blocks.addAll(
+                                        sectionPropertiesBlocks(sectPrMap(sectPr)));
                                 blocks.add(new SectionBreak());
                                 if (sectionWrappers != null && nextWrapperIndex < sectionWrappers.size())
                                     blocks.addAll(ownHeaderFooterBlocks(sectionWrappers,
@@ -386,7 +403,11 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
         return map.isEmpty() ? Optional.empty() : Optional.of("runPr %s".formatted(map));
     }
 
-    private Optional<String> stringified(SectPr sectPr) {
+    /// Extracts a section's layout into the canonical nested map consumed by
+    /// [SectionProperties]. Only the round-trippable scalar fields are
+    /// included; complex children (page borders, column definitions) are
+    /// deliberately omitted.
+    private Map<String, Object> sectPrMap(SectPr sectPr) {
         var map = new TreeMap<String, Object>();
         ofNullable(sectPr.getDocGrid()).ifPresent(d -> {
             var dgmap = new TreeMap<String, Object>();
@@ -414,25 +435,25 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
             ofNullable(p.getCode()).filter(t -> !BigInteger.ZERO.equals(t)).ifPresent(c -> psmap.put("code", c));
             map.put("pgSz", psmap);
         });
-        ofNullable(sectPr.getPgBorders()).ifPresent(p -> map.put("pgBorders", p));
-        ofNullable(sectPr.getBidi()).ifPresent(b -> map.put("bidi", b.isVal()));
         ofNullable(sectPr.getCols()).ifPresent(c -> {
             var colMap = new TreeMap<String, Object>();
-            ofNullable(c.getNum()).filter(t -> !BigInteger.ZERO.equals(t)).ifPresent(n -> map.put("num", n));
-            ofNullable(c.getSpace()).filter(t -> !BigInteger.ZERO.equals(t)).ifPresent(s -> map.put("space", s));
-            ofNullable(c.getCol()).ifPresent(c1 -> {
-                var list = c1.stream().map(coli -> {
-                    var colim = new TreeMap<String, Object>();
-                    ofNullable(coli.getSpace()).ifPresent(s -> colim.put("space", s));
-                    ofNullable(coli.getW()).ifPresent(w -> colim.put("w", w));
-                    return colim;
-                }).toList();
-                if (!list.isEmpty()) colMap.put("col", list);
-            });
+            ofNullable(c.getNum()).filter(t -> !BigInteger.ZERO.equals(t)).ifPresent(n -> colMap.put("num", n));
+            ofNullable(c.getSpace()).filter(t -> !BigInteger.ZERO.equals(t)).ifPresent(s -> colMap.put("space", s));
             if (!colMap.isEmpty()) map.put("cols", colMap);
         });
-        ofNullable(sectPr.getType()).ifPresent(t -> map.put("type", t));
-        return map.isEmpty() ? Optional.empty() : Optional.of("section %s".formatted(map));
+        ofNullable(sectPr.getType()).map(SectPr.Type::getVal).ifPresent(t -> map.put("type", t));
+        ofNullable(sectPr.getTitlePg()).filter(BooleanDefaultTrue::isVal)
+                .ifPresent(_ -> map.put("titlePg", true));
+        return map;
+    }
+
+    /// Wraps a section layout map into a `[section-properties]` block holding
+    /// one line per top-level property.
+    private static List<Block> sectionPropertiesBlocks(Map<String, Object> map) {
+        if (map.isEmpty()) return List.of();
+        var lines = SectionProperties.render(map);
+        var paragraph = new Paragraph(List.of(new Text(String.join("\n", lines))));
+        return List.of(new OpenBlock(List.of(SectionProperties.role()), List.of(paragraph)));
     }
 
     private Optional<String> style(P p) {
@@ -528,8 +549,11 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
             }
             var body = contents.getBody();
             readBlocks(body);
-            if (body.getSectPr() instanceof SectPr sectPr)
-                stringified(sectPr).ifPresent(s -> blocks.add(new CommentBlock(s)));
+            // The body-level sectPr holds the LAST section's layout; emit it
+            // as a [section-properties] block so the final section's page
+            // setup round-trips too.
+            if (emitSectionProperties && body.getSectPr() instanceof SectPr sectPr)
+                blocks.addAll(sectionPropertiesBlocks(sectPrMap(sectPr)));
         }
 
         try {

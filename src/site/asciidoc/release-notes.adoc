@@ -7,6 +7,7 @@
 === New Features
 
 * **Section Round-trip**: The DOCX→AsciiDoc converter now reconstructs the standalone `[section]` marker from a document's section breaks, so an AsciiDoc→DOCX→AsciiDoc round-trip is a fixed point. Each section's own `[header]`/`[footer]` blocks are emitted at the start of that section's span — right after its `[section]` marker — instead of collecting all headers at the top and all footers at the document end, which rebound them to the wrong section on re-conversion. Empty header/footer parts are preserved, keeping the empty blocks that break inheritance.
+* **Section Properties**: A new span-scoped `[section-properties]` block declares a section's layout (page size, margins, orientation, columns, document grid, break type, different-first-page), bound like `[header]`/`[footer]` to the section whose span it appears in. The DOCX→AsciiDoc converter emits it for every section (replacing the old dead `// section {...}` comment), so page setup round-trips losslessly; this emission can be disabled for tests that do not verify those values (`toAsciidoc(pkg, skipComments, false)`). Property values accept two equivalent formats, usable freely and mixable: nested brace maps (`pgSz={w=11906, h=16838}`) and dotted paths (`pgSz.w=11906`, `pgSz.h=16838`).
 
 === Improvements and Fixes
 

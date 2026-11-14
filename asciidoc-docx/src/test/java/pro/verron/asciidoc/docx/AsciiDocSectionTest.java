@@ -3,9 +3,13 @@ package pro.verron.asciidoc.docx;
 import org.docx4j.model.structure.SectionWrapper;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 import org.docx4j.openpackaging.parts.WordprocessingML.HeaderPart;
+import org.docx4j.wml.STPageOrientation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import pro.verron.asciidoc.core.AsciiDocParser;
+
+import java.math.BigInteger;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -164,11 +168,11 @@ public class AsciiDocSectionTest {
 
                 Second section content
                 """;
-        var rendered = toText(toDocx(source));
+        var rendered = toText(toDocx(source), false);
         assertEquals(source.stripTrailing(), rendered.stripTrailing(),
                 "The [section] marker should be reconstructed by the DOCX→AsciiDoc converter");
 
-        var stabilized = toText(toDocx(rendered));
+        var stabilized = toText(toDocx(rendered), false);
         assertEquals(rendered.stripTrailing(), stabilized.stripTrailing(),
                 "The round-trip should be a fixed point: converting the rendered text again must not change it");
     }
@@ -193,7 +197,7 @@ public class AsciiDocSectionTest {
 
                 Second section content
                 """;
-        var rendered = toText(toDocx(source));
+        var rendered = toText(toDocx(source), false);
         assertEquals(source.stripTrailing(), rendered.stripTrailing(),
                 "Header/footer blocks and the [section] marker should survive the DOCX round-trip, "
                         + "with each block bound to the section it came from");
@@ -218,15 +222,93 @@ public class AsciiDocSectionTest {
 
                 Second section content
                 """;
-        var rendered = toText(toDocx(source));
+        var rendered = toText(toDocx(source), false);
         assertEquals(source.stripTrailing(), rendered.stripTrailing(),
                 "The empty [footer] block that breaks inheritance should survive the DOCX round-trip");
     }
 
+    @Test
+    @DisplayName("[section-properties] should apply its page setup to the section it ends, and round-trip")
+    void sectionPropertiesRoundTripThroughDocx() {
+        var source = """
+                [section-properties]
+                --
+                pgSz={w=16838, h=11906, orient=landscape}
+                --
+
+                First section content
+
+                [section]
+
+                Second section content
+                """;
+        var pkg = toDocx(source);
+
+        var firstPage = pkg.getDocumentModel()
+                           .getSections()
+                           .getFirst()
+                           .getSectPr()
+                           .getPgSz();
+        assertEquals(BigInteger.valueOf(16838), firstPage.getW(), "The landscape width should be applied");
+        assertEquals(BigInteger.valueOf(11906), firstPage.getH(), "The landscape height should be applied");
+        assertEquals(STPageOrientation.LANDSCAPE, firstPage.getOrient(), "The orientation should be applied");
+
+        var rendered = toText(pkg, true);
+        assertTrue(rendered.contains("pgSz={code=9, h=11906, orient=landscape, w=16838}"),
+                "The emitted properties block should carry the landscape page setup: " + rendered);
+
+        // The converter re-emits the document's full page setup (including
+        // defaults the source omitted), so the first render is canonical but
+        // not byte-identical; converting it again must be a fixed point.
+        var stabilized = toText(toDocx(rendered), true);
+        assertEquals(rendered.stripTrailing(), stabilized.stripTrailing(),
+                "The properties round-trip should be a fixed point");
+    }
+
+    @Test
+    @DisplayName("Dotted-path and nested-brace property values should be equivalent")
+    void dottedAndNestedSectionPropertiesAreEquivalent() {
+        var nested = toDocx("""
+                [section-properties]
+                --
+                pgSz={w=11906, h=16838}
+                pgMar={top=720, bottom=720}
+                --
+
+                Content
+                """);
+        var dotted = toDocx("""
+                [section-properties]
+                --
+                pgSz.w=11906
+                pgSz.h=16838
+                pgMar.top=720
+                pgMar.bottom=720
+                --
+
+                Content
+                """);
+
+        for (var pkg : List.of(nested, dotted)) {
+            var sectPr = pkg.getMainDocumentPart()
+                            .getJaxbElement()
+                            .getBody()
+                            .getSectPr();
+            assertEquals(BigInteger.valueOf(11906), sectPr.getPgSz()
+                                                          .getW());
+            assertEquals(BigInteger.valueOf(16838), sectPr.getPgSz()
+                                                          .getH());
+            assertEquals(BigInteger.valueOf(720), sectPr.getPgMar()
+                                                        .getTop());
+            assertEquals(BigInteger.valueOf(720), sectPr.getPgMar()
+                                                        .getBottom());
+        }
+    }
+
     /// Renders a DOCX package back to AsciiDoc text, the way consumers compare
     /// stamped documents against their templates.
-    private static String toText(WordprocessingMLPackage pkg) {
-        var model = new DocxToAsciiDoc(pkg).apply(pkg);
+    private static String toText(WordprocessingMLPackage pkg, boolean emitSectionProperties) {
+        var model = new DocxToAsciiDoc(pkg, emitSectionProperties).apply(pkg);
         return new pro.verron.asciidoc.converters.AsciiDocToText(true).apply(model);
     }
 
