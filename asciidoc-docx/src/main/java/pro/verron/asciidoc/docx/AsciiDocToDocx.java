@@ -16,6 +16,8 @@ import pro.verron.asciidoc.core.*;
 import pro.verron.asciidoc.core.Text;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -36,7 +38,7 @@ import java.util.function.Function;
 public final class AsciiDocToDocx implements Function<AsciiDocModel, WordprocessingMLPackage> {
     private static final Logger log = LoggerFactory.getLogger(AsciiDocToDocx.class);
     private static final List<String> KNOWN_SECTIONS = List.of("pgSz", "pgMar", "cols", "docGrid", "type",
-            "titlePg");
+            "titlePg", "pgBorders", "bidi");
     private int headerCount = 1;
     private int footerCount = 1;
     private final Map<String, Object> pendingSectionProperties = new TreeMap<>();
@@ -379,6 +381,24 @@ public final class AsciiDocToDocx implements Function<AsciiDocModel, Wordprocess
                     var ct = cols(factory, sectPr);
                     bigInt(cols, "num").ifPresent(ct::setNum);
                     bigInt(cols, "space").ifPresent(ct::setSpace);
+                    if (cols.get("col") instanceof Map<?, ?> colMap) {
+                        var list = new ArrayList<CTColumn>();
+                        colMap.keySet()
+                              .stream()
+                              .map(String::valueOf)
+                              .sorted(Comparator.comparingInt(Integer::parseInt))
+                              .forEach(k -> {
+                                  if (!(colMap.get(k) instanceof Map<?, ?> colm))
+                                      throw new IllegalArgumentException(
+                                              "cols.col entries must be maps: '%s'".formatted(k));
+                                  var col = factory.createCTColumn();
+                                  bigInt(colm, "space").ifPresent(col::setSpace);
+                                  bigInt(colm, "w").ifPresent(col::setW);
+                                  list.add(col);
+                              });
+                        ct.getCol().clear();
+                        ct.getCol().addAll(list);
+                    }
                 }
                 case "docGrid" -> {
                     if (!(value instanceof Map<?, ?> docGrid)) throw new IllegalArgumentException(
@@ -398,6 +418,28 @@ public final class AsciiDocToDocx implements Function<AsciiDocModel, Wordprocess
                         var ct = new BooleanDefaultTrue();
                         ct.setVal(true);
                         sectPr.setTitlePg(ct);
+                    }
+                }
+                case "pgBorders" -> {
+                    if (!(value instanceof Map<?, ?> pb))
+                        throw new IllegalArgumentException("pgBorders must be a map");
+                    var ct = pgBorders(factory, sectPr);
+                    ofNullableMap(pb, "offsetFrom").map(String::valueOf)
+                            .ifPresent(o -> ct.setOffsetFrom(STPageBorderOffset.fromValue(o)));
+                    ofNullableMap(pb, "display").map(String::valueOf)
+                            .ifPresent(d -> ct.setDisplay(STPageBorderDisplay.fromValue(d)));
+                    ofNullableMap(pb, "zOrder").map(String::valueOf)
+                            .ifPresent(z -> ct.setZOrder(STPageBorderZOrder.fromValue(z)));
+                    pageBorder(factory, ct, "top", pb);
+                    pageBorder(factory, ct, "bottom", pb);
+                    pageBorder(factory, ct, "left", pb);
+                    pageBorder(factory, ct, "right", pb);
+                }
+                case "bidi" -> {
+                    if (Boolean.TRUE.equals(value)) {
+                        var ct = new BooleanDefaultTrue();
+                        ct.setVal(true);
+                        sectPr.setBidi(ct);
                     }
                 }
                 default -> log.warn("Ignoring unsupported [section-properties] entry: {}", key);
@@ -445,6 +487,15 @@ public final class AsciiDocToDocx implements Function<AsciiDocModel, Wordprocess
         return ct;
     }
 
+    private static SectPr.PgBorders pgBorders(ObjectFactory factory, SectPr sectPr) {
+        var ct = sectPr.getPgBorders();
+        if (ct == null) {
+            ct = factory.createSectPrPgBorders();
+            sectPr.setPgBorders(ct);
+        }
+        return ct;
+    }
+
     private static SectPr.Type type(ObjectFactory factory, SectPr sectPr) {
         var ct = sectPr.getType();
         if (ct == null) {
@@ -452,6 +503,26 @@ public final class AsciiDocToDocx implements Function<AsciiDocModel, Wordprocess
             sectPr.setType(ct);
         }
         return ct;
+    }
+
+    /// Creates or updates one page-border side from its map (`val`, `sz`,
+    /// `space`, `color`).
+    private static void pageBorder(ObjectFactory factory, SectPr.PgBorders pgBorders, String side, Map<?, ?> pb) {
+        if (!(ofNullableMap(pb, side).orElse(null) instanceof Map<?, ?> bmap)) return;
+        var border = factory.createCTBorder();
+        ofNullableMap(bmap, "val").map(String::valueOf)
+                .ifPresent(v -> border.setVal(STBorder.fromValue(v)));
+        bigInt(bmap, "sz").ifPresent(border::setSz);
+        bigInt(bmap, "space").ifPresent(border::setSpace);
+        ofNullableMap(bmap, "color").map(String::valueOf)
+                .ifPresent(border::setColor);
+        switch (side) {
+            case "top" -> pgBorders.setTop(border);
+            case "bottom" -> pgBorders.setBottom(border);
+            case "left" -> pgBorders.setLeft(border);
+            case "right" -> pgBorders.setRight(border);
+            default -> throw new IllegalArgumentException("Unknown page border side: " + side);
+        }
     }
 
     private static void addReference(WordprocessingMLPackage pkg, ObjectFactory factory, String relId, String role, boolean isHeader) {

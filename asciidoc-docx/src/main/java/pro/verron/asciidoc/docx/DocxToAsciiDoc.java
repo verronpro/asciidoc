@@ -89,31 +89,68 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
     /// Returns the `[header]`/`[footer]` blocks of the section at `index` that
     /// are not inherited from an earlier section, in Word's model where a
     /// section shares the previous section's parts by referencing the same
-    /// part object. Inherited parts are skipped so a section declaring none
-    /// emits nothing, and the blocks land in the section's own span.
+    /// part object. Ownership is decided from the section's own
+    /// `headerReference`/`footerReference` elements, so parts docx4j
+    /// auto-creates for `titlePg` sections (which carry no reference) are
+    /// never emitted. Inherited parts are skipped so a section declaring none
+    /// emits nothing, and the blocks land in the section's own span. The
+    /// reference kind (`first`, `even`) is reflected in the block role so the
+    /// kind survives the round-trip.
     private List<Block> ownHeaderFooterBlocks(List<SectionWrapper> wrappers, int index) {
         var result = new ArrayList<Block>();
-        var policy = wrappers.get(index)
-                             .getHeaderFooterPolicy();
-        if (policy == null) return result;
+        var own = referencedParts(wrappers.get(index)
+                                          .getSectPr());
+        if (own.isEmpty()) return result;
 
         var inherited = new HashSet<>();
-        for (int i = 0; i < index; i++) {
-            var earlier = wrappers.get(i)
-                                  .getHeaderFooterPolicy();
-            if (earlier == null) continue;
-            for (var part : new Object[]{earlier.getFirstHeader(), earlier.getDefaultHeader(),
-                    earlier.getEvenHeader(), earlier.getFirstFooter(), earlier.getDefaultFooter(),
-                    earlier.getEvenFooter()})
-                if (part != null) inherited.add(part);
-        }
+        for (int i = 0; i < index; i++) inherited.addAll(referencedParts(wrappers.get(i)
+                                                                                 .getSectPr()));
+        own.removeAll(inherited);
 
-        for (var part : new HeaderPart[]{policy.getFirstHeader(), policy.getDefaultHeader(),
-                policy.getEvenHeader()})
-            if (part != null && !inherited.contains(part)) toHeaderBlock(part).ifPresent(result::add);
-        for (var part : new FooterPart[]{policy.getFirstFooter(), policy.getDefaultFooter(),
-                policy.getEvenFooter()})
-            if (part != null && !inherited.contains(part)) toFooterBlock(part).ifPresent(result::add);
+        for (var entry : own) {
+            var kind = switch (entry.kind()) {
+                case "first" -> "-first";
+                case "even" -> "-even";
+                default -> "";
+            };
+            if (entry.part() instanceof HeaderPart hp) toHeaderBlock(hp, "header" + kind)
+                    .ifPresent(result::add);
+            else if (entry.part() instanceof FooterPart fp) toFooterBlock(fp, "footer" + kind)
+                    .ifPresent(result::add);
+        }
+        return result;
+    }
+
+    private record ReferencedPart(String kind, Object part) {
+    }
+
+    /// Resolves a section's header/footer references to their parts, in
+    /// document order. Unresolvable relationships are skipped.
+    private List<ReferencedPart> referencedParts(SectPr sectPr) {
+        var mdp = wordprocessingMLPackage.getMainDocumentPart();
+        var result = new ArrayList<ReferencedPart>();
+        for (var ref : sectPr.getEGHdrFtrReferences()) {
+            var relId = switch (ref) {
+                case HeaderReference h -> h.getId();
+                case FooterReference f -> f.getId();
+                default -> null;
+            };
+            if (relId == null) continue;
+            var relationship = mdp.getRelationshipsPart()
+                                  .getRelationshipByID(relId);
+            if (relationship == null) continue;
+            var kind = switch (ref) {
+                case HeaderReference h -> h.getType()
+                                           .value();
+                case FooterReference f -> f.getType()
+                                           .value();
+                default -> "default";
+            };
+            var target = mdp.getRelationshipsPart()
+                            .getPart(relId);
+            if (target instanceof HeaderPart hp) result.add(new ReferencedPart(kind, hp));
+            else if (target instanceof FooterPart fp) result.add(new ReferencedPart(kind, fp));
+        }
         return result;
     }
 
@@ -439,12 +476,52 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
             var colMap = new TreeMap<String, Object>();
             ofNullable(c.getNum()).filter(t -> !BigInteger.ZERO.equals(t)).ifPresent(n -> colMap.put("num", n));
             ofNullable(c.getSpace()).filter(t -> !BigInteger.ZERO.equals(t)).ifPresent(s -> colMap.put("space", s));
+            ofNullable(c.getCol()).filter(l -> !l.isEmpty()).ifPresent(list -> {
+                // Encode the ordered column list as a map keyed by index; the
+                // applier restores the order numerically.
+                var col = new TreeMap<String, Object>();
+                for (int i = 0; i < list.size(); i++) {
+                    var ct = list.get(i);
+                    var m = new TreeMap<String, Object>();
+                    ofNullable(ct.getSpace()).ifPresent(s -> m.put("space", s));
+                    ofNullable(ct.getW()).ifPresent(w -> m.put("w", w));
+                    col.put(String.valueOf(i), m);
+                }
+                colMap.put("col", col);
+            });
             if (!colMap.isEmpty()) map.put("cols", colMap);
         });
+        ofNullable(sectPr.getPgBorders()).ifPresent(p -> {
+            var pbmap = new TreeMap<String, Object>();
+            ofNullable(p.getOffsetFrom()).ifPresent(o -> pbmap.put("offsetFrom", o.value()));
+            ofNullable(p.getDisplay()).ifPresent(d -> pbmap.put("display", d.value()));
+            ofNullable(p.getZOrder()).ifPresent(z -> pbmap.put("zOrder", z.value()));
+            borderMap("bottom", p.getBottom(), pbmap);
+            borderMap("left", p.getLeft(), pbmap);
+            borderMap("right", p.getRight(), pbmap);
+            borderMap("top", p.getTop(), pbmap);
+            if (!pbmap.isEmpty()) map.put("pgBorders", pbmap);
+        });
+        ofNullable(sectPr.getBidi()).filter(BooleanDefaultTrue::isVal)
+                .ifPresent(_ -> map.put("bidi", true));
         ofNullable(sectPr.getType()).map(SectPr.Type::getVal).ifPresent(t -> map.put("type", t));
         ofNullable(sectPr.getTitlePg()).filter(BooleanDefaultTrue::isVal)
                 .ifPresent(_ -> map.put("titlePg", true));
         return map;
+    }
+
+    /// Encodes one page-border side (`val`, `sz`, `space`, `color`) into the
+    /// `pgBorders` map. Theme-based colors and the `shadow`/`frame` flags are
+    /// not round-trippable (docx4j's `CTBorder` cannot distinguish an unset
+    /// flag from a set one) and are skipped.
+    private static void borderMap(String side, CTBorder border, TreeMap<String, Object> pbmap) {
+        if (border == null) return;
+        var bmap = new TreeMap<String, Object>();
+        ofNullable(border.getVal()).ifPresent(v -> bmap.put("val", v.value()));
+        ofNullable(border.getSz()).filter(t -> !BigInteger.ZERO.equals(t)).ifPresent(s -> bmap.put("sz", s));
+        ofNullable(border.getSpace()).filter(t -> !BigInteger.ZERO.equals(t)).ifPresent(s -> bmap.put("space", s));
+        ofNullable(border.getColor()).ifPresent(c -> bmap.put("color", c));
+        if (!bmap.isEmpty()) pbmap.put(side, bmap);
     }
 
     /// Wraps a section layout map into a `[section-properties]` block holding
@@ -580,20 +657,20 @@ public final class DocxToAsciiDoc implements Function<WordprocessingMLPackage, A
         return of(list);
     }
 
-    private Optional<Block> toFooterBlock(FooterPart footerPart) {
+    private Optional<Block> toFooterBlock(FooterPart footerPart, String role) {
         var toAsciiDoc = new DocxToAsciiDoc(wordprocessingMLPackage);
         var extractedBlocks = toAsciiDoc.apply(footerPart).getBlocks();
         // An empty part is meaningful: it is the AsciiDoc encoding of an
         // inheritance-breaking empty [footer] block, so keep it.
-        return Optional.of(new OpenBlock(List.of("footer"), extractedBlocks));
+        return Optional.of(new OpenBlock(List.of(role), extractedBlocks));
     }
 
-    private Optional<Block> toHeaderBlock(HeaderPart headerPart) {
+    private Optional<Block> toHeaderBlock(HeaderPart headerPart, String role) {
         var toAsciiDoc = new DocxToAsciiDoc(wordprocessingMLPackage);
         var extractedBlocks = toAsciiDoc.apply(headerPart).getBlocks();
         // An empty part is meaningful: it is the AsciiDoc encoding of an
         // inheritance-breaking empty [header] block, so keep it.
-        return Optional.of(new OpenBlock(List.of("header"), extractedBlocks));
+        return Optional.of(new OpenBlock(List.of(role), extractedBlocks));
     }
 
     private Optional<Block> toNoteBlock(String role, List<CTFtnEdn> notes) {

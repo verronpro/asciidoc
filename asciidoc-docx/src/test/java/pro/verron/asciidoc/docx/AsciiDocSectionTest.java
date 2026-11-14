@@ -3,6 +3,8 @@ package pro.verron.asciidoc.docx;
 import org.docx4j.model.structure.SectionWrapper;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 import org.docx4j.openpackaging.parts.WordprocessingML.HeaderPart;
+import org.docx4j.wml.STBorder;
+import org.docx4j.wml.STPageBorderOffset;
 import org.docx4j.wml.STPageOrientation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,6 +14,7 @@ import java.math.BigInteger;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -303,6 +306,105 @@ public class AsciiDocSectionTest {
             assertEquals(BigInteger.valueOf(720), sectPr.getPgMar()
                                                         .getBottom());
         }
+    }
+
+    @Test
+    @DisplayName("Complex section children (columns, page borders, bidi, break type, titlePg) should round-trip")
+    void complexSectionChildrenRoundTripThroughDocx() {
+        var source = """
+                [section-properties]
+                --
+                bidi=true
+                cols={col={0={space=720, w=4788}, 1={space=720, w=7118}}, num=2, space=720}
+                pgBorders={offsetFrom=page, top={color=auto, sz=24, space=24, val=single}}
+                titlePg=true
+                type=nextPage
+                --
+
+                Content
+                """;
+        var pkg = toDocx(source);
+        var sectPr = pkg.getMainDocumentPart()
+                        .getJaxbElement()
+                        .getBody()
+                        .getSectPr();
+
+        var cols = sectPr.getCols();
+        assertEquals(BigInteger.valueOf(2), cols.getNum(), "The column count should be applied");
+        assertEquals(2, cols.getCol()
+                            .size(), "Both column definitions should be applied");
+        assertEquals(BigInteger.valueOf(4788), cols.getCol()
+                                                   .getFirst()
+                                                   .getW());
+        assertEquals(BigInteger.valueOf(7118), cols.getCol()
+                                                   .getLast()
+                                                   .getW());
+
+        var pgBorders = sectPr.getPgBorders();
+        assertEquals(STPageBorderOffset.PAGE, pgBorders.getOffsetFrom());
+        assertEquals(STBorder.SINGLE, pgBorders.getTop()
+                                               .getVal());
+        assertEquals(BigInteger.valueOf(24), pgBorders.getTop()
+                                                      .getSz());
+        assertEquals(BigInteger.valueOf(24), pgBorders.getTop()
+                                                      .getSpace());
+        assertEquals("auto", pgBorders.getTop()
+                                      .getColor());
+
+        assertTrue(sectPr.getBidi()
+                         .isVal(), "bidi should be applied");
+        assertTrue(sectPr.getTitlePg()
+                         .isVal(), "titlePg should be applied");
+        assertEquals("nextPage", sectPr.getType()
+                                       .getVal(), "The break type should be applied");
+
+        var rendered = toText(pkg, true);
+        assertTrue(rendered.contains("bidi=true"), rendered);
+        assertTrue(rendered.contains("cols={col={0={space=720, w=4788}, 1={space=720, w=7118}}, num=2, space=720}"),
+                rendered);
+        assertTrue(rendered.contains("pgBorders={offsetFrom=page, top={color=auto, space=24, sz=24, val=single}}"),
+                rendered);
+        assertTrue(rendered.contains("titlePg=true"), rendered);
+        assertTrue(rendered.contains("type=nextPage"), rendered);
+        assertFalse(rendered.contains("[header]") || rendered.contains("[footer]"),
+                "titlePg without header/footer references must not emit empty blocks: " + rendered);
+
+        var stabilized = toText(toDocx(rendered), true);
+        assertEquals(rendered.stripTrailing(), stabilized.stripTrailing(),
+                "The complex-properties round-trip should be a fixed point");
+    }
+
+    @Test
+    @DisplayName("First-page and even header/footer kinds should round-trip with their role")
+    void headerFooterKindsRoundTripThroughDocx() {
+        var source = """
+                [header-first]
+                --
+                First page header
+                --
+
+                [header-even]
+                --
+                Even page header
+                --
+
+                Content
+                """;
+        var pkg = toDocx(source);
+        assertTrue(pkg.getMainDocumentPart()
+                      .getJaxbElement()
+                      .getBody()
+                      .getSectPr()
+                      .getTitlePg()
+                      .isVal(), "A [header-first] block should enable titlePg");
+
+        var rendered = toText(pkg, true);
+        assertTrue(rendered.contains("[header-first]"), rendered);
+        assertTrue(rendered.contains("[header-even]"), rendered);
+
+        var stabilized = toText(toDocx(rendered), true);
+        assertEquals(rendered.stripTrailing(), stabilized.stripTrailing(),
+                "The header-kind round-trip should be a fixed point");
     }
 
     /// Renders a DOCX package back to AsciiDoc text, the way consumers compare
