@@ -2,7 +2,11 @@
 :gh: https://github.com/verronpro/asciidoc
 :proj: https://github.com/verronpro/asciidoc/releases/tag
 
-== v3.11 (upcoming)
+== v4.0.0 (upcoming)
+
+=== Breaking Changes
+
+* **Section Comments Removed**: The dead `// section {...}` comments the DOCX→AsciiDoc converter used to emit are gone. Section layout is now carried by the machine-readable `[section-properties]` block, emitted by default; callers that do not verify those values can restore the minimal output with `toAsciidoc(pkg, skipComments, false)`. Test pins capturing section layout as comments must be migrated.
 
 === New Features
 
